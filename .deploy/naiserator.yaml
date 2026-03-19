@@ -1,0 +1,103 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: fplos
+  namespace: teamforeldrepenger
+  labels:
+    team: teamforeldrepenger
+spec:
+  ingresses:
+    - {{ingress}} # for migrering mellom fss og gcp
+  image: {{image}}
+  port: 8080
+  liveness:
+    path: /fplos/internal/health/isAlive
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 20
+    timeout: 3
+  readiness:
+    path: /fplos/internal/health/isReady
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 20
+    timeout: 3
+  preStopHook:
+    http:
+      path: /fplos/internal/health/preStop
+  prometheus:
+    enabled: true
+    path: /fplos/internal/metrics/prometheus
+  replicas:
+    min: {{minReplica}}
+    max: {{maxReplica}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 80
+  resources:
+    limits:
+      cpu: "{{limits.cpu}}"
+      memory: "{{limits.mem}}"
+    requests:
+      cpu: "{{requests.cpu}}"
+      memory: "{{requests.mem}}"
+  kafka:
+      pool: {{kafkaPool}}
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+  gcp:
+    sqlInstances:
+      - type: {{db.dbVersion}}
+        databases:
+          - name: fplos
+            envVarPrefix: DB
+        tier: {{db.dbTier}}
+        diskAutoresize: {{db.dbDiskAutoresize}}
+        highAvailability: {{db.dbHighAvailability}}
+        pointInTimeRecovery: {{db.dbPointInTimeRecovery}}
+        collation: nb_NO.UTF8
+        autoBackupHour: 2
+        maintenance:
+          day: 1
+          hour: 4
+  azure:
+    application:
+      enabled: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
+        groups:
+          {{#each groups as |group|}}
+          - id: "{{group.uuid}}"
+          {{/each}}
+  accessPolicy:
+    inbound:
+      rules:
+        - application: fplos
+          cluster: {{environment}}-fss
+        - application: fp-frontend
+        - application: fp-avdelingsleder
+        - application: fp-swagger
+          permissions:
+            scopes:
+              - swagger
+        {{#each extraInboundRules as |rule|}}
+        - application: {{rule.application}}
+          namespace: {{rule.namespace}}
+        {{/each}}
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
+      external:
+        - host: fpsak-api.{{environment}}-fss-pub.nais.io
+        - host: fptilbake.{{environment}}-fss-pub.nais.io
+        - host: fptilgang.{{environment}}-fss-pub.nais.io
+        - host: pdl-api.{{environment}}-fss-pub.nais.io
