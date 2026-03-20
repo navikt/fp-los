@@ -1,0 +1,96 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: fplos
+  namespace: teamforeldrepenger
+  labels:
+    team: teamforeldrepenger
+spec:
+  image: {{image}}
+  port: 8080
+  ingresses:
+{{#each ingresses as |url|}}
+   - {{url}}
+{{/each}}
+  liveness:
+    path: /fplos/internal/health/isAlive
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 20
+    timeout: 3
+  readiness:
+    path: /fplos/internal/health/isReady
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 20
+    timeout: 3
+  preStopHook:
+    http:
+      path: /fplos/internal/health/preStop
+  prometheus:
+    enabled: true
+    path: /fplos/internal/metrics/prometheus
+  replicas:
+    min: {{minReplica}}
+    max: {{maxReplica}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 80
+  resources:
+    limits:
+      cpu: "{{limits.cpu}}"
+      memory: "{{limits.mem}}"
+    requests:
+      cpu: "{{requests.cpu}}"
+      memory: "{{requests.mem}}"
+  kafka:
+      pool: {{kafkaPool}}
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+      destinations:
+        - id: "grafana-lgtm"
+        - id: "elastic-apm"
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+  vault:
+    enabled: true
+    paths:
+      - mountPath: {{vault.mountPath}}/defaultDSconfig
+        kvPath: {{vault.db.configPath}}
+      - mountPath: {{vault.mountPath}}/defaultDS
+        kvPath: {{vault.db.secretsPath}}
+  env:
+    - name: VAULT_MOUNT_PATH
+      value: "{{vault.mountPath}}"
+  azure:
+    application:
+      enabled: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
+        groups:
+          {{#each groups as |group|}}
+          - id: "{{group.uuid}}"
+          {{/each}}
+  {{#if AZURE_IAC_RULES}}
+  accessPolicy:
+    inbound:
+      rules:
+      {{#each AZURE_IAC_RULES}}
+        - application: {{app}}
+          namespace: {{namespace}}
+          cluster: {{cluster}}
+          {{#if scopes}}
+          permissions:
+            scopes:
+            {{#each scopes}}
+            - "{{this}}"
+            {{/each}}
+          {{/if}}
+      {{/each}}
+  {{/if}}

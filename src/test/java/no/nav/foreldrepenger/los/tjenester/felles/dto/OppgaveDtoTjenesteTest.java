@@ -1,0 +1,86 @@
+package no.nav.foreldrepenger.los.tjenester.felles.dto;
+
+import static org.mockito.Mockito.mock;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
+import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
+import no.nav.foreldrepenger.los.oppgave.OppgaveTjeneste;
+import no.nav.foreldrepenger.los.oppgavekø.OppgaveKøTjeneste;
+import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
+import no.nav.foreldrepenger.los.persontjeneste.PersonTjeneste;
+import no.nav.foreldrepenger.los.reservasjon.ReservasjonRepository;
+import no.nav.foreldrepenger.los.reservasjon.ReservasjonTjeneste;
+import no.nav.foreldrepenger.los.server.abac.TilgangFilterKlient;
+import no.nav.foreldrepenger.los.statistikk.StatistikkRepository;
+
+@ExtendWith(JpaExtension.class)
+class OppgaveDtoTjenesteTest {
+
+    private final TilgangFilterKlient tilgangFilterklient = mock(TilgangFilterKlient.class);
+    private final PersonTjeneste personTjeneste = mock(PersonTjeneste.class);
+
+    private OppgaveRepository oppgaveRepository;
+    private OppgaveTjeneste oppgaveTjeneste;
+    private OppgaveDtoTjeneste oppgaveDtoTjeneste;
+    private ReservasjonTjeneste reservasjonTjeneste;
+
+    @BeforeEach
+    void setUp(EntityManager entityManager) {
+        var reservasjonStatusDtoTjeneste = new ReservasjonStatusDtoTjeneste(new OrganisasjonRepository(entityManager));
+        var reservasjonRepository = new ReservasjonRepository(entityManager);
+        this.oppgaveRepository = new OppgaveRepository(entityManager);
+        this.reservasjonTjeneste = new ReservasjonTjeneste(oppgaveRepository, reservasjonRepository, new BehandlingTjeneste(oppgaveRepository));
+        this.oppgaveTjeneste = new OppgaveTjeneste(oppgaveRepository, reservasjonTjeneste);
+        this.oppgaveDtoTjeneste = new OppgaveDtoTjeneste(oppgaveTjeneste, reservasjonTjeneste, personTjeneste, reservasjonStatusDtoTjeneste, mock(
+            OppgaveKøTjeneste.class), tilgangFilterklient, new StatistikkRepository(entityManager));
+    }
+
+    /*
+    // TODO: fiks test før merging
+    @Test
+    void skalHenteSisteReserverteOppgaverMedStatus() {
+        // Testen kjører i bunn relativt komplisert native query for å hente siste reserverte oppgaveId-referanser med et par datafelter brukt i
+        // utledning av status i ReservasjonTjeneste. Tilgangskontroll og mapping til DTO skjer i OppgaveDtoTjeneste.
+
+        when(tilgangFilterklient.tilgangFilterSaker(anyList())).thenAnswer(invocation -> {
+            List<Oppgave> oppgaver = invocation.getArgument(0);
+            return oppgaver.stream().map(Oppgave::getSaksnummer).collect(Collectors.toSet());
+        });
+
+        when(personTjeneste.hentPerson(any(), any(), any())).thenReturn(
+            Optional.of(new Person(new Fødselsnummer("1233456789"), "Navn Navnesen")));
+
+        var oppgave = Oppgave.builder()
+            .dummyOppgave(AVDELING_DRAMMEN_ENHET)
+            .medSystem(Fagsystem.FPSAK)
+            .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
+            .build();
+        oppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder()
+            .medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER)
+            .medSisteSaksbehandlerForTotrinn("IDENT")
+            .build());
+        oppgaveRepository.lagre(oppgave);
+        oppgaveRepository.lagre(new OppgaveEventLogg(oppgave.getBehandlingId(), OppgaveEventType.OPPRETTET,
+            AndreKriterierType.TIL_BESLUTTER, oppgave.getBehandlendeEnhet()));
+        reservasjonTjeneste.reserverOppgave(oppgave);
+
+        var sisteReserverteEtterReservasjon = oppgaveDtoTjeneste.getSaksbehandlersSisteReserverteOppgaver(false);
+        assertThat(sisteReserverteEtterReservasjon)
+            .hasSize(1)
+            .first().matches(dto -> dto.getOppgaveBehandlingStatus() == OppgaveBehandlingStatus.TIL_BESLUTTER);
+
+        oppgaveTjeneste.avsluttOppgaveMedEventLogg(oppgave, OppgaveEventType.LUKKET);
+
+        var sisteReserverte = oppgaveDtoTjeneste.getSaksbehandlersSisteReserverteOppgaver(false);
+        assertThat(sisteReserverte)
+            .hasSize(1)
+            .first().matches(dto -> dto.getOppgaveBehandlingStatus() == OppgaveBehandlingStatus.FERDIG);
+    }
+     */
+
+}
