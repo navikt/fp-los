@@ -79,15 +79,13 @@ public class JettyServer {
 
     private static void migrerDatabase(DataSource dataSource) {
         try {
-            var flyway = Flyway.configure()
+            Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:/db/migration/defaultDS")
                 .table("schema_version")
-                .cleanDisabled(false)
                 .baselineOnMigrate(true)
-                .load();
-            flyway.clean();
-            flyway.migrate();
+                .load()
+                .migrate();
         } catch (FlywayException e) {
             LOG.error("Feil under migrering av databasen.");
             throw e;
