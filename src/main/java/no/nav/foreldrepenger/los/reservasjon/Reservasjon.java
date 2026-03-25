@@ -83,6 +83,10 @@ public class Reservasjon extends BaseEntitet {
         return begrunnelse;
     }
 
+    public boolean erAktiv() {
+        return reservertTil != null && reservertTil.isAfter(LocalDateTime.now());
+    }
+
     public void setReservertTil(LocalDateTime reservertTil) {
         this.reservertTil = reservertTil;
     }

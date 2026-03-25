@@ -149,6 +149,10 @@ public class Behandling extends BaseEntitet {
         return feilutbetalingStart;
     }
 
+    public long getVersjon() {
+        return versjon;
+    }
+
     public static Builder builder(Optional<Behandling> behandling) {
         return new Builder(behandling.orElseGet(Behandling::new));
     }
