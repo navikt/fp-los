@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import no.nav.foreldrepenger.los.migrering.GcpImportRestTjeneste;
+
 import org.glassfish.jersey.server.ServerProperties;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
@@ -53,6 +55,7 @@ public class ApiConfig extends Application {
 
         // Klasser som ikke typegenereres
         classes.add(MigreringRestTjeneste.class);
+        classes.add(GcpImportRestTjeneste.class);
 
         classes.add(FpRestJackson2Feature.class);
 

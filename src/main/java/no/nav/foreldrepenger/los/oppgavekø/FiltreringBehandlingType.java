@@ -51,6 +51,18 @@ public class FiltreringBehandlingType extends BaseEntitet {
         return oppgaveFiltrering;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOppgaveFiltrering(OppgaveFiltrering oppgaveFiltrering) {
+        this.oppgaveFiltrering = oppgaveFiltrering;
+    }
+
+    public void setBehandlingType(BehandlingType behandlingType) {
+        this.behandlingType = behandlingType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -25,9 +25,6 @@ public class OppgaveEgenskap extends BaseEntitet {
     @JoinColumn(name = "OPPGAVE_ID", nullable = false)
     private Oppgave oppgave;
 
-    @Column(name = "OPPGAVE_ID", updatable = false, insertable = false)
-    private Long oppgaveId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
     private AndreKriterierType andreKriterierType;

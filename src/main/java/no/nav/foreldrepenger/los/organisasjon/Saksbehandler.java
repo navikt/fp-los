@@ -69,4 +69,8 @@ public class Saksbehandler extends BaseEntitet {
         this.ansattVedEnhet = ansattVedEnhet;
     }
 
+    // Setter added for migration purposes - can be removed after migration
+    public void setSaksbehandlerIdent(String saksbehandlerIdent) {
+        this.saksbehandlerIdent = saksbehandlerIdent;
+    }
 }

@@ -25,8 +25,12 @@ public class Reservasjon extends BaseEntitet {
     private Long id;
 
     @OneToOne(optional = false, cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "oppgave_id", nullable = false)
+    @JoinColumn(name = "oppgave_id", updatable = false, insertable = false)
     private Oppgave oppgave;
+
+    // legger til rå kolonne for gcp-migrering
+    @Column(name = "oppgave_id", nullable = false)
+    private Long oppgaveId;
 
     @Column(name = "RESERVERT_TIL")
     private LocalDateTime reservertTil;
@@ -53,6 +57,7 @@ public class Reservasjon extends BaseEntitet {
 
     public Reservasjon(Oppgave oppgave) {
         this.oppgave = oppgave;
+        this.oppgaveId = oppgave.getId();
     }
 
     public Long getId() {
@@ -93,6 +98,7 @@ public class Reservasjon extends BaseEntitet {
 
     public void setOppgave(Oppgave oppgave) {
         this.oppgave = oppgave;
+        this.oppgaveId = oppgave != null ? oppgave.getId() : null;
     }
 
     public void setReservertAv(String reservertAv) {
@@ -111,7 +117,11 @@ public class Reservasjon extends BaseEntitet {
         this.begrunnelse = begrunnelse;
     }
 
-    public boolean erAktiv() {
-        return reservertTil != null && reservertTil.isAfter(LocalDateTime.now());
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOppgaveId(Long oppgaveId) {
+        this.oppgaveId = oppgaveId;
     }
 }
