@@ -88,25 +88,6 @@ COMMENT ON COLUMN behandling_egenskap.andre_kriterier_type IS 'Kode for de andre
 COMMENT ON COLUMN behandling_egenskap.behandling_id IS 'Referanse til behandling';
 
 
-CREATE TABLE eventmottak_feillogg (
-	id bigint DEFAULT nextval('SEQ_GLOBAL_PK'),
-	melding text NOT NULL,
-	status varchar(100) NOT NULL,
-	feilmelding_siste_kjoring text,
-	versjon bigint NOT NULL DEFAULT 0,
-	opprettet_av varchar(20) NOT NULL DEFAULT 'VLLOS',
-	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
-	endret_av varchar(20),
-	endret_tid TIMESTAMP(3),
-	CONSTRAINT pk_eventmottak_feillogg PRIMARY KEY (id)
-) ;
-COMMENT ON TABLE eventmottak_feillogg IS 'Feillogg for eventer som kommer fra fpsak';
-COMMENT ON COLUMN eventmottak_feillogg.feilmelding_siste_kjoring IS 'Feilmelding for siste kjøring';
-COMMENT ON COLUMN eventmottak_feillogg.id IS 'PK';
-COMMENT ON COLUMN eventmottak_feillogg.melding IS 'Meldingen som kom fra eventkøen';
-COMMENT ON COLUMN eventmottak_feillogg.status IS 'Status for meldingen';
-
-
 CREATE TABLE filtrering_andre_kriterier (
 	id bigint DEFAULT nextval('SEQ_GLOBAL_PK'),
 	oppgave_filtrering_id bigint NOT NULL,

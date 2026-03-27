@@ -17,8 +17,6 @@ CREATE INDEX idx_behandling_feilutbet_start ON behandling (feilutbetaling_start)
 CREATE INDEX idx_behandling_egenskap_beh_id ON behandling_egenskap (behandling_id);
 CREATE INDEX idx_behandling_egenskap_kriterie_type ON behandling_egenskap (andre_kriterier_type);
 
-CREATE INDEX idx_eventmottak_feillogg_status ON eventmottak_feillogg (status);
-
 CREATE INDEX idx_filtrering_andre_krit_filtrering_type ON filtrering_andre_kriterier (oppgave_filtrering_id, andre_kriterier_type);
 CREATE INDEX idx_filtrering_andre_krit_kriterie_type ON filtrering_andre_kriterier (andre_kriterier_type);
 CREATE INDEX idx_filtr_beh_type_filtrering_type ON filtrering_behandling_type (oppgave_filtrering_id, behandling_type);
