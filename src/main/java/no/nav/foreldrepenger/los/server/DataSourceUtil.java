@@ -19,17 +19,18 @@ class DataSourceUtil {
 
     static DataSource createDataSource(int maxPoolSize, int minIdle) {
         var config = new HikariConfig();
-        config.setJdbcUrl(hentEllerBeregnVerdiHvisMangler("defaultDS.url", "defaultDSconfig", "jdbc_url"));
-        config.setUsername(hentEllerBeregnVerdiHvisMangler("defaultDS.username", "defaultDS", "username"));
-        config.setPassword(hentEllerBeregnVerdiHvisMangler("defaultDS.password", "defaultDS", "password"));
+        config.setJdbcUrl(ENV.getRequiredProperty("DB_JDBC_URL"));
         config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(2));
         config.setMinimumIdle(minIdle);
         config.setMaximumPoolSize(maxPoolSize);
         config.setConnectionTestQuery("select 1");
         config.setDriverClassName("org.postgresql.Driver");
         config.setMetricRegistry(Metrics.globalRegistry);
+        config.setAutoCommit(false);
 
         var dsProperties = new Properties();
+        dsProperties.setProperty("reWriteBatchedInserts", "true");
+        dsProperties.setProperty("logServerErrorDetail", "false"); // skrur av batch exceptions som lekker statements i åpen logg
         config.setDataSourceProperties(dsProperties);
 
         return new HikariDataSource(config);
