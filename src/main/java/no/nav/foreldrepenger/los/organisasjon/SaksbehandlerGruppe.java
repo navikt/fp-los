@@ -31,6 +31,10 @@ public class SaksbehandlerGruppe extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    protected SaksbehandlerGruppe() {
+        // Hibernate
+    }
+
     public SaksbehandlerGruppe(String gruppeNavn) {
         this.gruppeNavn = gruppeNavn;
     }

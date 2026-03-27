@@ -97,6 +97,10 @@ public class Oppgave extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    public Oppgave() {
+        // Hibernate
+    }
+
     public void leggTilOppgaveEgenskap(OppgaveEgenskap oppgaveEgenskap) {
         Objects.requireNonNull(oppgaveEgenskap, "oppgaveEgenskap");
         oppgaveEgenskaper.removeIf(oe -> oe.getAndreKriterierType().equals(oppgaveEgenskap.getAndreKriterierType()));

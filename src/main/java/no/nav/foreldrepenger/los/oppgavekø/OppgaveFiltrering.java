@@ -79,6 +79,9 @@ public class OppgaveFiltrering extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    public OppgaveFiltrering() {
+        // Hibernate
+    }
 
     public Long getId() {
         return id;

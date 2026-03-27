@@ -36,8 +36,8 @@ public class FiltreringBehandlingType extends BaseEntitet {
     private long versjon;
 
 
-    public FiltreringBehandlingType() {
-        //CDI
+    protected FiltreringBehandlingType() {
+        // Hibernate
     }
 
     public FiltreringBehandlingType(OppgaveFiltrering oppgaveFiltrering, BehandlingType behandlingType) {

@@ -38,6 +38,9 @@ public class OppgaveEgenskap extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    protected OppgaveEgenskap() {
+        // Hibernate
+    }
 
     public Long getId() {
         return id;

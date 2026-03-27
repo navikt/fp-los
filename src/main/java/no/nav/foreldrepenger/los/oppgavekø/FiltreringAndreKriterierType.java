@@ -42,8 +42,8 @@ public class FiltreringAndreKriterierType extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public FiltreringAndreKriterierType() {
-        //hibernate
+    protected FiltreringAndreKriterierType() {
+        // Hibernate
     }
 
     public FiltreringAndreKriterierType(OppgaveFiltrering oppgaveFiltrering, AndreKriterierType andreKriterierType, boolean inkluder) {

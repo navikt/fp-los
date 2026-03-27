@@ -38,7 +38,8 @@ public class Avdeling extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public Avdeling() {
+    protected Avdeling() {
+        // Hibernate
     }
 
     public Avdeling(String avdelingEnhet, String navn, Boolean kreverKode6) {

@@ -31,6 +31,9 @@ public class Saksbehandler extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    protected Saksbehandler() {
+        // Hibernate
+    }
 
     public Saksbehandler(String saksbehandlerIdent, String navn, String ansattVedEnhet) {
         this.saksbehandlerIdent = saksbehandlerIdent;

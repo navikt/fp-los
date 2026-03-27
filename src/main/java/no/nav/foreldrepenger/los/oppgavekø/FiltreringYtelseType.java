@@ -35,8 +35,8 @@ public class FiltreringYtelseType extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public FiltreringYtelseType() {
-        //Hibernate
+    protected FiltreringYtelseType() {
+        // Hibernate
     }
 
     public FiltreringYtelseType(OppgaveFiltrering oppgaveFiltrering, FagsakYtelseType fagsakYtelseTypeKode) {
