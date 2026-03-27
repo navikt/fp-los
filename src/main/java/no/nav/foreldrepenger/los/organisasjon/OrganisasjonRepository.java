@@ -31,6 +31,7 @@ public class OrganisasjonRepository {
     }
 
     OrganisasjonRepository() {
+        // CDI - concurrent diversity incubator
     }
 
     public <T extends BaseEntitet> void persistFlush(T saksbehandler) {
@@ -62,10 +63,6 @@ public class OrganisasjonRepository {
         entityManager.flush();
         LOG.info("Oppdater saksbehandler: Fjernet {} saksbehandlere som ikke lenger finnes {}", antall, identer);
         return antall;
-    }
-
-    public void refresh(Avdeling avdeling) {
-        entityManager.refresh(avdeling);
     }
 
     private TypedQuery<Saksbehandler> hentSaksbehandlerQuery(String saksbehandlerIdent) {
@@ -168,13 +165,15 @@ public class OrganisasjonRepository {
         entityManager.remove(gruppe);
     }
 
-    public void opprettEllerReaktiverAvdeling(String avdelingEnhet, String avdelingNavn) {
+    public void opprettEllerReaktiverAvdeling(String avdelingEnhet, String avdelingNavn, boolean kreverKode6) {
         var avdeling = hentAvdelingFraEnhet(avdelingEnhet);
         if (avdeling.isPresent()) {
             avdeling.get().setErAktiv(true);
+            avdeling.get().setNavn(avdelingNavn);
+            avdeling.get().setKreverKode6(kreverKode6);
             entityManager.persist(avdeling.get());
         } else {
-            var nyAvdeling = new Avdeling(avdelingEnhet, avdelingNavn, false);
+            var nyAvdeling = new Avdeling(avdelingEnhet, avdelingNavn, kreverKode6);
             entityManager.persist(nyAvdeling);
         }
     }

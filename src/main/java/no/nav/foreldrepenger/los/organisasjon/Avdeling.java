@@ -76,7 +76,6 @@ public class Avdeling extends BaseEntitet {
         this.erAktiv = erAktiv;
     }
 
-    // Setters added for migration purposes - can be removed after migration
     public void setAvdelingEnhet(String avdelingEnhet) {
         this.avdelingEnhet = avdelingEnhet;
     }
@@ -84,4 +83,5 @@ public class Avdeling extends BaseEntitet {
     public void setKreverKode6(Boolean kreverKode6) {
         this.kreverKode6 = kreverKode6;
     }
+
 }

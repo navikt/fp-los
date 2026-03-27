@@ -34,9 +34,6 @@ import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
 
-import static no.nav.foreldrepenger.los.migrering.FssGcpMigrasjonTask.BATCH_SIZE;
-import static no.nav.foreldrepenger.los.migrering.FssGcpMigrasjonTask.STEG;
-
 @Path("/admin")
 @ApplicationScoped
 @Transactional
@@ -111,7 +108,8 @@ public class AdminRestTjeneste {
     @Operation(description = "Opprett avdeling", tags = "admin")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = false)
     public Response opprettAvdeling(@NotNull @Valid DriftOpprettAvdelingEnhetDto avdelingEnhetDto) {
-        organisasjonRepository.opprettEllerReaktiverAvdeling(avdelingEnhetDto.enhetsnummer(), avdelingEnhetDto.enhetsnavn());
+        organisasjonRepository.opprettEllerReaktiverAvdeling(avdelingEnhetDto.enhetsnummer(), avdelingEnhetDto.enhetsnavn(),
+            avdelingEnhetDto.kreverKode6());
         return Response.ok().build();
     }
 
