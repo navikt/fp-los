@@ -6,12 +6,11 @@
   "minReplica": "2",
   "maxReplica": "3",
   "limits": {
-    "cpu": "2",
-    "mem": "3072Mi"
+    "mem": "1000Mi"
   },
   "requests": {
-    "cpu": "500m",
-    "mem": "1536Mi"
+    "cpu": "200m",
+    "mem": "800Mi"
   },
   "db": {
     "dbVersion": "POSTGRES_18",
