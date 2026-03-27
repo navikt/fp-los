@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
@@ -73,6 +74,11 @@ public class OppgaveFiltrering extends BaseEntitet {
 
     @Column(name = "TOM_DAGER")
     private Long til;
+
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
 
     public Long getId() {
         return id;

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
@@ -32,6 +33,10 @@ public class Avdeling extends BaseEntitet {
     @Column(name = "AKTIV")
     @Convert(converter = BooleanToStringConverter.class)
     private Boolean erAktiv = Boolean.TRUE;
+
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
 
     public Avdeling() {
     }

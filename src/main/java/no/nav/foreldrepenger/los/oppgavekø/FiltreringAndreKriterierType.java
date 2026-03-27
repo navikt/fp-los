@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
@@ -36,6 +37,10 @@ public class FiltreringAndreKriterierType extends BaseEntitet {
     @Convert(converter = BooleanToStringConverter.class)
     @Column(name = "INKLUDER")
     private boolean inkluder = true;
+
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
 
     public FiltreringAndreKriterierType() {
         //hibernate

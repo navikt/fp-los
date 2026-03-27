@@ -149,10 +149,6 @@ public class Behandling extends BaseEntitet {
         return feilutbetalingStart;
     }
 
-    public long getVersjon() {
-        return versjon;
-    }
-
     public static Builder builder(Optional<Behandling> behandling) {
         return new Builder(behandling.orElseGet(Behandling::new));
     }
@@ -220,10 +216,6 @@ public class Behandling extends BaseEntitet {
 
     public void setFeilutbetalingStart(LocalDate feilutbetalingStart) {
         this.feilutbetalingStart = feilutbetalingStart;
-    }
-
-    public void setVersjon(long versjon) {
-        this.versjon = versjon;
     }
 
     @Override

@@ -24,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
@@ -91,6 +92,10 @@ public class Oppgave extends BaseEntitet {
 
     @Column(name = "FEILUTBETALING_START")
     protected LocalDateTime feilutbetalingStart;
+
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
 
     public void leggTilOppgaveEgenskap(OppgaveEgenskap oppgaveEgenskap) {
         Objects.requireNonNull(oppgaveEgenskap, "oppgaveEgenskap");

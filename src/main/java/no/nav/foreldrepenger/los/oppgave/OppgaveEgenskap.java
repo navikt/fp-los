@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 
 @Entity(name = "OppgaveEgenskap")
@@ -33,9 +34,10 @@ public class OppgaveEgenskap extends BaseEntitet {
     @Column(name = "SISTE_SAKSBEHANDLER_FOR_TOTR")
     private String sisteSaksbehandlerForTotrinn;
 
-    public OppgaveEgenskap() {
-        //CDI
-    }
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
 
     public Long getId() {
         return id;

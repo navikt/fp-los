@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 
@@ -29,6 +30,11 @@ public class FiltreringBehandlingType extends BaseEntitet {
     @Enumerated(EnumType.STRING)
     @Column(name = "BEHANDLING_TYPE")
     private BehandlingType behandlingType;
+
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
 
     public FiltreringBehandlingType() {
         //CDI

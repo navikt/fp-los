@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 
 @Entity(name = "saksbehandler")
@@ -26,9 +27,10 @@ public class Saksbehandler extends BaseEntitet {
     @Column(name = "ANSATT_ENHET")
     private String ansattVedEnhet;
 
-    public Saksbehandler() {
-        //CDI
-    }
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
 
     public Saksbehandler(String saksbehandlerIdent, String navn, String ansattVedEnhet) {
         this.saksbehandlerIdent = saksbehandlerIdent;
