@@ -9,13 +9,13 @@
     </parent>
 
     <groupId>no.nav.foreldrepenger.los</groupId>
-    <artifactId>fplos</artifactId>
+    <artifactId>fp-los</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
         <sonar.projectName>fp-los</sonar.projectName>
-        <sonar.projectKey>navikt_fplos</sonar.projectKey>
+        <sonar.projectKey>navikt_fp-los</sonar.projectKey>
 
         <fp-kontrakter.version>9.4.30</fp-kontrakter.version>
         <felles.version>7.7.2</felles.version>
@@ -352,16 +352,16 @@
     </build>
 
     <scm>
-        <url>https://github.com/navikt/fplos</url>
-        <connection>scm:git:https://github.com/navikt/fplos.git</connection>
-        <developerConnection>scm:git:git@github.com:navikt/fplos.git</developerConnection>
+        <url>https://github.com/navikt/fp-los</url>
+        <connection>scm:git:https://github.com/navikt/fp-los.git</connection>
+        <developerConnection>scm:git:git@github.com:navikt/fp-los.git</developerConnection>
     </scm>
 
     <distributionManagement>
         <repository>
             <id>github</id>
             <name>Github navikt Maven Packages</name>
-            <url>https://maven.pkg.github.com/navikt/fplos</url>
+            <url>https://maven.pkg.github.com/navikt/fp-los</url>
         </repository>
     </distributionManagement>
 
