@@ -42,10 +42,10 @@ public record BehandlingDataDto(
     LocalDate førsteStønadsdag,
     @Min(0) @Max(1_000_000_000) BigDecimal feilutbetalingBelop,
     LocalDate feilutbetalingStart,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String behandlendeEnhet, // TODO: finn mer egnet
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv, // TODO: finn egnet
+    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String behandlendeEnhet,
+    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
     LocalDateTime opprettetTidspunkt,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv, // TODO: finn egnet
+    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt,
     @NotNull List<@ValidKodeverk AndreKriterierType> egenskaper
 ) {
