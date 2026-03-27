@@ -142,7 +142,7 @@ class RestApiInputValideringDtoTest extends RestApiTester {
         if (erKodeverk(klasse)) {
             return;
         }
-        if (klasse.getSimpleName().equals(LosBehandlingDto.class.getSimpleName())) return; // ignorer LosBehandlingDto
+        if (LosBehandlingDto.class.isAssignableFrom(klasse)) return; // ignorer LosBehandlingDto
         if (besøkteKlasser.contains(klasse)) {
             return;
         }
@@ -245,7 +245,7 @@ class RestApiInputValideringDtoTest extends RestApiTester {
             kreverAnnoteringer.add(List.of(ValidKodeverk.class));
         } else if (isCollectionOrMap(type)) {
             kreverAnnoteringer.add(List.of(Size.class));
-        } else if (VALIDERINGSALTERNATIVER.keySet().contains(type)) {
+        } else if (VALIDERINGSALTERNATIVER.containsKey(type)) {
             kreverAnnoteringer.addAll(VALIDERINGSALTERNATIVER.get(type));
         } else {
             kreverAnnoteringer.add(List.of(Valid.class));

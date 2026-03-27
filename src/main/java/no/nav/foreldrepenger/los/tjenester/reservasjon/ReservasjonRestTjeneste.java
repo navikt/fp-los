@@ -142,7 +142,6 @@ public class ReservasjonRestTjeneste {
     public ReservasjonStatusDto flyttOppgaveReservasjon(@NotNull @Parameter(description = "id, begrunnelse og brukerident") @Valid OppgaveFlyttingDto oppgaveFlyttingDto) {
         var reservasjon = reservasjonTjeneste.flyttReservasjon(oppgaveFlyttingDto.getOppgaveId().getVerdi(),
             oppgaveFlyttingDto.getBrukerIdent().getVerdi(), oppgaveFlyttingDto.getBegrunnelse());
-        LOG.info("Reservasjon flyttet: {}", oppgaveFlyttingDto);
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }
 

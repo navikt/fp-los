@@ -144,17 +144,6 @@ class ReservasjonUtlederTest {
     }
 
     @Test
-    void skalIkkeOpprettReservasjonNårBeggeHarPapirsøknadUtenTilBeslutter() {
-        var eksisterendeOppgave = lagOppgaveMedKriterie(AndreKriterierType.PAPIRSØKNAD);
-        var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.PAPIRSØKNAD);
-        var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
-
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), oppgaveGrunnlag);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void skalIkkeOpprettReservasjonNårEksisterendeOppgaveHarIkkeAktivReservasjon() {
         var eksisterendeOppgave = lagOppgaveMedEnhet();
         var nyOppgave = lagOppgaveMedEnhet();

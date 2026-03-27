@@ -264,8 +264,8 @@ class OppgaveRepositoryTest {
     @Test
     void lagreOppgaveHvisForskjelligEnhet() {
         var oppgave = lagOppgave(AVDELING_DRAMMEN_ENHET);
-        var AVDELING_ANNET_ENHET = "4000";
-        var oppgaveKommerPåNytt = lagOppgave(AVDELING_ANNET_ENHET);
+        var avdelingAnnetEnhet = "4000";
+        var oppgaveKommerPåNytt = lagOppgave(avdelingAnnetEnhet);
         persistFlush(oppgave);
         assertThat(DBTestUtil.hentAlle(entityManager, Oppgave.class)).hasSize(1);
         persistFlush(oppgaveKommerPåNytt);
