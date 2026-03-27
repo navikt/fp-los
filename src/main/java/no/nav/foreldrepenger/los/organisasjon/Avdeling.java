@@ -16,7 +16,7 @@ public class Avdeling extends BaseEntitet {
     public static final String AVDELING_DRAMMEN_ENHET = "4806";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_AVDELING")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
     @Column(name = "AVDELING_ENHET")
@@ -68,5 +68,14 @@ public class Avdeling extends BaseEntitet {
 
     public void setErAktiv(boolean erAktiv) {
         this.erAktiv = erAktiv;
+    }
+
+    // Setters added for migration purposes - can be removed after migration
+    public void setAvdelingEnhet(String avdelingEnhet) {
+        this.avdelingEnhet = avdelingEnhet;
+    }
+
+    public void setKreverKode6(Boolean kreverKode6) {
+        this.kreverKode6 = kreverKode6;
     }
 }

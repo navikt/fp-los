@@ -14,7 +14,7 @@ import no.nav.foreldrepenger.los.felles.BaseEntitet;
 @Table(name = "SAKSBEHANDLER")
 public class Saksbehandler extends BaseEntitet {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_SAKSBEHANDLER")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
     @Column(name = "SAKSBEHANDLER_IDENT")
@@ -69,4 +69,8 @@ public class Saksbehandler extends BaseEntitet {
         this.ansattVedEnhet = ansattVedEnhet;
     }
 
+    // Setter added for migration purposes - can be removed after migration
+    public void setSaksbehandlerIdent(String saksbehandlerIdent) {
+        this.saksbehandlerIdent = saksbehandlerIdent;
+    }
 }

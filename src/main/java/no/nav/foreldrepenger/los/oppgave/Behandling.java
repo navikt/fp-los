@@ -149,8 +149,81 @@ public class Behandling extends BaseEntitet {
         return feilutbetalingStart;
     }
 
+    public long getVersjon() {
+        return versjon;
+    }
+
     public static Builder builder(Optional<Behandling> behandling) {
         return new Builder(behandling.orElseGet(Behandling::new));
+    }
+
+    // Setters added for migration purposes - can be removed after migration
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setSaksnummer(Saksnummer saksnummer) {
+        this.saksnummer = saksnummer;
+    }
+
+    public void setAktørId(AktørId aktørId) {
+        this.aktørId = aktørId;
+    }
+
+    public void setBehandlendeEnhet(String behandlendeEnhet) {
+        this.behandlendeEnhet = behandlendeEnhet;
+    }
+
+    public void setFagsystem(Fagsystem kildeSystem) {
+        this.kildeSystem = kildeSystem;
+    }
+
+    public void setFagsakYtelseType(FagsakYtelseType fagsakYtelseType) {
+        this.fagsakYtelseType = fagsakYtelseType;
+    }
+
+    public void setBehandlingType(BehandlingType behandlingType) {
+        this.behandlingType = behandlingType;
+    }
+
+    public void setBehandlingTilstand(BehandlingTilstand behandlingTilstand) {
+        this.behandlingTilstand = behandlingTilstand;
+    }
+
+    public void setAktiveAksjonspunkt(String aktiveAksjonspunkt) {
+        this.aktiveAksjonspunkt = aktiveAksjonspunkt;
+    }
+
+    public void setVentefrist(LocalDateTime ventefrist) {
+        this.ventefrist = ventefrist;
+    }
+
+    public void setOpprettet(LocalDateTime opprettet) {
+        this.opprettet = opprettet;
+    }
+
+    public void setAvsluttet(LocalDateTime avsluttet) {
+        this.avsluttet = avsluttet;
+    }
+
+    public void setBehandlingsfrist(LocalDate behandlingsfrist) {
+        this.behandlingsfrist = behandlingsfrist;
+    }
+
+    public void setFørsteStønadsdag(LocalDate førsteStønadsdag) {
+        this.førsteStønadsdag = førsteStønadsdag;
+    }
+
+    public void setFeilutbetalingBelop(BigDecimal feilutbetalingBelop) {
+        this.feilutbetalingBelop = feilutbetalingBelop;
+    }
+
+    public void setFeilutbetalingStart(LocalDate feilutbetalingStart) {
+        this.feilutbetalingStart = feilutbetalingStart;
+    }
+
+    public void setVersjon(long versjon) {
+        this.versjon = versjon;
     }
 
     @Override

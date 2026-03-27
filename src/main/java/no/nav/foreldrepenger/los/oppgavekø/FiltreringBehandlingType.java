@@ -19,7 +19,7 @@ import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 @Table(name = "FILTRERING_BEHANDLING_TYPE")
 public class FiltreringBehandlingType extends BaseEntitet {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_FILTR_BEHANDLING_TYPE")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
     @ManyToOne
@@ -41,6 +41,26 @@ public class FiltreringBehandlingType extends BaseEntitet {
 
     public BehandlingType getBehandlingType() {
         return behandlingType;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public OppgaveFiltrering getOppgaveFiltrering() {
+        return oppgaveFiltrering;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOppgaveFiltrering(OppgaveFiltrering oppgaveFiltrering) {
+        this.oppgaveFiltrering = oppgaveFiltrering;
+    }
+
+    public void setBehandlingType(BehandlingType behandlingType) {
+        this.behandlingType = behandlingType;
     }
 
     @Override

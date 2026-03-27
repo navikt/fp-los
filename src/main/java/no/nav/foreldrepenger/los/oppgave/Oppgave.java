@@ -37,7 +37,7 @@ import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 public class Oppgave extends BaseEntitet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_OPPGAVE")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     protected Long id;
 
     @Embedded
@@ -97,6 +97,11 @@ public class Oppgave extends BaseEntitet {
         oppgaveEgenskaper.removeIf(oe -> oe.getAndreKriterierType().equals(oppgaveEgenskap.getAndreKriterierType()));
         oppgaveEgenskaper.add(oppgaveEgenskap);
         oppgaveEgenskap.setOppgave(this);
+    }
+
+    public void clearOppgaveEgenskaper() {
+        oppgaveEgenskaper.clear();
+        // legger til denne for migrering
     }
 
     public Long getId() {
@@ -187,6 +192,67 @@ public class Oppgave extends BaseEntitet {
 
     public boolean harKriterie(AndreKriterierType kriterie) {
         return oppgaveEgenskaper.stream().anyMatch(egenskap -> egenskap.getAndreKriterierType() == kriterie);
+    }
+
+    // Setters added for migration purposes - can be removed after migration
+    public void setSaksnummer(Saksnummer saksnummer) {
+        this.saksnummer = saksnummer;
+    }
+
+    public void setAktørId(AktørId aktørId) {
+        this.aktørId = aktørId;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setBehandlingId(BehandlingId behandlingId) {
+        this.behandlingId = behandlingId;
+    }
+
+    public void setBehandlingType(BehandlingType behandlingType) {
+        this.behandlingType = behandlingType;
+    }
+
+    public void setFagsakYtelseType(FagsakYtelseType fagsakYtelseType) {
+        this.fagsakYtelseType = fagsakYtelseType;
+    }
+
+    public void setBehandlendeEnhet(String behandlendeEnhet) {
+        this.behandlendeEnhet = behandlendeEnhet;
+    }
+
+    public void setBehandlingsfrist(LocalDateTime behandlingsfrist) {
+        this.behandlingsfrist = behandlingsfrist;
+    }
+
+    public void setBehandlingOpprettet(LocalDateTime behandlingOpprettet) {
+        this.behandlingOpprettet = behandlingOpprettet;
+    }
+
+    public void setFørsteStønadsdag(LocalDate førsteStønadsdag) {
+        this.førsteStønadsdag = førsteStønadsdag;
+    }
+
+    public void setAktiv(Boolean aktiv) {
+        this.aktiv = aktiv;
+    }
+
+    public void setSystem(Fagsystem system) {
+        this.system = system;
+    }
+
+    public void setOppgaveAvsluttet(LocalDateTime oppgaveAvsluttet) {
+        this.oppgaveAvsluttet = oppgaveAvsluttet;
+    }
+
+    public void setFeilutbetalingBelop(BigDecimal feilutbetalingBelop) {
+        this.feilutbetalingBelop = feilutbetalingBelop;
+    }
+
+    public void setFeilutbetalingStart(LocalDateTime feilutbetalingStart) {
+        this.feilutbetalingStart = feilutbetalingStart;
     }
 
     public static class Builder {

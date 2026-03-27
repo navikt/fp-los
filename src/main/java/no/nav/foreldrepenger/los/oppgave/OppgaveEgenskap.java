@@ -18,15 +18,12 @@ import no.nav.foreldrepenger.los.felles.BaseEntitet;
 @Table(name = "OPPGAVE_EGENSKAP")
 public class OppgaveEgenskap extends BaseEntitet {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_OPPGAVE_EGENSKAP")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "OPPGAVE_ID", nullable = false)
     private Oppgave oppgave;
-
-    @Column(name = "OPPGAVE_ID", updatable = false, insertable = false)
-    private Long oppgaveId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
@@ -40,6 +37,10 @@ public class OppgaveEgenskap extends BaseEntitet {
         //CDI
     }
 
+    public Long getId() {
+        return id;
+    }
+
     void setOppgave(Oppgave oppgave) {
         this.oppgave = oppgave;
     }
@@ -50,6 +51,10 @@ public class OppgaveEgenskap extends BaseEntitet {
 
     public AndreKriterierType getAndreKriterierType() {
         return andreKriterierType;
+    }
+
+    public String getSisteSaksbehandlerForTotrinn() {
+        return sisteSaksbehandlerForTotrinn;
     }
 
     @Override
