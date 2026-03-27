@@ -37,6 +37,7 @@ class AvdelingslederTjenesteTest {
         oppgaveRepository = new OppgaveRepository(entityManager);
         var organisasjonRepository = new OrganisasjonRepository(entityManager);
         avdelingslederTjeneste = new AvdelingslederTjeneste(oppgaveRepository, organisasjonRepository);
+        DBTestUtil.avdelingDrammen(entityManager);
     }
 
     @Test
@@ -117,6 +118,7 @@ class AvdelingslederTjenesteTest {
 
     @Test
     void testHentAvdelinger() {
+        DBTestUtil.lagNasjonal(entityManager);
         var avdelinger = avdelingslederTjeneste.hentAvdelinger();
         Assertions.assertThat(avdelinger).isNotEmpty().hasSizeGreaterThan(1);
     }

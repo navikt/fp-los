@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
@@ -27,10 +28,12 @@ class OrganisasjonRepositoryTest {
         this.entityManager = entityManager;
         repository = new OrganisasjonRepository(entityManager);
         oppgaveRepository = new OppgaveRepository(entityManager);
+        DBTestUtil.lagNasjonal(entityManager);
     }
 
     @Test
     void deaktiverAvdeling() {
+        DBTestUtil.lagAvdeling(entityManager, new Avdeling("1111", "Test Avdeling", false));
         var enhetsNummer = "1111";
         var avdelinger = repository.hentAktiveAvdelinger().stream().map(Avdeling::getAvdelingEnhet);
 

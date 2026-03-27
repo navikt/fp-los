@@ -39,8 +39,7 @@ import no.nav.foreldrepenger.los.JpaExtension;
 class RapporterUnmappedKolonnerIDatabaseTest {
     private static final Logger LOG = LoggerFactory.getLogger(RapporterUnmappedKolonnerIDatabaseTest.class);
 
-    private static final String HTE_PREFIX = "HTE_";
-    private static final Set<String> UNNTA_TABELLER = Set.of("SCHEMA_VERSION", "STARTUPDATA");
+    private static final Set<String> UNNTA_TABELLER = Set.of("SCHEMA_VERSION", "STARTUPDATA", "FLYWAY_SCHEMA_HISTORY");
     private static final Map<String, Set<String>> UNNTA_KOLONNER = Map.of(
         "BEHANDLING", Set.of("SIST_OPPDATERT_TIDSPUNKT"),
         "PROSESS_TASK", Set.of("SISTE_KJOERING_PLUKK_TS", "SISTE_KJOERING_SLUTT_TS")
@@ -67,7 +66,6 @@ class RapporterUnmappedKolonnerIDatabaseTest {
 
     @SuppressWarnings("unchecked")
     private NavigableMap<String, Set<String>> getColumns(String namespace) {
-        Predicate<Object[]> filterHte = (Object[] cols) -> !((String) cols[0]).toUpperCase().startsWith(HTE_PREFIX);
         Predicate<Object[]> filterSchemaVer = (Object[] cols) -> !UNNTA_TABELLER.contains(((String) cols[0]).toUpperCase());
         var groupingBy = Collectors.groupingBy((Object[] cols) -> ((String) cols[0]).toUpperCase(), TreeMap::new,
                 Collectors.mapping((Object[] cols) -> ((String) cols[1]).toUpperCase(), Collectors.toCollection(TreeSet::new)));
@@ -79,7 +77,6 @@ class RapporterUnmappedKolonnerIDatabaseTest {
                         .createNativeQuery(
                                 "select table_name, column_name from information_schema.columns where table_schema = current_schema() AND is_generated = 'NEVER'")
                         .getResultStream()
-                        .filter(filterHte)
                         .filter(filterSchemaVer)
                         .collect(groupingBy);
             }
@@ -88,7 +85,6 @@ class RapporterUnmappedKolonnerIDatabaseTest {
                             "select table_name, column_name from information_schema.columns where table_schema = :ns AND is_generated = 'NEVER'")
                     .setParameter("ns", namespace)
                     .getResultStream()
-                    .filter(filterHte)
                     .filter(filterSchemaVer)
                     .collect(groupingBy);
         } finally {
@@ -110,14 +106,17 @@ class RapporterUnmappedKolonnerIDatabaseTest {
             var namespaceName = getSchemaName(namespace);
             var dbColumns = getColumns(namespaceName);
             for (var table : namespace.getTables()) {
-                var columnNames = table.getColumns().stream().map(c -> c.getName().toUpperCase()).collect(Collectors.toCollection(TreeSet::new));
                 var tableName = table.getName().toUpperCase();
+                if (UNNTA_TABELLER.contains(tableName)) {
+                    continue;
+                }
+                var columnNames = table.getColumns().stream().map(c -> c.getName().toUpperCase()).collect(Collectors.toCollection(TreeSet::new));
                 if (dbColumns.containsKey(tableName)) {
                     var unmapped = new TreeSet<>(dbColumns.get(tableName));
                     unmapped.removeAll(columnNames);
                     unmapped.removeAll(UNNTA_KOLONNER.getOrDefault(tableName, Set.of()));
                     if (!unmapped.isEmpty()) {
-                        LOG.error("Table {} has unmapped columns: {}", table.getName(), unmapped);
+                        LOG.error("Table {} has unmapped columns: {}", tableName, unmapped);
                     }
                 } else {
                     LOG.error("Table {} not in database schema {}", tableName, namespaceName);

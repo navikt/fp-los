@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
-
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
@@ -34,7 +33,24 @@ public final class DBTestUtil {
             .stream()
             .filter(a -> a.getAvdelingEnhet().equals(AVDELING_DRAMMEN_ENHET))
             .findAny()
-            .orElseThrow();
+            .orElseGet(() -> lagDrammen(entityManager));
     }
+
+    public static Avdeling lagDrammen(EntityManager entityManager) {
+        var avdeling = new Avdeling("4806", "NAV Familie- og pensjonsytelser Drammen", false);
+        return lagAvdeling(entityManager, avdeling);
+    }
+
+    public static Avdeling lagNasjonal(EntityManager entityManager) {
+        var avdeling = new Avdeling("4867", "NAV Familie- og pensjonsytelser foreldrepenger", false);
+        return lagAvdeling(entityManager, avdeling);
+    }
+
+    public static Avdeling lagAvdeling(EntityManager entityManager, Avdeling avdeling) {
+        entityManager.persist(avdeling);
+        entityManager.flush();
+        return avdeling;
+    }
+
 
 }

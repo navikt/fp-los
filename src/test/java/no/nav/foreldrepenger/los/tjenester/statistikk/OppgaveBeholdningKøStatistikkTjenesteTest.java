@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
@@ -55,6 +56,7 @@ class OppgaveBeholdningKøStatistikkTjenesteTest {
     void setUp(EntityManager entityManager) {
         nøkkeltallRepository = new NøkkeltallRepository(entityManager);
         this.entityManager = entityManager;
+        DBTestUtil.avdelingDrammen(entityManager);
     }
 
     private void leggInnEttSettMedOppgaver() {
