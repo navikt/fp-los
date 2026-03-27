@@ -85,6 +85,10 @@ public class Behandling extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
+    public Behandling() {
+        // Hibernate
+    }
+
     public UUID getId() {
         return id;
     }
@@ -147,10 +151,6 @@ public class Behandling extends BaseEntitet {
 
     public LocalDate getFeilutbetalingStart() {
         return feilutbetalingStart;
-    }
-
-    public long getVersjon() {
-        return versjon;
     }
 
     public static Builder builder(Optional<Behandling> behandling) {
@@ -220,10 +220,6 @@ public class Behandling extends BaseEntitet {
 
     public void setFeilutbetalingStart(LocalDate feilutbetalingStart) {
         this.feilutbetalingStart = feilutbetalingStart;
-    }
-
-    public void setVersjon(long versjon) {
-        this.versjon = versjon;
     }
 
     @Override

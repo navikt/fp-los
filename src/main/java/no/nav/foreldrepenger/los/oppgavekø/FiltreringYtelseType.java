@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 
@@ -30,8 +31,12 @@ public class FiltreringYtelseType extends BaseEntitet {
     @Column(name = "FAGSAK_YTELSE_TYPE")
     private FagsakYtelseType fagsakYtelseType;
 
-    public FiltreringYtelseType() {
-        //Hibernate
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
+    protected FiltreringYtelseType() {
+        // Hibernate
     }
 
     public FiltreringYtelseType(OppgaveFiltrering oppgaveFiltrering, FagsakYtelseType fagsakYtelseTypeKode) {

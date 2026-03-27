@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 
 @Entity(name = "saksbehandlerGruppe")
@@ -26,8 +27,12 @@ public class SaksbehandlerGruppe extends BaseEntitet {
     @JoinColumn(name = "AVDELING_ID", updatable = false)
     private Avdeling avdeling;
 
-    public SaksbehandlerGruppe() {
-        // hibernate
+    @Version
+    @Column(name = "versjon", nullable = false)
+    private long versjon;
+
+    protected SaksbehandlerGruppe() {
+        // Hibernate
     }
 
     public SaksbehandlerGruppe(String gruppeNavn) {

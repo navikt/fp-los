@@ -35,11 +35,8 @@ public final class GcpImportMapper {
     }
 
     static Avdeling mapAvdeling(AvdelingDataDto dto) {
-        var avdeling = new Avdeling();
+        var avdeling = new Avdeling(dto.avdelingEnhet(), dto.navn(), dto.kreverKode6());
         setIdUsingReflection(avdeling, dto.id());
-        avdeling.setAvdelingEnhet(dto.avdelingEnhet());
-        avdeling.setNavn(dto.navn());
-        avdeling.setKreverKode6(dto.kreverKode6());
         avdeling.setErAktiv(dto.aktiv());
         setBaseEntitetFields(avdeling, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
@@ -47,11 +44,8 @@ public final class GcpImportMapper {
     }
 
     static Saksbehandler mapSaksbehandler(SaksbehandlerDataDto dto) {
-        var saksbehandler = new Saksbehandler();
+        var saksbehandler = new Saksbehandler(dto.saksbehandlerIdent(), dto.navn(), dto.ansattVedEnhet());
         setIdUsingReflection(saksbehandler, dto.id());
-        saksbehandler.setSaksbehandlerIdent(dto.saksbehandlerIdent());
-        saksbehandler.setNavn(dto.navn());
-        saksbehandler.setAnsattVedEnhet(dto.ansattVedEnhet());
         setBaseEntitetFields(saksbehandler, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return saksbehandler;

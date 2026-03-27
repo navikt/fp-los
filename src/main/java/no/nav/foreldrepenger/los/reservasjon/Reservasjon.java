@@ -52,7 +52,7 @@ public class Reservasjon extends BaseEntitet {
     private long versjon;
 
     public Reservasjon() {
-        //CDI
+        // Hibernate
     }
 
     public Reservasjon(Oppgave oppgave) {
