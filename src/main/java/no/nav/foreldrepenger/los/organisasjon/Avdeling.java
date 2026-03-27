@@ -30,9 +30,9 @@ public class Avdeling extends BaseEntitet {
     @Convert(converter = BooleanToStringConverter.class)
     private Boolean kreverKode6 = Boolean.FALSE;
 
-    @Column(name = "AKTIV")
+    @Column(name = "AKTIV", nullable = false)
     @Convert(converter = BooleanToStringConverter.class)
-    private Boolean erAktiv = Boolean.TRUE;
+    private boolean erAktiv = true;
 
     @Version
     @Column(name = "versjon", nullable = false)
@@ -68,7 +68,7 @@ public class Avdeling extends BaseEntitet {
         return kreverKode6;
     }
 
-    public Boolean getErAktiv() {
+    public boolean getErAktiv() {
         return erAktiv;
     }
 

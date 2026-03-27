@@ -71,8 +71,8 @@ public class Oppgave extends BaseEntitet {
     protected FagsakYtelseType fagsakYtelseType;
 
     @Convert(converter = BooleanToStringConverter.class)
-    @Column(name = "AKTIV")
-    protected Boolean aktiv = Boolean.TRUE;
+    @Column(name = "AKTIV", nullable = false)
+    protected boolean aktiv = true;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "SYSTEM")
@@ -138,7 +138,7 @@ public class Oppgave extends BaseEntitet {
     }
 
     public boolean getAktiv() {
-        return aktiv != null && aktiv;
+        return aktiv;
     }
 
     public Fagsystem getSystem() {
@@ -244,7 +244,7 @@ public class Oppgave extends BaseEntitet {
         this.førsteStønadsdag = førsteStønadsdag;
     }
 
-    public void setAktiv(Boolean aktiv) {
+    public void setAktiv(boolean aktiv) {
         this.aktiv = aktiv;
     }
 
@@ -291,7 +291,7 @@ public class Oppgave extends BaseEntitet {
             return this;
         }
 
-        public Builder medAktiv(Boolean aktiv) {
+        public Builder medAktiv(boolean aktiv) {
             tempOppgave.aktiv = aktiv;
             return this;
         }

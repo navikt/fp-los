@@ -9,17 +9,17 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 class OppgaveEnumSerializationDeserializationTest {
 
     @Test
-    void fagsakStatus() throws Exception {
+    void fagsakStatus() {
         testRoundtrip(FagsakStatus.LØPENDE);
     }
 
     @Test
-    void andreKriterierType() throws Exception {
+    void andreKriterierType() {
         testRoundtrip(AndreKriterierType.TIL_BESLUTTER);
     }
 
     @Test
-    void behandlingType() throws Exception {
+    void behandlingType() {
         testRoundtrip(BehandlingType.FØRSTEGANGSSØKNAD);
     }
 

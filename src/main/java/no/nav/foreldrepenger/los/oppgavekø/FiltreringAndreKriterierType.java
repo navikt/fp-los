@@ -35,7 +35,7 @@ public class FiltreringAndreKriterierType extends BaseEntitet {
 
     //Verdi som viser om filtreringen skal inkludere eller ekskludere oppgaver med det gitte innslaget.
     @Convert(converter = BooleanToStringConverter.class)
-    @Column(name = "INKLUDER")
+    @Column(name = "INKLUDER", nullable = false)
     private boolean inkluder = true;
 
     @Version

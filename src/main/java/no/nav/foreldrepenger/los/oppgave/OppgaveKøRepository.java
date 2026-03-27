@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.hibernate.jpa.HibernateHints;
 
@@ -247,7 +248,7 @@ public class OppgaveKøRepository {
             case BELØP, OPPGAVE_OPPRETTET -> throw new IllegalArgumentException("Utviklerfeil: beløpsfilter håndteres i annen metode");
         };
 
-        var gjelderKunDatoFelt = datemap.getOrDefault(sortering, Boolean.FALSE);
+        var gjelderKunDatoFelt = Objects.equals(datemap.getOrDefault(sortering, Boolean.FALSE), Boolean.TRUE);
 
         var sbuilder = new StringBuilder();
 

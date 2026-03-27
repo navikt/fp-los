@@ -30,7 +30,7 @@ import no.nav.vedtak.hendelser.behandling.los.LosFagsakEgenskaperDto;
 @ApplicationScoped
 public class BehandlingTjeneste {
 
-    public static Period BEHOLD_HELE_MÅNEDER  = Period.ofMonths(3);
+    public static final Period BEHOLD_HELE_MÅNEDER  = Period.ofMonths(3);
 
     private OppgaveRepository oppgaveRepository;
 

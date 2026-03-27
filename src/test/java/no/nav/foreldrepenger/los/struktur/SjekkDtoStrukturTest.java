@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -12,13 +13,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import no.nav.foreldrepenger.los.konfig.IndexClasses;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+
+import no.nav.foreldrepenger.los.konfig.IndexClasses;
 
 class SjekkDtoStrukturTest {
     private static final List<String> SKIPPED = Arrays.asList("class", "kode");
@@ -41,7 +43,7 @@ class SjekkDtoStrukturTest {
             .filter(f -> f.getAnnotation(JsonProperty.class) == null)
             .filter(f -> f.getAnnotation(JsonValue.class) == null)
             .filter(f -> f.getAnnotation(JsonIgnore.class) == null)
-            .map(f -> f.getName())
+            .map(Field::getName)
             .collect(Collectors.toSet());
 
         if (!fieldNames.isEmpty()) {
@@ -49,24 +51,20 @@ class SjekkDtoStrukturTest {
                 if (prop.getReadMethod() != null) {
                     var readName = prop.getReadMethod();
                     var propName = prop.getName();
-                    if (!SKIPPED.contains(propName)) {
-                        if (readName.getAnnotation(JsonIgnore.class) == null && readName.getAnnotation(JsonProperty.class) == null) {
-                            assertThat(propName).as(
-                                "Gettere er ikke samstemt med felt i klasse, sørg for matchende bean navn og return type eller bruk @JsonProperty/@JsonIgnore/@JsonValue til å sette navn for json struktur: "
-                                    + c.getName()).isIn(fieldNames);
-                        }
+                    if (!SKIPPED.contains(propName) && readName.getAnnotation(JsonIgnore.class) == null && readName.getAnnotation(JsonProperty.class) == null) {
+                        assertThat(propName).as(
+                            "Gettere er ikke samstemt med felt i klasse, sørg for matchende bean navn og return type eller bruk @JsonProperty/@JsonIgnore/@JsonValue til å sette navn for json struktur: "
+                                + c.getName()).isIn(fieldNames);
                     }
                 }
 
                 if (prop.getWriteMethod() != null) {
                     var readName = prop.getWriteMethod();
                     var propName = prop.getName();
-                    if (!SKIPPED.contains(propName)) {
-                        if (readName.getAnnotation(JsonIgnore.class) == null && readName.getAnnotation(JsonProperty.class) == null) {
-                            assertThat(propName).as(
-                                "Settere er ikke samstemt med felt i klasse, sørg for matchende bean navn og return type eller bruk @JsonProperty/@JsonIgnore/@JsonValue til å sette navn for json struktur: "
-                                    + c.getName()).isIn(fieldNames);
-                        }
+                    if (!SKIPPED.contains(propName) && readName.getAnnotation(JsonIgnore.class) == null && readName.getAnnotation(JsonProperty.class) == null) {
+                        assertThat(propName).as(
+                            "Settere er ikke samstemt med felt i klasse, sørg for matchende bean navn og return type eller bruk @JsonProperty/@JsonIgnore/@JsonValue til å sette navn for json struktur: "
+                                + c.getName()).isIn(fieldNames);
                     }
                 }
             }
