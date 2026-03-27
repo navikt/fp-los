@@ -28,7 +28,6 @@ import no.nav.foreldrepenger.los.tjenester.felles.dto.OppgaveDto;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.OppgaveDtoMedStatus;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.OppgaveDtoTjeneste;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.ReservasjonStatusDto;
-import no.nav.foreldrepenger.los.tjenester.felles.dto.SaksbehandlerBrukerIdentDto;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.SaksbehandlerDto;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.SaksbehandlerDtoTjeneste;
 import no.nav.foreldrepenger.los.tjenester.reservasjon.dto.ReservasjonEndringRequestDto;
@@ -73,7 +72,8 @@ public class ReservasjonRestTjeneste {
     @Operation(description = "Reserver oppgave", tags = "Saksbehandler")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public ReservasjonStatusDto reserverOppgave(@NotNull @Parameter(description = "id til oppgaven") @Valid OppgaveIdDto oppgaveId) {
-        var reservasjon = reservasjonTjeneste.reserverOppgave(oppgaveId.getVerdi());
+        var oppgave = oppgaveTjeneste.hentOppgave(oppgaveId.getVerdi());
+        var reservasjon = reservasjonTjeneste.reserverOppgave(oppgave);
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }
 
@@ -103,25 +103,14 @@ public class ReservasjonRestTjeneste {
     }
 
     @POST
-    @Path("/forleng")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Forleng reservasjon av oppgave", tags = "Saksbehandler")
-    @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
-    public ReservasjonStatusDto forlengOppgaveReservasjon(@NotNull @Parameter(description = "id til oppgaven") @Valid OppgaveIdDto oppgaveId) {
-        var reservasjon = reservasjonTjeneste.forlengReservasjonPåOppgave(oppgaveId.getVerdi());
-        return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
-    }
-
-    @POST
     @Path("/endre-varighet")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Endre reservasjon av oppgave", tags = "Saksbehandler")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public ReservasjonStatusDto endreOppgaveReservasjon(@NotNull @Parameter(description = "forleng til dato") @Valid ReservasjonEndringRequestDto reservasjonsEndring) {
-        var tidspunkt = ReservasjonTidspunktUtil.utledReservasjonTidspunkt(reservasjonsEndring.reserverTil());
-        var reservasjon = reservasjonTjeneste.endreReservasjonPåOppgave(reservasjonsEndring.oppgaveId().getVerdi(), tidspunkt);
+        ReservasjonTidspunktUtil.validerReservasjonsdato(reservasjonsEndring.reserverTil());
+        var reservasjon = reservasjonTjeneste.endreReservasjonsdato(reservasjonsEndring.oppgaveId().getVerdi(), reservasjonsEndring.reserverTil());
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }
 
@@ -132,18 +121,6 @@ public class ReservasjonRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public List<OppgaveDto> getReserverteOppgaver() {
         return oppgaveDtoTjeneste.getSaksbehandlersReserverteAktiveOppgaver();
-    }
-
-    @POST
-    @Path("/flytt-reservasjon/søk")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Søk etter saksbehandler som er tilknyttet behandlingskø", tags = "Saksbehandler")
-    @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.FAGSAK, sporingslogg = false)
-    public SaksbehandlerDto søkAvdelingensSaksbehandlere(@NotNull @Parameter(description = "Brukeridentifikasjon") @Valid SaksbehandlerBrukerIdentDto brukerIdent) {
-        var ident = brukerIdent.getVerdi().toUpperCase();
-        var saksbehandler = saksbehandlerDtoTjeneste.hentSaksbehandlerTilknyttetMinstEnKø(ident);
-        return saksbehandler.orElse(null);
     }
 
     @GET
