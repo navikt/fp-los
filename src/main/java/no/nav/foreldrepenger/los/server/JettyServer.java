@@ -2,9 +2,16 @@ package no.nav.foreldrepenger.los.server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import io.micrometer.core.instrument.Metrics;
 
 import org.eclipse.jetty.ee11.cdi.CdiDecoratingListener;
 import org.eclipse.jetty.ee11.cdi.CdiServletContainerInitializer;
@@ -58,10 +65,30 @@ public class JettyServer {
 
     protected void bootStrap() throws Exception {
         konfigurerLogging();
-        var dataSource = DataSourceUtil.createDataSource(30, 2);
+        var dataSource = createDataSource();
         konfigurerDataSource(dataSource);
         migrerDatabase(dataSource);
         start();
+    }
+
+    private static DataSource createDataSource() {
+        var config = new HikariConfig();
+        config.setJdbcUrl(ENV.getRequiredProperty("DB_JDBC_URL"));
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(2));
+        config.setMinimumIdle(3);
+        config.setMaximumPoolSize(30);
+        config.setInitializationFailTimeout(30000);
+        config.setConnectionTestQuery("select 1");
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setMetricRegistry(Metrics.globalRegistry);
+        config.setAutoCommit(false);
+
+        var dsProperties = new Properties();
+        dsProperties.setProperty("reWriteBatchedInserts", "true");
+        dsProperties.setProperty("logServerErrorDetail", "false"); // skrur av batch exceptions som lekker statements i åpen logg
+        config.setDataSourceProperties(dsProperties);
+
+        return new HikariDataSource(config);
     }
 
     /**
@@ -82,7 +109,6 @@ public class JettyServer {
             Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:/db/migration/defaultDS")
-                .table("schema_version")
                 .baselineOnMigrate(true)
                 .load()
                 .migrate();
@@ -96,6 +122,8 @@ public class JettyServer {
         var server = new Server(getServerPort());
         server.setConnectors(createConnectors(server).toArray(new Connector[]{}));
         server.setHandler(createContext());
+        server.setStopAtShutdown(true);
+        server.setStopTimeout(10_000);
         server.start();
         server.join();
     }
