@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
@@ -40,6 +41,7 @@ class AvdelingslederSaksbehandlerTjenesteTest {
         when(ansattTjeneste.hentBrukerProfil(anyString())).thenReturn(Optional.of(new BrukerProfil("A000001", "Ansatt Navn", "4867")));
         avdelingslederSaksbehandlerTjeneste = new AvdelingslederSaksbehandlerTjeneste(oppgaveRepository, organisasjonRepository, ansattTjeneste);
         em = entityManager;
+        DBTestUtil.avdelingDrammen(entityManager);
     }
 
     @Test

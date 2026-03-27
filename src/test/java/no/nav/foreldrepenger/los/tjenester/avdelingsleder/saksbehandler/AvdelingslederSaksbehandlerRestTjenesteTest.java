@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.avdelingsleder.AvdelingslederSaksbehandlerTjeneste;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
@@ -58,6 +59,7 @@ class AvdelingslederSaksbehandlerRestTjenesteTest {
             organisasjonRepository, ansattTjeneste);
         restTjeneste = new AvdelingslederSaksbehandlerRestTjeneste(avdelingslederSaksbehandlerTjeneste, saksbehandlerDtoTjeneste);
         em = entityManager;
+        DBTestUtil.lagNasjonal(entityManager);
     }
 
     @Test
