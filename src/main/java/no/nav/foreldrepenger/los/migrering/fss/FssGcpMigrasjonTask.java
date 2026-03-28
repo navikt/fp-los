@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.los.migrering;
+package no.nav.foreldrepenger.los.migrering.fss;
 
 import java.util.Optional;
 
@@ -9,6 +9,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -39,19 +40,19 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
         if (Environment.current().isGcp()) {
-            throw new IllegalStateException("MIGRERING (FSS): task startet i GCP");
+            throw new IllegalStateException("MIGRERING: FSS-task startet i GCP!");
         }
 
         var currentSteg = Optional.ofNullable(prosessTaskData.getPropertyValue(STEG))
             .map(MigreringSteg::valueOf)
-            .orElse(MigreringSteg.ORGANISASJON_OG_KØ);
+            .orElse(MigreringSteg.DEL1_ORGANISASJON_OG_KØ);
         int batchSize = Optional.ofNullable(prosessTaskData.getPropertyValue(BATCH_SIZE)).map(Integer::parseInt).orElse(DEFAULT_BATCH_SIZE);
 
         LOG.info("MIGRERING (FSS): steg {} starter", currentSteg);
 
         int startPosisjon = 0;
 
-        // Gjør dette enkelt med én taskkjøring per entitetstype, og looper over alt per entitet
+        // Gjør dette enkelt med én taskkjøring per relaterte entiteter
         while (true) {
             var bulkData = currentSteg.hent(fssEksportRepository, startPosisjon, batchSize);
             var gcpKvittering = gcpLosKlient.lagreBulkData(bulkData);
@@ -80,7 +81,7 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
     private void lagNesteSteg(MigreringSteg currentSteg, int batchSize) {
         var nesteSteg = currentSteg.neste();
         LOG.info("MIGRERING (FSS): steg {} ferdig, neste steg {}", currentSteg, nesteSteg);
-        if (nesteSteg != MigreringSteg.FERDIG) {
+        if (nesteSteg != MigreringSteg.DEL5_FERDIG) {
             var t = ProsessTaskData.forProsessTask(FssGcpMigrasjonTask.class);
             t.setProperty(STEG, nesteSteg.name());
             t.setProperty(BATCH_SIZE, String.valueOf(batchSize));
@@ -88,47 +89,47 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
         }
     }
 
-    enum MigreringSteg {
-        ORGANISASJON_OG_KØ,
-        AKTIVE_OPPGAVER,
-        INAKTIVE_OPPGAVER,
-        BEHANDLINGER,
-        FERDIG;
+    public enum MigreringSteg {
+        DEL1_ORGANISASJON_OG_KØ,
+        DEL2_AKTIVE_OPPGAVER,
+        DEL3_INAKTIVE_OPPGAVER,
+        DEL4_BEHANDLINGER,
+        DEL5_FERDIG;
 
         BulkDataWrapper hent(FssEksportRepository repo, int currentAntall, int batchSize) {
             return switch (this) {
-                case ORGANISASJON_OG_KØ -> repo.hentOrganisasjonOgKøer();
-                case AKTIVE_OPPGAVER -> repo.hentAktiveOppgaverOgReservasjoner(currentAntall, batchSize);
-                case INAKTIVE_OPPGAVER -> repo.hentInaktiveOppgaverOgReservasjoner(currentAntall, batchSize);
-                case BEHANDLINGER -> repo.hentBehandlinger(currentAntall, batchSize);
-                case FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt hent() i ferdig tilstand");
+                case DEL1_ORGANISASJON_OG_KØ -> repo.hentOrganisasjonOgKøer();
+                case DEL2_AKTIVE_OPPGAVER -> repo.hentAktiveOppgaverOgReservasjoner(currentAntall, batchSize);
+                case DEL3_INAKTIVE_OPPGAVER -> repo.hentInaktiveOppgaverOgReservasjoner(currentAntall, batchSize);
+                case DEL4_BEHANDLINGER -> repo.hentBehandlinger(currentAntall, batchSize);
+                case DEL5_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt hent() i ferdig tilstand");
             };
         }
 
         boolean erFerdig(int hentetAntall, int batchSize) {
             return switch (this) {
-                case ORGANISASJON_OG_KØ -> true;
-                case AKTIVE_OPPGAVER, INAKTIVE_OPPGAVER, BEHANDLINGER -> hentetAntall < batchSize;
-                case FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt erFerdig() i ferdig tilstand");
+                case DEL1_ORGANISASJON_OG_KØ -> true;
+                case DEL2_AKTIVE_OPPGAVER, DEL3_INAKTIVE_OPPGAVER, DEL4_BEHANDLINGER -> hentetAntall < batchSize;
+                case DEL5_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt erFerdig() i ferdig tilstand");
             };
         }
 
         MigreringSteg neste() {
             return switch (this) {
-                case ORGANISASJON_OG_KØ -> AKTIVE_OPPGAVER;
-                case AKTIVE_OPPGAVER -> INAKTIVE_OPPGAVER;
-                case INAKTIVE_OPPGAVER -> BEHANDLINGER;
-                case BEHANDLINGER, FERDIG -> FERDIG;
+                case DEL1_ORGANISASJON_OG_KØ -> DEL2_AKTIVE_OPPGAVER;
+                case DEL2_AKTIVE_OPPGAVER -> DEL3_INAKTIVE_OPPGAVER;
+                case DEL3_INAKTIVE_OPPGAVER -> DEL4_BEHANDLINGER;
+                case DEL4_BEHANDLINGER, DEL5_FERDIG -> DEL5_FERDIG;
             };
         }
 
         int hentetAntall(BulkDataWrapper bulkData) {
             return switch (this) {
-                case ORGANISASJON_OG_KØ -> 1;
-                case AKTIVE_OPPGAVER -> bulkData.aktiveOppgaver().size();
-                case INAKTIVE_OPPGAVER -> bulkData.inaktiveOppgaver().size();
-                case BEHANDLINGER -> bulkData.behandlinger().size();
-                case FERDIG -> 0;
+                case DEL1_ORGANISASJON_OG_KØ -> 1;
+                case DEL2_AKTIVE_OPPGAVER -> bulkData.aktiveOppgaver().size();
+                case DEL3_INAKTIVE_OPPGAVER -> bulkData.inaktiveOppgaver().size();
+                case DEL4_BEHANDLINGER -> bulkData.behandlinger().size();
+                case DEL5_FERDIG -> 0;
             };
         }
     }

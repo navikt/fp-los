@@ -24,13 +24,14 @@ import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.felles.prosesstask.RekjørFeiledeTasksBatchTask;
 import no.nav.foreldrepenger.los.felles.prosesstask.SlettGamleTasksBatchTask;
-import no.nav.foreldrepenger.los.migrering.FssGcpMigrasjonTask;
+import no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask;
 import no.nav.foreldrepenger.los.oppgave.OppgaveTjeneste;
 import no.nav.foreldrepenger.los.oppgavekø.SlettUtdaterteTask;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
 import no.nav.foreldrepenger.los.statistikk.SnapshotEnhetYtelseBehandlingTask;
 import no.nav.foreldrepenger.los.statistikk.kø.HentStatistikkForAlleKøerTask;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.DriftAvdelingEnhetDto;
+import no.nav.foreldrepenger.los.tjenester.admin.dto.DriftGcpMigrasjonDto;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.DriftOpprettAvdelingEnhetDto;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.EnkelBehandlingIdDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -41,6 +42,9 @@ import no.nav.vedtak.hendelser.behandling.Kildesystem;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
+
+import static no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask.BATCH_SIZE;
+import static no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask.STEG;
 
 @Path("/admin")
 @ApplicationScoped
@@ -218,14 +222,15 @@ public class AdminRestTjeneste {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Start migrering FSS til GCP", tags = "admin")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = false)
-    public Response gcpMigrering() {
+    public Response gcpMigrering(@NotNull @Valid DriftGcpMigrasjonDto migrasjonDto) {
         if (Environment.current().isGcp()) {
-            return Response.status(Response.Status.NOT_IMPLEMENTED).entity("MIGRERING: task kjøres kun i FSS").build();
+            return Response.status(Response.Status.NOT_IMPLEMENTED).entity("MIGRERING: kalt i GCP, skal kun kalles i FSS").build();
         }
         var t = ProsessTaskData.forProsessTask(FssGcpMigrasjonTask.class);
-        //t.setProperty(STEG, );
-        //t.setProperty(BATCH_SIZE, String.valueOf(batchSize));
-        // TODO: legg til parametere her
+        if (migrasjonDto.steg() != null) {
+            t.setProperty(STEG, migrasjonDto.steg().name());
+        }
+        t.setProperty(BATCH_SIZE, String.valueOf(migrasjonDto.batchSize()));
         prosessTaskTjeneste.lagre(t);
         return Response.ok().build();
     }

@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.los.migrering;
+package no.nav.foreldrepenger.los.migrering.dto;
 
 public record GcpImportKvittering(boolean kjørtUtenFeil, int behandlinger, int oppgaver, int reservasjoner, int orgData, int oppgaveKøer) {
     public static class Builder {

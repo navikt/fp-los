@@ -68,10 +68,6 @@ public class OppgaveEgenskap implements Serializable {
         this.sisteSaksbehandlerForTotrinn = sisteSaksbehandlerForTotrinn.trim().toUpperCase();
     }
 
-    void setOppgave(Oppgave oppgave) {
-        this.oppgave = oppgave;
-    }
-
     public Oppgave getOppgave() {
         return oppgave;
     }
@@ -84,15 +80,23 @@ public class OppgaveEgenskap implements Serializable {
         return sisteSaksbehandlerForTotrinn;
     }
 
+    public void setSisteSaksbehandlerForTotrinn(String sisteSaksbehandlerForTotrinn) {
+        this.sisteSaksbehandlerForTotrinn = sisteSaksbehandlerForTotrinn == null ? null : sisteSaksbehandlerForTotrinn.trim().toUpperCase();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OppgaveEgenskap that)) return false;
-        return andreKriterierType == that.andreKriterierType && Objects.equals(sisteSaksbehandlerForTotrinn, that.sisteSaksbehandlerForTotrinn);
+        return andreKriterierType == that.andreKriterierType && Objects.equals(getOppgaveId(), that.getOppgaveId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(andreKriterierType, sisteSaksbehandlerForTotrinn);
+        return Objects.hash(getOppgaveId(), andreKriterierType);
+    }
+
+    private Long getOppgaveId() {
+        return oppgave == null ? null : oppgave.getId();
     }
 }

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -13,8 +14,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -37,7 +36,9 @@ import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 public class Oppgave extends BaseEntitet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
+    //@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
+    // bruker en custom IdGenerator for å kunne sette PK ved migrering
+    @SequenceOrAssigned(sequence = "SEQ_GLOBAL_PK")
     private Long id;
 
     @NotNull
@@ -73,19 +74,31 @@ public class Oppgave extends BaseEntitet {
 
     public void leggTilOppgaveEgenskap(AndreKriterierType andreKriterierType, String ansvarligSaksbehandlerForTotrinn) {
         Objects.requireNonNull(andreKriterierType, "andreKriterierType");
+        var eksisterendeEgenskap = oppgaveEgenskaper.stream()
+            .filter(oe -> andreKriterierType.equals(oe.getAndreKriterierType()))
+            .findFirst()
+            .orElse(null);
+
         if (andreKriterierType.erTilBeslutter()) {
             Objects.requireNonNull(ansvarligSaksbehandlerForTotrinn, "ansvarligSaksbehandlerForTotrinn");
-            oppgaveEgenskaper.removeIf(oe -> andreKriterierType.equals(oe.getAndreKriterierType()));
+            if (eksisterendeEgenskap != null) {
+                eksisterendeEgenskap.setSisteSaksbehandlerForTotrinn(ansvarligSaksbehandlerForTotrinn);
+                return;
+            }
             oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType, ansvarligSaksbehandlerForTotrinn));
         } else {
-            oppgaveEgenskaper.removeIf(oe -> andreKriterierType.equals(oe.getAndreKriterierType()));
-            oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType));
+            if (eksisterendeEgenskap == null) {
+                oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType));
+            }
         }
     }
 
-    public void clearOppgaveEgenskaper() {
-        oppgaveEgenskaper.clear();
-        // legger til denne for migrering
+    public void beholdKunOppgaveEgenskaper(Set<AndreKriterierType> oppgaveEgenskapTyper) {
+        var typerSomSkalBeholdes = oppgaveEgenskapTyper == null
+            || oppgaveEgenskapTyper.isEmpty()
+            ? EnumSet.noneOf(AndreKriterierType.class)
+            : EnumSet.copyOf(oppgaveEgenskapTyper);
+        oppgaveEgenskaper.removeIf(oe -> !typerSomSkalBeholdes.contains(oe.getAndreKriterierType()));
     }
 
     public Long getId() {
