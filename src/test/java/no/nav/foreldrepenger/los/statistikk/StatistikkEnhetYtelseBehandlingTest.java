@@ -72,11 +72,11 @@ class StatistikkEnhetYtelseBehandlingTest {
         entityManager.persist(annenAvdeling);
 
         beslutterOppgave.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         entityManager.persist(beslutterOppgave);
 
         beslutterOppgave2.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         entityManager.persist(beslutterOppgave2);
 
         entityManager.persist(lukketOppgave);

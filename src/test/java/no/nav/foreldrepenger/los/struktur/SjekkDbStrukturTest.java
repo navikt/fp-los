@@ -6,11 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import no.nav.foreldrepenger.los.JpaExtension;
-import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.vedtak.felles.testutilities.db.EntityManagerAwareTest;
 
 /**
  * Tester at alle migreringer følger standarder for navn og god praksis.
@@ -48,17 +48,7 @@ class SjekkDbStrukturTest extends EntityManagerAwareTest {
                AND (d.description IS NULL OR d.description = '')
                AND upper(t.table_name) NOT LIKE 'PROSESS_TASK%'
                AND upper(t.table_name) NOT LIKE 'FLYWAY%'
-               AND t.column_name NOT IN (
-                 SELECT kcu.column_name
-                   FROM information_schema.key_column_usage kcu
-                   JOIN information_schema.table_constraints tc
-                     ON tc.constraint_name = kcu.constraint_name
-                    AND tc.table_schema = kcu.table_schema
-                  WHERE tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY')
-                    AND kcu.table_name = t.table_name
-                    AND kcu.table_schema = t.table_schema
-               )
-               AND upper(t.column_name) NOT IN ('OPPRETTET_TID','ENDRET_TID','OPPRETTET_AV','ENDRET_AV','VERSJON','BESKRIVELSE','NAVN','FOM','TOM','AKTIV')
+               AND upper(t.column_name) NOT IN ('OPPRETTET_TID','ENDRET_TID','OPPRETTET_AV','ENDRET_AV','VERSJON')
              ORDER BY t.table_name, t.column_name
             """;
 

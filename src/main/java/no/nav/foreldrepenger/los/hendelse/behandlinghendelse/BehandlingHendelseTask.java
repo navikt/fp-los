@@ -173,7 +173,7 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
             .medBehandlingOpprettet(oppgaveGrunnlag.opprettetTidspunkt())
             .medBehandlingId(new BehandlingId(oppgaveGrunnlag.behandlingUuid()))
             .medFørsteStønadsdag(oppgaveGrunnlag.førsteUttaksdatoForeldrepenger())
-            .medBehandlingsfrist(oppgaveGrunnlag.behandlingsfrist() != null ? oppgaveGrunnlag.behandlingsfrist().atStartOfDay() : null)
+            .medBehandlingsfrist(oppgaveGrunnlag.behandlingsfrist())
             .medKriterier(oppgaveEgenskaper)
             .medFeilutbetalingBeløp(oppgaveGrunnlag.feilutbetalingBeløp())
             .medFeilutbetalingStart(oppgaveGrunnlag.feilutbetalingStart())

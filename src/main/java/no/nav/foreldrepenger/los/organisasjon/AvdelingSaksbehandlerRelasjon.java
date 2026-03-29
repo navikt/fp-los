@@ -9,6 +9,7 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity(name = "AvdelingSaksbehandlerRelasjon")
 @IdClass(AvdelingSaksbehandlerNøkkel.class)
@@ -16,13 +17,15 @@ import jakarta.persistence.Table;
 public class AvdelingSaksbehandlerRelasjon implements Serializable {
 
     @Id
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SAKSBEHANDLER_ID", updatable = false)
+    @JoinColumn(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false)
     private Saksbehandler saksbehandler;
 
     @Id
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "AVDELING_ID", updatable = false)
+    @JoinColumn(name = "AVDELING_ID", nullable = false, updatable = false)
     private Avdeling avdeling;
 
 

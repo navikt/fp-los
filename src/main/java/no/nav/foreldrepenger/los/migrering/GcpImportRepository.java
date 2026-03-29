@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +14,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
@@ -152,7 +151,7 @@ public class GcpImportRepository {
         var count = 0;
 
         for (var dto : orgData.avdelinger()) {
-            var existing = entityManager.find(Avdeling.class, dto.id());
+            var existing = entityManager.find(Avdeling.class, dto.avdelingEnhet());
             if (existing == null) {
                 var avdeling = GcpImportMapper.mapAvdeling(dto);
                 entityManager.merge(avdeling);
@@ -161,7 +160,7 @@ public class GcpImportRepository {
         }
 
         for (var dto : orgData.saksbehandlere()) {
-            var existing = entityManager.find(Saksbehandler.class, dto.id());
+            var existing = entityManager.find(Saksbehandler.class, dto.saksbehandlerIdent());
             if (existing == null) {
                 var saksbehandler = GcpImportMapper.mapSaksbehandler(dto);
                 entityManager.merge(saksbehandler);

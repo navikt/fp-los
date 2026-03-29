@@ -18,6 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
@@ -30,15 +31,18 @@ import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 @Table(name = "OPPGAVE_FILTRERING")
 public class OppgaveFiltrering extends BaseEntitet {
     @Id
+    @NotNull
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
-    @Column(name = "navn")
+    @NotNull
+    @Column(name = "navn", nullable = false)
     private String navn;
 
     @Column(name = "BESKRIVELSE")
     private String beskrivelse;
 
+    @NotNull
     @Column(name = "sortering", nullable = false)
     @Enumerated(EnumType.STRING)
     private KøSortering sortering;
@@ -52,15 +56,14 @@ public class OppgaveFiltrering extends BaseEntitet {
     @OneToMany(mappedBy = "oppgaveFiltrering", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FiltreringAndreKriterierType> andreKriterierTyper = new HashSet<>();
 
+    @NotNull
     @ManyToOne
-    @JoinColumn(name = "AVDELING_ID")
+    @JoinColumn(name = "AVDELING_ID", nullable = false, updatable = false)
     private Avdeling avdeling;
 
-    @Column(name = "AVDELING_ID", updatable = false, insertable = false)
-    private Long avdelingId;
-
+    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "PERIODEFILTER_TYPE")
+    @Column(name = "PERIODEFILTER_TYPE", nullable = false)
     private Periodefilter periodefilter = Periodefilter.FAST_PERIODE;
 
     @Column(name = "FOM_DATO")
@@ -153,6 +156,12 @@ public class OppgaveFiltrering extends BaseEntitet {
 
     public void setSortering(KøSortering sortering) {
         this.sortering = sortering;
+    }
+
+    public void tømAlleFilterSet() {
+        this.filtreringBehandlingTyper.clear();
+        this.filtreringBehandlingTyper.clear();
+        this.andreKriterierTyper.clear();
     }
 
     public void setFiltreringBehandlingTyper(Set<BehandlingType> behandlingTyper) {

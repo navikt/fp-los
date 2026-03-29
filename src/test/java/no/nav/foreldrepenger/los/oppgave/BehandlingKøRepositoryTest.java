@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.dto.SakslisteLagreDto;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +20,7 @@ import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
+import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.dto.SakslisteLagreDto;
 import no.nav.vedtak.exception.FunksjonellException;
 
 @ExtendWith(JpaExtension.class)
@@ -140,6 +139,7 @@ class BehandlingKøRepositoryTest {
     @Test
     void testUtenFiltreringpåYtelseTypeype() {
         var listeId = leggeInnEtSettMedOppgaver();
+        leggtilOppgaveMedEkstraEgenskaper(førstegangBehandlingVent, AndreKriterierType.TIL_BESLUTTER);
         var liste = oppgaveRepository.hentOppgaveFilterSett(listeId).orElseThrow();
         var saksliste = new SakslisteLagreDto(
             liste.getAvdeling().getAvdelingEnhet(),
@@ -154,6 +154,20 @@ class BehandlingKøRepositoryTest {
         avdelingslederTjeneste.endreEksistrendeOppgaveFilter(saksliste);
         var oppgaver = hentAntallOppgaver(listeId);
         assertThat(oppgaver).isZero();
+
+        var endretSaksliste = new SakslisteLagreDto(
+            liste.getAvdeling().getAvdelingEnhet(),
+            liste.getId(),
+            liste.getNavn(),
+            liste.getBeskrivelse(),
+            new SakslisteLagreDto.SorteringDto(liste.getSortering(), Periodefilter.FAST_PERIODE, null, null, null, null),
+            Set.of(),
+            Set.of(FagsakYtelseType.ENGANGSTØNAD, FagsakYtelseType.FORELDREPENGER),
+            new SakslisteLagreDto.AndreKriterieDto(Set.of(AndreKriterierType.TIL_BESLUTTER), Set.of())
+        );
+        avdelingslederTjeneste.endreEksistrendeOppgaveFilter(endretSaksliste);
+        oppgaver = hentAntallOppgaver(listeId);
+        assertThat(oppgaver).isEqualTo(1);
     }
 
     @Test

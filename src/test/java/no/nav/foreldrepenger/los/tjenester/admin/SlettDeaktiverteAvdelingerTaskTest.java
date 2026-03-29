@@ -63,7 +63,7 @@ class SlettDeaktiverteAvdelingerTaskTest {
         køDefinisjon.setSortering(KøSortering.OPPRETT_BEHANDLING);
         køDefinisjon.setAvdeling(avdeling);
 
-        avdelingslederSaksbehandlerTjeneste.leggSaksbehandlerTilAvdeling("saksbeh", avdelingEnhetsnummer);
+        avdelingslederSaksbehandlerTjeneste.leggSaksbehandlerTilAvdeling("Z111111", avdelingEnhetsnummer);
         entityManager.flush();
         var saksbehandlere = avdelingslederSaksbehandlerTjeneste.hentAvdelingensSaksbehandlere(avdelingEnhetsnummer);
 

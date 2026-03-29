@@ -48,10 +48,10 @@ class OrganisasjonRepositoryTest {
 
     @Test
     void skalSletteSaksbehandlereUtenKnytninger() {
-        var saksbehandlerUtenKnytning = new Saksbehandler("ikke-knyttet", "Navn Navnesen", "1234");
+        var saksbehandlerUtenKnytning = new Saksbehandler("z111111", "Navn Navnesen", "1234");
         entityManager.persist(saksbehandlerUtenKnytning);
 
-        var saksbehandlerMedKnytning = new Saksbehandler("knyttet", "Navn2 Navnesen", "1234");
+        var saksbehandlerMedKnytning = new Saksbehandler("z111112", "Navn2 Navnesen", "1234");
         entityManager.persist(saksbehandlerMedKnytning);
         repository.tilknyttAvdelingSaksbehandler(avdelingDrammen(entityManager), saksbehandlerMedKnytning);
         entityManager.flush();
@@ -61,7 +61,7 @@ class OrganisasjonRepositoryTest {
         var saksbehandlereEtterSletting = hentAlle(entityManager, Saksbehandler.class);
         assertThat(saksbehandlereEtterSletting)
             .hasSize(1)
-            .first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("knyttet");
+            .first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("Z111112");
     }
 
     @Test
@@ -69,12 +69,12 @@ class OrganisasjonRepositoryTest {
         var avdeling = avdelingDrammen(entityManager);
         var avdelingNasjonal = hentAlle(entityManager, Avdeling.class).stream().filter(a -> "4867".equals(a.getAvdelingEnhet())).findAny().orElseThrow();
 
-        var saksbehandlerMedNavn = new Saksbehandler("MNAVN", "Navn Navnesen", "1234");
+        var saksbehandlerMedNavn = new Saksbehandler("Z111111", "Navn Navnesen", "1234");
         entityManager.persist(saksbehandlerMedNavn);
         repository.tilknyttAvdelingSaksbehandler(avdeling, saksbehandlerMedNavn);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandlerMedNavn);
 
-        var saksbehandlerUtenNavn = new Saksbehandler("UNAVN", null, null);
+        var saksbehandlerUtenNavn = new Saksbehandler("Z111112", null, null);
         entityManager.persist(saksbehandlerUtenNavn);
         repository.tilknyttAvdelingSaksbehandler(avdeling, saksbehandlerUtenNavn);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandlerUtenNavn);
@@ -101,13 +101,13 @@ class OrganisasjonRepositoryTest {
         assertThat(saksbehandlereEtterSletting)
             .hasSize(1)
             .satisfies(s -> {
-                assertThat(s.getFirst().getSaksbehandlerIdent()).isEqualTo("MNAVN");
+                assertThat(s.getFirst().getSaksbehandlerIdent()).isEqualTo("Z111111");
                 assertThat(oppgaveRepository.oppgaveFiltreringerForSaksbehandler(s.getFirst())).hasSize(1)
                     .first().extracting(OppgaveFiltrering::getNavn).isEqualTo("BEHANDLINGSFRIST");
                 assertThat(repository.avdelingerForSaksbehandler(s.getFirst())).hasSize(2);
             });
-        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(ofilter)).hasSize(1).first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("MNAVN");
-        assertThat(repository.saksbehandlereForGruppe(gruppe)).hasSize(1).first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("MNAVN");
+        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(ofilter)).hasSize(1).first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("Z111111");
+        assertThat(repository.saksbehandlereForGruppe(gruppe)).hasSize(1).first().extracting(Saksbehandler::getSaksbehandlerIdent).isEqualTo("Z111111");
 
     }
 
@@ -115,11 +115,11 @@ class OrganisasjonRepositoryTest {
     void skalFjerneLøseGruppeTilknytninger() {
         var avdelingNasjonal = hentAlle(entityManager, Avdeling.class).stream().filter(a -> "4867".equals(a.getAvdelingEnhet())).findAny().orElseThrow();
 
-        var saksbehandler1 = new Saksbehandler("NAVN1", "Navn Navnes1", "1234");
+        var saksbehandler1 = new Saksbehandler("Z111111", "Navn Navnes1", "1234");
         entityManager.persist(saksbehandler1);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandler1);
 
-        var saksbehandler2 = new Saksbehandler("NAVN2", "Navn Navnes2", "1234");
+        var saksbehandler2 = new Saksbehandler("Z111112", "Navn Navnes2", "1234");
         entityManager.persist(saksbehandler2);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandler2);
 
@@ -143,7 +143,7 @@ class OrganisasjonRepositoryTest {
         // Slett med forventet effekt
         repository.slettLøseGruppeKnytninger();
         assertThat(repository.saksbehandlereForGruppe(gruppe)).hasSize(1)
-            .extracting(Saksbehandler::getSaksbehandlerIdent).containsExactly("NAVN2");
+            .extracting(Saksbehandler::getSaksbehandlerIdent).containsExactly("Z111112");
 
     }
 

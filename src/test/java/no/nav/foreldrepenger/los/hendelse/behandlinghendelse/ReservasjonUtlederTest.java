@@ -187,7 +187,7 @@ class ReservasjonUtlederTest {
             .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
             .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDateTime.now().plusDays(10))
+            .medBehandlingsfrist(LocalDate.now().plusDays(10))
             .medBehandlingOpprettet(LocalDateTime.now())
             .medFørsteStønadsdag(LocalDate.now().plusMonths(1))
             .build();

@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.los.tjenester.felles.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class OppgaveDto {
     @NotNull private FagsakYtelseType fagsakYtelseType;
     @NotNull private Boolean erTilSaksbehandling;
     @NotNull private LocalDateTime opprettetTidspunkt;
-    @NotNull private LocalDateTime behandlingsfrist;
+    @NotNull private LocalDate behandlingsfrist;
     @NotNull private BehandlingId behandlingId;
     @NotNull private Set<AndreKriterierType> andreKriterier;
     @NotNull private ReservasjonStatusDto reservasjonStatus;
@@ -108,7 +109,7 @@ public class OppgaveDto {
         return opprettetTidspunkt;
     }
 
-    public LocalDateTime getBehandlingsfrist() {
+    public LocalDate getBehandlingsfrist() {
         return behandlingsfrist;
     }
 

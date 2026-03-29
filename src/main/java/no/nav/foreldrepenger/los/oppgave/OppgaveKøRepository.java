@@ -39,11 +39,11 @@ public class OppgaveKøRepository {
     private static final String ORDER_BY_OPPGAVE_OPPRETTET_ASC = "ORDER BY o.opprettetTidspunkt ASC";
 
     private static final Map<KøSortering, Boolean> SORTERING_ER_DATE_FELT = Map.of(
-        KøSortering.BEHANDLINGSFRIST, false,
+        KøSortering.BEHANDLINGSFRIST, true,
         KøSortering.OPPRETT_BEHANDLING, false,
         KøSortering.FØRSTE_STØNADSDAG, true,
         KøSortering.FØRSTE_STØNADSDAG_SYNKENDE, true,
-        KøSortering.FEILUTBETALINGSTART, false
+        KøSortering.FEILUTBETALINGSTART, true
     );
 
     private EntityManager entityManager;

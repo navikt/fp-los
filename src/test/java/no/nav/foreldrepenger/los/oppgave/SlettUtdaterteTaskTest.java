@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.oppgave;
 import static no.nav.foreldrepenger.los.organisasjon.Avdeling.AVDELING_DRAMMEN_ENHET;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,12 +54,12 @@ class SlettUtdaterteTaskTest {
             .medBehandlingId(new BehandlingId(behandlingId))
             .medSaksnummer(new Saksnummer("111"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(10))
-            .medBehandlingsfrist(LocalDateTime.now().plusDays(10))
+            .medBehandlingsfrist(LocalDate.now().plusDays(10))
             .medAktiv(false)
             .build();
         oppgave.setEndretTidspunkt(LocalDateTime.now().minusMonths(5));
         oppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.PAPIRSØKNAD).build());
-        oppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+        oppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
 
         entityManager.persist(oppgave);
 

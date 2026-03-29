@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 
 @Entity(name = "saksbehandlerGruppe")
@@ -17,14 +18,17 @@ import no.nav.foreldrepenger.los.felles.BaseEntitet;
 public class SaksbehandlerGruppe extends BaseEntitet {
 
     @Id
+    @NotNull
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
-    @Column(name = "GRUPPE_NAVN")
+    @NotNull
+    @Column(name = "GRUPPE_NAVN", nullable = false)
     private String gruppeNavn;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "AVDELING_ID", updatable = false)
+    @JoinColumn(name = "AVDELING_ID", nullable = false, updatable = false)
     private Avdeling avdeling;
 
     @Version

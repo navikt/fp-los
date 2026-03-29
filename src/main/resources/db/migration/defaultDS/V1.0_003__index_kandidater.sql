@@ -1,4 +1,3 @@
-CREATE INDEX idx_avdeling_enhet ON avdeling (avdeling_enhet);
 CREATE INDEX idx_avdeling_saksbehandler_sbh_id ON avdeling_saksbehandler (saksbehandler_id);
 CREATE INDEX idx_avdeling_saksbehandler_avdeling_id ON avdeling_saksbehandler (avdeling_id);
 
@@ -36,7 +35,6 @@ CREATE INDEX idx_oppgave_stonadsdag ON oppgave (forste_stonadsdag);
 CREATE INDEX idx_oppgave_behandling_id ON oppgave (behandling_id);
 CREATE INDEX idx_oppgave_saksnummer ON oppgave (saksnummer);
 CREATE INDEX idx_oppgave_filtrering_avdeling_id ON oppgave_filtrering (avdeling_id);
-CREATE INDEX idx_saksbehandler_ident ON saksbehandler (saksbehandler_ident);
 CREATE INDEX idx_saksbehandler_gruppe_avdeling_id ON saksbehandler_gruppe (avdeling_id);
 
 
@@ -71,7 +69,6 @@ CREATE INDEX idx_oppgave_feilutbet_start ON oppgave (feilutbetaling_start);
 --    andreKriterierSubquery: WHERE oe.oppgave = o AND oe.andreKriterierType IN (...)
 --    Erstatter idx_oppgave_egenskap_oppgave_id som ikke dekker begge kolonner.
 -- -------------------------------------------------------------------------------------
-DROP INDEX IF EXISTS idx_oppgave_egenskap_oppgave_id;
 CREATE INDEX idx_oppgave_egenskap_oppgave_kriterie ON oppgave_egenskap (oppgave_id, andre_kriterier_type);
 
 

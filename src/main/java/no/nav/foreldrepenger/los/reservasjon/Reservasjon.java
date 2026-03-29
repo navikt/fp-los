@@ -12,30 +12,37 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 
 @Entity(name = "Reservasjon")
 @Table(name = "RESERVASJON")
 public class Reservasjon extends BaseEntitet {
 
     @Id
+    @NotNull
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
+    @NotNull
     @OneToOne(optional = false, cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "oppgave_id", updatable = false, insertable = false)
+    @JoinColumn(name = "oppgave_id", updatable = false, insertable = false, unique = true)
     private Oppgave oppgave;
 
     // legger til rå kolonne for gcp-migrering
+    @NotNull
     @Column(name = "oppgave_id", nullable = false)
     private Long oppgaveId;
 
     @Column(name = "RESERVERT_TIL")
     private LocalDateTime reservertTil;
 
-    @Column(name = "RESERVERT_AV")
+    @NotNull
+    @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}")
+    @Column(name = "RESERVERT_AV", nullable = false)
     private String reservertAv;
 
     @Column(name = "FLYTTET_AV")
@@ -102,11 +109,11 @@ public class Reservasjon extends BaseEntitet {
     }
 
     public void setReservertAv(String reservertAv) {
-        this.reservertAv = reservertAv;
+        this.reservertAv = reservertAv != null ? reservertAv.toUpperCase() : null;
     }
 
     public void setFlyttetAv(String flyttetAv) {
-        this.flyttetAv = flyttetAv;
+        this.flyttetAv = flyttetAv != null ? flyttetAv.toUpperCase() : null;
     }
 
     public void setFlyttetTidspunkt(LocalDateTime flyttetTidspunkt) {

@@ -55,21 +55,18 @@ public class OrganisasjonRepository {
         var slettes = entityManager.createQuery("from saksbehandler where navn is null", Saksbehandler.class).getResultList();
         var antall = slettes.size();
         var identer = slettes.stream().map(Saksbehandler::getSaksbehandlerIdent).collect(Collectors.toSet());
-        var sbIds = slettes.stream().map(Saksbehandler::getId).collect(Collectors.toSet());
-        entityManager.createQuery("DELETE from GruppeTilknytningRelasjon where saksbehandler.id in :sb").setParameter("sb", sbIds).executeUpdate();
-        entityManager.createQuery("DELETE from FiltreringSaksbehandlerRelasjon where saksbehandler.id in :sb").setParameter("sb", sbIds).executeUpdate();
-        entityManager.createQuery("DELETE from AvdelingSaksbehandlerRelasjon where saksbehandler.id in :sb").setParameter("sb", sbIds).executeUpdate();
-        entityManager.createQuery("DELETE from saksbehandler where id in :sb").setParameter("sb", sbIds).executeUpdate();
+        entityManager.createQuery("DELETE from GruppeTilknytningRelasjon where saksbehandler.saksbehandlerIdent in :sb").setParameter("sb", identer).executeUpdate();
+        entityManager.createQuery("DELETE from FiltreringSaksbehandlerRelasjon where saksbehandler.saksbehandlerIdent in :sb").setParameter("sb", identer).executeUpdate();
+        entityManager.createQuery("DELETE from AvdelingSaksbehandlerRelasjon where saksbehandler.saksbehandlerIdent in :sb").setParameter("sb", identer).executeUpdate();
+        entityManager.createQuery("DELETE from saksbehandler where saksbehandlerIdent in :sb").setParameter("sb", identer).executeUpdate();
         entityManager.flush();
         LOG.info("Oppdater saksbehandler: Fjernet {} saksbehandlere som ikke lenger finnes {}", antall, identer);
         return antall;
     }
 
     private TypedQuery<Saksbehandler> hentSaksbehandlerQuery(String saksbehandlerIdent) {
-        return entityManager.createQuery("""
-            FROM saksbehandler s
-            WHERE upper(s.saksbehandlerIdent) = upper( :ident )
-            """, Saksbehandler.class).setParameter("ident", saksbehandlerIdent.trim().toUpperCase());
+        return entityManager.createQuery("FROM saksbehandler s WHERE s.saksbehandlerIdent = :ident", Saksbehandler.class)
+            .setParameter("ident", saksbehandlerIdent.trim().toUpperCase());
     }
 
     public void slettSaksbehandlereUtenKnytninger() {

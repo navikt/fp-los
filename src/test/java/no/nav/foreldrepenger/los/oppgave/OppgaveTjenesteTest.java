@@ -161,7 +161,7 @@ class OppgaveTjenesteTest {
         var oppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(dagerSidenOpprettet))
-            .medBehandlingsfrist(LocalDateTime.now().minusDays(dagersidenBehandlingsFristGikkUt))
+            .medBehandlingsfrist(LocalDate.now().minusDays(dagersidenBehandlingsFristGikkUt))
             .medFørsteStønadsdag(LocalDate.now().minusDays(førsteStønadsdag))
             .build();
         oppgaveRepository.lagre(oppgave);

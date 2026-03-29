@@ -1,10 +1,9 @@
 package no.nav.foreldrepenger.los.tjenester.felles.dto;
 
-import static no.nav.foreldrepenger.los.felles.util.BrukerIdent.brukerIdent;
-
 import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
+import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 public record ReservasjonStatusDto(@NotNull boolean erReservert, LocalDateTime reservertTilTidspunkt, Boolean erReservertAvInnloggetBruker,
@@ -31,7 +30,7 @@ public record ReservasjonStatusDto(@NotNull boolean erReservert, LocalDateTime r
     }
 
     private static boolean isErReservertAvInnloggetBruker(String reservertAvIdent) {
-        return reservertAvIdent != null && reservertAvIdent.equalsIgnoreCase(brukerIdent());
+        return reservertAvIdent != null && reservertAvIdent.equalsIgnoreCase(BrukerIdent.brukerIdent());
     }
 
     private static FlyttetReservasjonDto utledFlyttetReservasjonDto(Reservasjon reservasjon, FlyttetReservasjonDto flyttetReservasjonDto, String navnFlyttetAv) {

@@ -1,23 +1,22 @@
 package no.nav.foreldrepenger.los.migrering.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.vedtak.util.InputValideringRegex;
-
-import java.time.LocalDateTime;
 
 /**
  * DTO for migrating Saksbehandler entities
  */
 public record SaksbehandlerDataDto(
-    @Min(0) @Max(10_000_000) Long id,  // Primary key
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String saksbehandlerIdent,
+    @NotNull @Size(max = 500) @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}") String saksbehandlerIdent,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String ansattVedEnhet,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
-    LocalDateTime opprettetTidspunkt,
+    @NotNull @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull  LocalDateTime opprettetTidspunkt,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt
 ) {}

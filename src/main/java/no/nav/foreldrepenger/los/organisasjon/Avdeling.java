@@ -1,35 +1,43 @@
 package no.nav.foreldrepenger.los.organisasjon;
 
+import org.hibernate.annotations.NaturalId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @Entity(name = "avdeling")
 @Table(name = "AVDELING")
 public class Avdeling extends BaseEntitet {
+
     public static final String AVDELING_DRAMMEN_ENHET = "4806";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
-    private Long id;
+    public static final String VALID_AVDELING_ID = "^\\d{4}$";
 
-    @Column(name = "AVDELING_ENHET")
+    @Id
+    @NaturalId
+    @NotNull
+    @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
+    @Column(name = "AVDELING_ENHET", unique = true, nullable = false)
     private String avdelingEnhet;
 
-    @Column(name = "NAVN")
+    @NotNull
+    @Column(name = "NAVN", nullable = false)
     private String navn;
 
-    @Column(name = "KREVER_KODE_6")
+    @NotNull
+    @Column(name = "KREVER_KODE_6", nullable = false)
     @Convert(converter = BooleanToStringConverter.class)
-    private Boolean kreverKode6 = Boolean.FALSE;
+    private boolean kreverKode6 = Boolean.FALSE;
 
+    @NotNull
     @Column(name = "AKTIV", nullable = false)
     @Convert(converter = BooleanToStringConverter.class)
     private boolean erAktiv = true;
@@ -48,10 +56,6 @@ public class Avdeling extends BaseEntitet {
         this.kreverKode6 = kreverKode6;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public String getAvdelingEnhet() {
         return avdelingEnhet;
     }
@@ -64,7 +68,7 @@ public class Avdeling extends BaseEntitet {
         this.navn = navn;
     }
 
-    public Boolean getKreverKode6() {
+    public boolean getKreverKode6() {
         return kreverKode6;
     }
 
@@ -80,7 +84,7 @@ public class Avdeling extends BaseEntitet {
         this.avdelingEnhet = avdelingEnhet;
     }
 
-    public void setKreverKode6(Boolean kreverKode6) {
+    public void setKreverKode6(boolean kreverKode6) {
         this.kreverKode6 = kreverKode6;
     }
 

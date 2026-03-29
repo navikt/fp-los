@@ -11,25 +11,31 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @IdClass(StatistikkOppgaveFilterType.class)
 @Table(name = "STAT_OPPGAVE_FILTER")
 public class StatistikkOppgaveFilter implements Serializable {
     @Id
+    @NotNull
     @Column(name = "OPPGAVE_FILTER_ID", updatable = false, nullable = false)
     private Long oppgaveFilterId;
 
     @Id
+    @NotNull
     @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false)
     private Long tidsstempel;
 
+    @NotNull
     @Column(name = "STAT_DATO", updatable = false, nullable = false)
     private LocalDate statistikkDato;
 
+    @NotNull
     @Column(name = "ANTALL_AKTIVE", updatable = false, nullable = false)
     private Integer antallAktive;
 
+    @NotNull
     @Column(name = "ANTALL_TILGJENGELIGE", updatable = false, nullable = false)
     private Integer antallTilgjengelige;
 
@@ -42,6 +48,7 @@ public class StatistikkOppgaveFilter implements Serializable {
     @Column(name = "ANTALL_AVSLUTTET")
     private Integer antallAvsluttet;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "INNSLAG_TYPE", updatable = false, nullable = false)
     private InnslagType innslagType;

@@ -13,13 +13,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
-import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.util.validering.ValidKodeverk;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.dto.SaksnummerDto;
-import no.nav.vedtak.util.Fritekst;
 import no.nav.vedtak.util.InputValideringRegex;
 
 /**
@@ -33,14 +31,14 @@ public record OppgaveDataDto(
     @ValidKodeverk BehandlingType behandlingType,
     @ValidKodeverk FagsakYtelseType fagsakYtelseType,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String behandlendeEnhet,
-    LocalDateTime behandlingsfrist,
+    LocalDate behandlingsfrist,
     LocalDateTime behandlingOpprettet,
     LocalDate førsteStønadsdag,
     boolean aktiv,
     @Valid Fagsystem system,
     LocalDateTime oppgaveAvsluttet,
     @Min(0) @Max(1_000_000_000) BigDecimal feilutbetalingBelop,
-    LocalDateTime feilutbetalingStart,
+    LocalDate feilutbetalingStart,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
     LocalDateTime opprettetTidspunkt,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,

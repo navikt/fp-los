@@ -25,7 +25,7 @@ import no.nav.foreldrepenger.los.organisasjon.ansatt.BrukerProfil;
 @ExtendWith(JpaExtension.class)
 class AvdelingslederSaksbehandlerTjenesteTest {
 
-    private static final String NY_SAKSBEHANDLER_IDENT = "zNySaksbehandler";
+    private static final String NY_SAKSBEHANDLER_IDENT = "z999999";
 
     private AvdelingslederSaksbehandlerTjeneste avdelingslederSaksbehandlerTjeneste;
     private OrganisasjonRepository organisasjonRepository;
@@ -52,7 +52,6 @@ class AvdelingslederSaksbehandlerTjenesteTest {
         em.flush();
         saksbehandlers = avdelingslederSaksbehandlerTjeneste.hentAvdelingensSaksbehandlere(AVDELING_DRAMMEN_ENHET);
         assertThat(saksbehandlers).isNotEmpty();
-        assertThat(saksbehandlers.get(0).getId()).isNotNull();
         assertThat(saksbehandlers.get(0).getSaksbehandlerIdent()).isEqualTo(NY_SAKSBEHANDLER_IDENT.toUpperCase());
     }
 

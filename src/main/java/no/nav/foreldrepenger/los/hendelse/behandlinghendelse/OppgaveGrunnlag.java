@@ -29,7 +29,7 @@ record OppgaveGrunnlag(UUID behandlingUuid,
                        LocalDate førsteUttaksdatoForeldrepenger, //null hvis ES og SVP
                        List<Behandlingsegenskap> behandlingsegenskaper,
                        BehandlingStatus behandlingStatus,
-                       LocalDateTime feilutbetalingStart,
+                       LocalDate feilutbetalingStart,
                        BigDecimal feilutbetalingBeløp) {
 
     enum Saksegenskap {
