@@ -8,7 +8,8 @@ import no.nav.vedtak.sikkerhet.abac.AbacDto;
 import no.nav.vedtak.util.InputValideringRegex;
 
 public record DriftOpprettAvdelingEnhetDto(@NotNull @Pattern(regexp = RegexPatterns.ENHETSNUMMER) String enhetsnummer,
-                                           @NotNull @Pattern(regexp = InputValideringRegex.FRITEKST) String enhetsnavn) implements AbacDto {
+                                           @NotNull @Pattern(regexp = InputValideringRegex.FRITEKST) String enhetsnavn,
+                                           boolean kreverKode6) implements AbacDto {
     @Override
     public AbacDataAttributter abacAttributter() {
         return AbacDataAttributter.opprett();
