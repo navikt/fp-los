@@ -4,6 +4,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
@@ -23,10 +24,17 @@ public class HentStatistikkForAlleKøerTask implements ProsessTaskHandler {
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
         var alleKøer = køStatistikkTjeneste.hentAlleOppgavefiltreringer();
+        if (alleKøer.isEmpty()) {
+            return;
+        }
+        var gruppe = new ProsessTaskGruppe();
+        var gruppeNavn = HentStatistikkForKøTask.class.getSimpleName() + System.currentTimeMillis();
         for (var kø : alleKøer) {
             var task = ProsessTaskData.forProsessTask(HentStatistikkForKøTask.class);
+            task.setGruppe(gruppeNavn);
             task.setProperty(HentStatistikkForKøTask.OPPGAVE_FILTER_ID, kø.getId().toString());
-            prosessTaskTjeneste.lagre(task);
+            gruppe.addNesteParallell(task);
         }
+        prosessTaskTjeneste.lagre(gruppe);
     }
 }

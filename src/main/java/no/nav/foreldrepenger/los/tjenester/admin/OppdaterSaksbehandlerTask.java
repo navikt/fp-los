@@ -59,21 +59,26 @@ public class OppdaterSaksbehandlerTask implements ProsessTaskHandler {
         var antallSlettet = organisasjonsRepository.fjernSaksbehandlereSomHarSluttet();
         LOG.info("Oppdater saksbehandler: Fjernet {} saksbehandlere som har sluttet.", antallSlettet);
         if (repeat) {
+            var gruppeNavn = OppdaterSaksbehandlerTask.class.getSimpleName() + System.currentTimeMillis();
             var nesteKjøring = LocalDate.now().plusWeeks(4).atTime(LocalTime.of(19, 0)); // Internasjonal oppetid
             var neste = ProsessTaskData.forProsessTask(OppdaterSaksbehandlerTask.class);
+            neste.setGruppe(gruppeNavn);
             neste.setNesteKjøringEtter(nesteKjøring);
             prosessTaskTjeneste.lagre(neste);
         }
     }
 
     private void lagOppdaterTasksForAlleSaksbehandlere() {
+        var gruppeNavn = OppdaterSaksbehandlerTask.class.getSimpleName() + System.currentTimeMillis();
         var gruppe = new ProsessTaskGruppe();
         organisasjonsRepository.hentAlleSaksbehandlere().forEach(s -> {
             var t = ProsessTaskData.forProsessTask(OppdaterSaksbehandlerTask.class);
+            t.setGruppe(gruppeNavn);
             t.setProperty(OppdaterSaksbehandlerTask.IDENT, s.getSaksbehandlerIdent());
             gruppe.addNesteSekvensiell(t);
         });
         var siste = ProsessTaskData.forProsessTask(OppdaterSaksbehandlerTask.class);
+        siste.setGruppe(gruppeNavn);
         siste.setProperty(OppdaterSaksbehandlerTask.IDENT, SISTE);
         gruppe.addNesteSekvensiell(siste);
         prosessTaskTjeneste.lagre(gruppe);
