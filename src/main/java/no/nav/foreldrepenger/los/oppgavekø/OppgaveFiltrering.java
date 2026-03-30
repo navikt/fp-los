@@ -158,12 +158,6 @@ public class OppgaveFiltrering extends BaseEntitet {
         this.sortering = sortering;
     }
 
-    public void tømAlleFilterSet() {
-        this.filtreringBehandlingTyper.clear();
-        this.filtreringBehandlingTyper.clear();
-        this.andreKriterierTyper.clear();
-    }
-
     public void setFiltreringBehandlingTyper(Set<BehandlingType> behandlingTyper) {
         this.filtreringBehandlingTyper.clear();
         behandlingTyper.stream()

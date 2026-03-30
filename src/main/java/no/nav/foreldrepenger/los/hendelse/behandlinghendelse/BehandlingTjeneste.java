@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,8 +64,6 @@ public class BehandlingTjeneste {
         if (BehandlingTilstand.AVSLUTTET.equals(tilstand) && skalForkasteGamleAvsluttet(dto, eksisterendeBehandling)) {
             return;
         }
-        var eksisterendeKriterier = oppgaveRepository.finnBehandlingKriterier(dto.behandlingUuid());
-        var kriterierEndret = eksisterendeKriterier.size() != nyeKriterier.size() || !eksisterendeKriterier.containsAll(nyeKriterier);
         var builder = Behandling.builder(eksisterendeBehandling)
             .medId(dto.behandlingUuid())
             .medSaksnummer(new Saksnummer(dto.saksnummer()))
@@ -77,6 +74,7 @@ public class BehandlingTjeneste {
             .medBehandlingType(OppgaveUtil.mapBehandlingstype(dto.behandlingstype()))
             .medBehandlingTilstand(tilstand)
             .medAktiveAksjonspunkt(mapAktiveAksjonspunkt(dto))
+            .medKriterier(nyeKriterier)
             .medVentefrist(mapTidligsteVentefrist(dto))
             .medOpprettet(dto.opprettetTidspunkt())
             .medAvsluttet(dto.avsluttetTidspunkt())
@@ -85,15 +83,7 @@ public class BehandlingTjeneste {
             .medFeilutbetalingBelop(Optional.ofNullable(dto.tilbakeDto()).map(LosBehandlingDto.LosTilbakeDto::feilutbetaltBeløp).orElse(null))
             .medFeilutbetalingStart(Optional.ofNullable(dto.tilbakeDto()).map(LosBehandlingDto.LosTilbakeDto::førsteFeilutbetalingDato).orElse(null))
             ;
-        oppgaveRepository.lagreBehandling(builder.build());
-        if (kriterierEndret) {
-            var fjernes = eksisterendeKriterier.isEmpty() ? EnumSet.noneOf(AndreKriterierType.class) : EnumSet.copyOf(eksisterendeKriterier);
-            fjernes.removeAll(nyeKriterier);
-            oppgaveRepository.fjernBehandlingEgenskaper(dto.behandlingUuid(), fjernes);
-            var leggesTil = nyeKriterier.isEmpty() ? EnumSet.noneOf(AndreKriterierType.class) : EnumSet.copyOf(nyeKriterier);
-            leggesTil.removeAll(eksisterendeKriterier);
-            oppgaveRepository.nyeBehandlingEgenskaper(dto.behandlingUuid(), leggesTil);
-        }
+        oppgaveRepository.lagreBehandling(builder);
     }
 
     private boolean skalForkasteGamleAvsluttet(LosBehandlingDto dto, Optional<Behandling> eksisterendeBehandling) {

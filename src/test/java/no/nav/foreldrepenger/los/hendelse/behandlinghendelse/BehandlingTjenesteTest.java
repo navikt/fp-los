@@ -72,7 +72,7 @@ class BehandlingTjenesteTest {
             var behandling = oppgaveRepository.finnBehandling(dto.behandlingUuid());
             Assertions.assertThat(behandling).isPresent();
             Assertions.assertThat(behandling.get().getBehandlingTilstand()).isEqualTo(v);
-            var egenskaper = oppgaveRepository.finnBehandlingKriterier(dto.behandlingUuid());
+            var egenskaper = behandling.map(Behandling::getKriterier).orElseGet(Set::of);
             Assertions.assertThat(egenskaper).hasSameSizeAs(kriterier.get(k));
             Assertions.assertThat(egenskaper).containsExactlyInAnyOrderElementsOf(kriterier.get(k));
         });
@@ -202,7 +202,7 @@ class BehandlingTjenesteTest {
         var behandling = oppgaveRepository.finnBehandling(behandlingUuid);
         Assertions.assertThat(behandling).isPresent();
         Assertions.assertThat(behandling.get().getBehandlingTilstand()).isEqualTo(tilstand);
-        var egenskaper = oppgaveRepository.finnBehandlingKriterier(behandlingUuid);
+        var egenskaper = behandling.map(Behandling::getKriterier).orElseGet(Set::of);
         Assertions.assertThat(egenskaper).hasSameSizeAs(kriterier);
         Assertions.assertThat(egenskaper).containsExactlyInAnyOrderElementsOf(kriterier);
         return behandling;

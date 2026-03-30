@@ -2,7 +2,6 @@ package no.nav.foreldrepenger.los.migrering;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
@@ -15,9 +14,7 @@ import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
-import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
-import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
@@ -80,13 +77,10 @@ public final class GcpImportMapper {
         behandling.setFeilutbetalingBelop(dto.feilutbetalingBelop());
         behandling.setFeilutbetalingStart(dto.feilutbetalingStart());
         behandling.setBehandlendeEnhet(dto.behandlendeEnhet());
+        behandling.setKriterier(dto.egenskaper());
 
         setBaseEntitetFields(behandling, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
-    }
-
-    static BehandlingEgenskap mapBehandlingEgenskap(AndreKriterierType akt, UUID behandlingId) {
-        return new BehandlingEgenskap(behandlingId, akt);
     }
 
     static Oppgave mapOppgave(OppgaveDataDto dto) {

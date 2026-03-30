@@ -3,7 +3,7 @@ package no.nav.foreldrepenger.los.migrering.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -47,7 +47,7 @@ public record BehandlingDataDto(
     LocalDateTime opprettetTidspunkt,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt,
-    @NotNull List<@ValidKodeverk AndreKriterierType> egenskaper
+    @NotNull Set<@ValidKodeverk AndreKriterierType> egenskaper
 ) {
 }
 

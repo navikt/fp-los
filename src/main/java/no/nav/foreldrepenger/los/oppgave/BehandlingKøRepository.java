@@ -4,14 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
-
 import org.hibernate.jpa.HibernateHints;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 
 @ApplicationScoped
 public class BehandlingKøRepository {
@@ -80,7 +79,7 @@ public class BehandlingKøRepository {
             sb.append(" AND :inkluderAktAntall = (")
                 .append("   SELECT COUNT(oe.andreKriterierType) ")
                 .append("   FROM BehandlingEgenskap oe ")
-                .append("   WHERE oe.behandlingId = o.id ")
+                .append("   WHERE oe.behandling.id = o.id ")
                 .append("     AND oe.andreKriterierType IN (:inkluderAktKoder)")
                 .append(" ) ");
         }
@@ -88,7 +87,7 @@ public class BehandlingKøRepository {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
             sb.append("AND NOT EXISTS ( ")
                 .append("SELECT 1 FROM BehandlingEgenskap oe ")
-                .append("WHERE oe.behandlingId = o.id AND oe.andreKriterierType IN (:ekskluderAktKoder)")
+                .append("WHERE oe.behandling.id = o.id AND oe.andreKriterierType IN (:ekskluderAktKoder)")
                 .append(") ");
         }
 

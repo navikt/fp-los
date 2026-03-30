@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.hibernate.jpa.HibernateHints;
 import org.slf4j.Logger;
@@ -162,42 +161,11 @@ public class OppgaveRepository {
             .getResultList();
     }
 
-    public void lagreBehandling(Behandling behandling) {
-        entityManager.persist(behandling);
-    }
-
-    public List<BehandlingEgenskap> finnBehandlingEgenskaper(UUID behandlingId) {
-        return entityManager.createQuery("FROM BehandlingEgenskap where behandlingId = :behandlingId", BehandlingEgenskap.class)
-            .setParameter(BEHANDLING_ID_FELT_SQL, behandlingId)
-            .getResultList();
-    }
-
-    public Set<AndreKriterierType> finnBehandlingKriterier(UUID behandlingId) {
-        return entityManager.createQuery("FROM BehandlingEgenskap where behandlingId = :behandlingId", BehandlingEgenskap.class)
-            .setParameter(BEHANDLING_ID_FELT_SQL, behandlingId)
-            .getResultList().stream()
-            .map(BehandlingEgenskap::getAndreKriterierType)
-            .collect(Collectors.toSet());
-    }
-
-    public void nyeBehandlingEgenskaper(UUID behandlingId, Set<AndreKriterierType> andreKriterierType) {
-        andreKriterierType.stream()
-            .map(a -> new BehandlingEgenskap(behandlingId, a))
-            .forEach(entityManager::persist);
-        if (!andreKriterierType.isEmpty()) {
-            entityManager.flush();
-        }
-    }
-
-    public void fjernBehandlingEgenskaper(UUID behandlingId, Set<AndreKriterierType> andreKriterierType) {
-        if (andreKriterierType.isEmpty()) {
-            return;
-        }
-        finnBehandlingEgenskaper(behandlingId).stream()
-            .filter(e -> andreKriterierType.contains(e.getAndreKriterierType()))
-            .forEach(e -> entityManager.remove(e));
-        if (!andreKriterierType.isEmpty()) {
-            entityManager.flush();
+    public void lagreBehandling(Behandling.Builder behandlingBuilder) {
+        if (behandlingBuilder.erOppdatering()) {
+            entityManager.merge(behandlingBuilder.build());
+        } else {
+            entityManager.persist(behandlingBuilder.build());
         }
     }
 

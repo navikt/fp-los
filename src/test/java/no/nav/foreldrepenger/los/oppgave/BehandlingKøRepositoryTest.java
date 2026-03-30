@@ -185,10 +185,9 @@ class BehandlingKøRepositoryTest {
         return behandlingKøRepository.hentAntallBehandlingerPåVent(queryDto);
     }
 
-
-
     private void leggtilOppgaveMedEkstraEgenskaper(Behandling behandling, AndreKriterierType andreKriterierType) {
-        oppgaveRepository.nyeBehandlingEgenskaper(behandling.getId(), Set.of(andreKriterierType));
+        behandling.leggTilKriterie(andreKriterierType);
+        oppgaveRepository.flette(behandling);
     }
 
 

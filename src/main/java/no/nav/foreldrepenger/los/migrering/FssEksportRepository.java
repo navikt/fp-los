@@ -26,7 +26,6 @@ import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
-import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
@@ -170,14 +169,7 @@ public class FssEksportRepository {
 
     // Mapping methods
     private BehandlingDataDto mapToBehandlingDataDto(Behandling behandling) {
-        var egenskaper = entityManager.createQuery("""
-                FROM BehandlingEgenskap be WHERE be.behandlingId = :behandlingId
-                """, BehandlingEgenskap.class)
-                .setParameter("behandlingId", behandling.getId())
-                .getResultList()
-                .stream()
-                .map(BehandlingEgenskap::getAndreKriterierType)
-                .toList();
+        var egenskaper = behandling.getKriterier();
 
         return new BehandlingDataDto(
                 behandling.getId(),

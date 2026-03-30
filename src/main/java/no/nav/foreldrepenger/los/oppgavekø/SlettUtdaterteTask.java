@@ -4,14 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
 import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -69,7 +68,7 @@ public class SlettUtdaterteTask implements ProsessTaskHandler {
     }
 
     private int slettEldreUtløpteBehandlinger(LocalDateTime før) {
-        entityManager.createQuery("delete from BehandlingEgenskap where behandlingId in" +
+        entityManager.createQuery("delete from BehandlingEgenskap where behandling.id in" +
                 " (select id from Behandling where behandlingTilstand = :avsluttet AND avsluttet < :foer)")
             .setParameter(FØR, før)
             .setParameter("avsluttet", BehandlingTilstand.AVSLUTTET)
