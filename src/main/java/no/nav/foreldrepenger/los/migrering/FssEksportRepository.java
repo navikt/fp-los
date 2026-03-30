@@ -4,25 +4,40 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-
-import no.nav.foreldrepenger.los.migrering.dto.*;
-import no.nav.foreldrepenger.los.oppgave.*;
-import no.nav.foreldrepenger.los.oppgavekø.*;
+import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.FiltreringSaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
+import no.nav.foreldrepenger.los.oppgave.Behandling;
+import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
+import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
+import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
+import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
-
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.dto.SaksnummerDto;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Eksport fra FSS-los. Beholder PK.
@@ -146,7 +161,7 @@ public class FssEksportRepository {
                 .getResultList()
                 .stream()
                 .map(r -> new FiltreringSaksbehandlerDataDto(
-                        r.getSaksbehandler().getId(),
+                        r.getSaksbehandler().getSaksbehandlerIdent(),
                         r.getOppgaveFiltrering().getId()))
                 .toList();
 
@@ -253,7 +268,6 @@ public class FssEksportRepository {
     // Add other mapping methods for organizational data and queue data...
     private AvdelingDataDto mapToAvdelingDataDto(Avdeling avdeling) {
         return new AvdelingDataDto(
-                avdeling.getId(),
                 avdeling.getAvdelingEnhet(),
                 avdeling.getNavn(),
                 avdeling.getKreverKode6(),
@@ -267,7 +281,6 @@ public class FssEksportRepository {
 
     private SaksbehandlerDataDto mapToSaksbehandlerDataDto(Saksbehandler saksbehandler) {
         return new SaksbehandlerDataDto(
-                saksbehandler.getId(),
                 saksbehandler.getSaksbehandlerIdent(),
                 saksbehandler.getNavn(),
                 saksbehandler.getAnsattVedEnhet(),
@@ -280,8 +293,8 @@ public class FssEksportRepository {
 
     private AvdelingSaksbehandlerDataDto mapToAvdelingSaksbehandlerDataDto(AvdelingSaksbehandlerRelasjon as) {
         return new AvdelingSaksbehandlerDataDto(
-                as.getAvdeling().getId(),
-                as.getSaksbehandler().getId()
+                as.getAvdeling().getAvdelingEnhet(),
+                as.getSaksbehandler().getSaksbehandlerIdent()
         );
     }
 
@@ -289,7 +302,7 @@ public class FssEksportRepository {
         return new SaksbehandlerGruppeDataDto(
                 sg.getId(),
                 sg.getGruppeNavn(),
-                sg.getAvdeling() != null ? sg.getAvdeling().getId() : null,
+                sg.getAvdeling().getAvdelingEnhet(),
                 sg.getOpprettetAv(),
                 sg.getOpprettetTidspunkt(),
                 sg.getEndretAv(),
@@ -315,8 +328,7 @@ public class FssEksportRepository {
                 of.getNavn(),
                 of.getBeskrivelse(),
                 of.getSortering(),
-                of.getAvdeling() != null ? of.getAvdeling().getId() : null,
-                null, // TODO: skjermet field removed - not found in entity
+                of.getAvdeling().getAvdelingEnhet(),
                 of.getFomDato(),
                 of.getTomDato(),
                 of.getPeriodefilter(),

@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.los.reservasjon;
 
-import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.standardReservasjon;
 import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.JUSTER_TIL_GYLDIG_TIDSPUNKT;
+import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.standardReservasjon;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -109,7 +109,7 @@ public class ReservasjonTjeneste {
         var forlengetTil = reservasjon.getReservertTil().plusDays(1).with(JUSTER_TIL_GYLDIG_TIDSPUNKT);
         reservasjon.setReservertTil(forlengetTil);
         reservasjon.setReservertAv(brukernavn);
-        reservasjon.setFlyttetAv(BrukerIdent.brukerIdent());
+        reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
         reservasjon.setFlyttetTidspunkt(LocalDateTime.now());
         reservasjon.setBegrunnelse(begrunnelse);
         oppgaveRepository.lagre(reservasjon);
@@ -161,7 +161,7 @@ public class ReservasjonTjeneste {
         reservasjon.setReservertAv(saksbehandler);
         reservasjon.setBegrunnelse(begrunnelse);
         reservasjon.setReservertTil(reservertTil);
-        reservasjon.setFlyttetAv(BrukerIdent.brukerIdent());
+        reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
         reservasjon.setFlyttetTidspunkt(LocalDateTime.now());
         return reservasjon;
     }

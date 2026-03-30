@@ -20,8 +20,8 @@ import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
+import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
@@ -141,6 +141,12 @@ public class OppgaveRepository {
         entityManager.persist(entitet);
         entityManager.flush();
     }
+
+    public <U extends BaseEntitet> void flette(U entitet) {
+        entityManager.merge(entitet);
+        entityManager.flush();
+    }
+
 
     public <U extends BaseEntitet> void refresh(U entitet) {
         entityManager.refresh(entitet);

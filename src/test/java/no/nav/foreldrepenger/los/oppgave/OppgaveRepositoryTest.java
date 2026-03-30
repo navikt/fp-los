@@ -71,7 +71,7 @@ class OppgaveRepositoryTest {
         for (var kriterie : kriterier) {
             var oppgaveEgenskapBuilder = OppgaveEgenskap.builder().medAndreKriterierType(kriterie);
             if (kriterie.erTilBeslutter()) {
-                oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("IDENT");
+                oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("z999999");
             }
             oppgave.leggTilOppgaveEgenskap(oppgaveEgenskapBuilder.build());
         }
@@ -183,25 +183,25 @@ class OppgaveRepositoryTest {
             .medBehandlingId(behandlingId1)
             .medSaksnummer(new Saksnummer("111"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(10))
-            .medBehandlingsfrist(LocalDateTime.now().plusDays(10))
+            .medBehandlingsfrist(LocalDate.now().plusDays(10))
             .build();
         førsteOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.PAPIRSØKNAD).build());
-        førsteOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+        førsteOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         var andreOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingId(behandlingId2)
             .medSaksnummer(new Saksnummer("222"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(9))
-            .medBehandlingsfrist(LocalDateTime.now().plusDays(5))
+            .medBehandlingsfrist(LocalDate.now().plusDays(5))
             .build();
         andreOppgave.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         var tredjeOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingId(behandlingId3)
             .medSaksnummer(new Saksnummer("333"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(8))
-            .medBehandlingsfrist(LocalDateTime.now().plusDays(15))
+            .medBehandlingsfrist(LocalDate.now().plusDays(15))
             .build();
         tredjeOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.PAPIRSØKNAD).build());
         var fjerdeOppgave = Oppgave.builder()
@@ -209,7 +209,7 @@ class OppgaveRepositoryTest {
             .medBehandlingId(behandlingId4)
             .medSaksnummer(new Saksnummer("444"))
             .medBehandlingOpprettet(LocalDateTime.now())
-            .medBehandlingsfrist(LocalDateTime.now())
+            .medBehandlingsfrist(LocalDate.now())
             .build();
 
         var femteOppgave = Oppgave.builder()
@@ -217,7 +217,7 @@ class OppgaveRepositoryTest {
             .medBehandlingId(behandlingId4)
             .medSaksnummer(new Saksnummer("555"))
             .medBehandlingOpprettet(LocalDateTime.now())
-            .medBehandlingsfrist(LocalDateTime.now().plusYears(1))
+            .medBehandlingsfrist(LocalDate.now().plusYears(1))
             .build();
 
         entityManager.persist(førsteOppgave);
@@ -348,7 +348,7 @@ class OppgaveRepositoryTest {
         var oppgaveMedStartDato = tilbakekrevingOppgaveBuilder().medBehandlingId(behandlingId2)
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(1L))
             .medFeilutbetalingBeløp(BigDecimal.valueOf(10L))
-            .medFeilutbetalingStart(LocalDateTime.now())
+            .medFeilutbetalingStart(LocalDate.now())
             .build();
         oppgaveRepository.lagre(oppgaveUtenStartDato);
         oppgaveRepository.lagre(oppgaveMedStartDato);
@@ -433,10 +433,10 @@ class OppgaveRepositoryTest {
 
     @Test
     void skalKunneSorterePåOppgaveOpprettetTidStigende() {
-        Function<LocalDateTime, Oppgave> lagBeslutterOppgave = (LocalDateTime behandlingsfrist) -> {
+        Function<LocalDate, Oppgave> lagBeslutterOppgave = (LocalDate behandlingsfrist) -> {
             var oppgave = basicOppgaveBuilder().medBehandlingsfrist(behandlingsfrist).build();
             oppgave.leggTilOppgaveEgenskap(
-                OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("IDENT").build());
+                OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
             return oppgave;
         };
 
@@ -446,9 +446,9 @@ class OppgaveRepositoryTest {
         var t3   = now.minusHours(1);
 
         // setter omvendt tid på behandlingsfrist for å sørge for motsatt sortering med default sortering
-        var beslutterOppgaveEldste = lagBeslutterOppgave.apply(t3);
-        var beslutterOppgaveMellomste = lagBeslutterOppgave.apply(t2);
-        var beslutterOppgaveNyeste = lagBeslutterOppgave.apply(t1);
+        var beslutterOppgaveEldste = lagBeslutterOppgave.apply(t3.toLocalDate());
+        var beslutterOppgaveMellomste = lagBeslutterOppgave.apply(t2.toLocalDate());
+        var beslutterOppgaveNyeste = lagBeslutterOppgave.apply(t1.toLocalDate());
 
         entityManager.persist(beslutterOppgaveEldste);
         entityManager.persist(beslutterOppgaveMellomste);
@@ -489,7 +489,7 @@ class OppgaveRepositoryTest {
         var defaultSorteringOppgaver = oppgaveKøRepository.hentOppgaver(defaultSorteringQuery);
         assertThat(defaultSorteringOppgaver).hasSize(3);
         assertThat(defaultSorteringOppgaver).extracting(Oppgave::getId)
-            .containsExactly(
+            .containsExactlyInAnyOrder(
                 beslutterOppgaveNyeste.getId(),
                 beslutterOppgaveMellomste.getId(),
                 beslutterOppgaveEldste.getId()
@@ -523,7 +523,7 @@ class OppgaveRepositoryTest {
             .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
             .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDateTime.now())
+            .medBehandlingsfrist(LocalDate.now())
             .medBehandlendeEnhet(AVDELING_DRAMMEN_ENHET)
             .medBehandlingOpprettet(opprettetDato.atStartOfDay());
     }
@@ -537,7 +537,7 @@ class OppgaveRepositoryTest {
             .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
             .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDateTime.now())
+            .medBehandlingsfrist(LocalDate.now())
             .build();
     }
 

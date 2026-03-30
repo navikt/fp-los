@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @IdClass(BehandlingEgenskapIdType.class)
@@ -18,15 +19,17 @@ import jakarta.persistence.Table;
 public class BehandlingEgenskap implements Serializable {
 
     @Id
+    @NotNull
     @Column(name = "BEHANDLING_ID", updatable = false, nullable = false)
     private UUID behandlingId;
 
     @Id
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", updatable = false, nullable = false)
     private AndreKriterierType andreKriterierType;
 
-    public BehandlingEgenskap() {
+    protected BehandlingEgenskap() {
     }
 
     public BehandlingEgenskap(UUID behandlingId, AndreKriterierType andreKriterierType) {

@@ -77,9 +77,9 @@ public class ReservasjonRepository {
                 select 1 from Reservasjon r
                 where r.oppgave = o
                 and r.reservertTil > :nå
-                and upper(r.reservertAv) = upper( :uid )
+                and r.reservertAv = :uid
             )
-            """, Oppgave.class).setParameter("nå", LocalDateTime.now()).setParameter("uid", uid).getResultList();
+            """, Oppgave.class).setParameter("nå", LocalDateTime.now()).setParameter("uid", uid.toUpperCase()).getResultList();
     }
 
     public List<Reservasjon> hentAlleReservasjonerForAvdeling(String avdelingEnhet) {

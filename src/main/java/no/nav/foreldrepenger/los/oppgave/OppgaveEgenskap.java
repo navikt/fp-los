@@ -13,7 +13,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 
 @Entity(name = "OppgaveEgenskap")
 @Table(name = "OPPGAVE_EGENSKAP")
@@ -22,15 +25,18 @@ public class OppgaveEgenskap extends BaseEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "OPPGAVE_ID", nullable = false)
     private Oppgave oppgave;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
     private AndreKriterierType andreKriterierType;
 
     // feltet brukes i query for å ekskludere egne oppgaver i beslutterkøer
+    @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}")
     @Column(name = "SISTE_SAKSBEHANDLER_FOR_TOTR")
     private String sisteSaksbehandlerForTotrinn;
 

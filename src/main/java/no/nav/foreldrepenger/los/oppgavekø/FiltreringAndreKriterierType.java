@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.los.oppgavekø;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
@@ -7,40 +8,39 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @Entity(name = "FiltreringAndreKriterier")
+@IdClass(FiltreringAndreKriterierType.FiltreringAndreKriterierIdType.class)
 @Table(name = "FILTRERING_ANDRE_KRITERIER")
-public class FiltreringAndreKriterierType extends BaseEntitet {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
-    private Long id;
+public class FiltreringAndreKriterierType implements Serializable {
 
+    public record FiltreringAndreKriterierIdType(OppgaveFiltrering oppgaveFiltrering, AndreKriterierType andreKriterierType) implements Serializable { }
+
+    @Id
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "OPPGAVE_FILTRERING_ID", nullable = false)
     private OppgaveFiltrering oppgaveFiltrering;
 
+    @Id
+    @NotNull
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
     private AndreKriterierType andreKriterierType;
 
     //Verdi som viser om filtreringen skal inkludere eller ekskludere oppgaver med det gitte innslaget.
+    @NotNull
     @Convert(converter = BooleanToStringConverter.class)
     @Column(name = "INKLUDER", nullable = false)
     private boolean inkluder = true;
-
-    @Version
-    @Column(name = "versjon", nullable = false)
-    private long versjon;
 
     protected FiltreringAndreKriterierType() {
         // Hibernate

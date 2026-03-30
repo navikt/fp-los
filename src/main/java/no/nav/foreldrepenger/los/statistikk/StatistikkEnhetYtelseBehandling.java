@@ -11,8 +11,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
 @Entity
 @IdClass(EnhetYtelseBehandlingType.class)
@@ -20,32 +23,41 @@ import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 public class StatistikkEnhetYtelseBehandling implements Serializable {
 
     @Id
+    @NotNull
+    @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
     @Column(name = "BEHANDLENDE_ENHET", updatable = false, nullable = false)
     private String behandlendeEnhet;
 
     @Id
+    @NotNull
     @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false)
     private Long tidsstempel;
 
     @Id
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "FAGSAK_YTELSE_TYPE", updatable = false, nullable = false)
     private FagsakYtelseType fagsakYtelseType;
 
     @Id
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "BEHANDLING_TYPE", updatable = false, nullable = false)
     private BehandlingType behandlingType;
 
+    @NotNull
     @Column(name = "STAT_DATO", updatable = false, nullable = false)
     private LocalDate statistikkDato;
 
+    @NotNull
     @Column(name = "ANTALL_AKTIVE", updatable = false, nullable = false)
     private Integer antallAktive;
 
+    @NotNull
     @Column(name = "ANTALL_OPPRETTET", updatable = false, nullable = false)
     private Integer antallOpprettet;
 
+    @NotNull
     @Column(name = "ANTALL_AVSLUTTET", updatable = false, nullable = false)
     private Integer antallAvsluttet;
 

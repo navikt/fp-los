@@ -122,7 +122,7 @@ class OppgaveKøTjenesteTest {
     @Test
     void hentAlleOppgaveFiltrering() {
         var lagtInnLister = leggInnEtSettMedLister(3);
-        var saksbehandler = new Saksbehandler("1234567", "Navn Navnesen", "1234");
+        var saksbehandler = new Saksbehandler("z111111", "Navn Navnesen", "1234");
         entityManager.persist(saksbehandler);
         entityManager.flush();
 
@@ -170,7 +170,7 @@ class OppgaveKøTjenesteTest {
     private void leggtilOppgaveMedEkstraEgenskaper(Oppgave oppgave, AndreKriterierType andreKriterierType) {
         var oppgaveEgenskapBuilder = OppgaveEgenskap.builder().medAndreKriterierType(andreKriterierType);
         if (andreKriterierType.erTilBeslutter()) {
-            oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("IDENT");
+            oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("z999998");
         }
         oppgave.leggTilOppgaveEgenskap(oppgaveEgenskapBuilder.build());
         oppgaveRepository.lagre(oppgave);

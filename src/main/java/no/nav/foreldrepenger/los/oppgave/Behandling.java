@@ -18,10 +18,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
 @Entity(name = "Behandling")
 @Table(name = "BEHANDLING")
@@ -29,30 +32,39 @@ public class Behandling extends BaseEntitet {
 
     @Id
     @NaturalId
+    @NotNull
     @Column(name = "id", nullable = false)
     private UUID id;
 
     @Embedded
-    private Saksnummer saksnummer; // Denne er de-facto non-null
+    @NotNull
+    private Saksnummer saksnummer;
 
     @Embedded
+    @NotNull
     private AktørId aktørId;
 
+    @NotNull
+    @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
     @Column(name = "BEHANDLENDE_ENHET", nullable = false)
     private String behandlendeEnhet;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "KILDESYSTEM", nullable = false)
     private Fagsystem kildeSystem;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "FAGSAK_YTELSE_TYPE", nullable = false)
     private FagsakYtelseType fagsakYtelseType;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "BEHANDLING_TYPE", nullable = false)
     private BehandlingType behandlingType;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "BEHANDLING_TILSTAND", nullable = false)
     private BehandlingTilstand behandlingTilstand;

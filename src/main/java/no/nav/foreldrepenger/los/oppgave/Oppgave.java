@@ -25,11 +25,14 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
@@ -39,59 +42,64 @@ public class Oppgave extends BaseEntitet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
-    protected Long id;
+    private Long id;
 
     @Embedded
-    protected Saksnummer saksnummer; // Denne er de-facto non-null
+    private Saksnummer saksnummer; // Denne er de-facto non-null
 
     @Embedded
-    protected AktørId aktørId;
+    private AktørId aktørId;
 
-    @Column(name = "BEHANDLENDE_ENHET")
-    protected String behandlendeEnhet;
+    @NotNull
+    @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
+    @Column(name = "BEHANDLENDE_ENHET", nullable = false)
+    private String behandlendeEnhet;
 
     @Column(name = "BEHANDLINGSFRIST")
-    protected LocalDateTime behandlingsfrist;
+    private LocalDate behandlingsfrist;
 
     @Column(name = "BEHANDLING_OPPRETTET")
-    protected LocalDateTime behandlingOpprettet;
+    private LocalDateTime behandlingOpprettet;
 
     @Column(name = "FORSTE_STONADSDAG")
-    protected LocalDate førsteStønadsdag;
+    private LocalDate førsteStønadsdag;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "BEHANDLING_TYPE")
-    protected BehandlingType behandlingType = BehandlingType.INNSYN;
+    @Column(name = "BEHANDLING_TYPE", nullable = false)
+    private BehandlingType behandlingType = BehandlingType.INNSYN;
 
     @OneToMany(mappedBy = "oppgave", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    protected Set<OppgaveEgenskap> oppgaveEgenskaper = new HashSet<>();
+    private Set<OppgaveEgenskap> oppgaveEgenskaper = new HashSet<>();
 
+    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "FAGSAK_YTELSE_TYPE")
-    protected FagsakYtelseType fagsakYtelseType;
+    @Column(name = "FAGSAK_YTELSE_TYPE", nullable = false)
+    private FagsakYtelseType fagsakYtelseType;
 
+    @NotNull
     @Convert(converter = BooleanToStringConverter.class)
     @Column(name = "AKTIV", nullable = false)
-    protected boolean aktiv = true;
+    private boolean aktiv = true;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "SYSTEM")
-    protected Fagsystem system;
+    private Fagsystem system;
 
     @Column(name = "OPPGAVE_AVSLUTTET")
-    protected LocalDateTime oppgaveAvsluttet;
+    private LocalDateTime oppgaveAvsluttet;
 
     @Embedded
-    protected BehandlingId behandlingId;
+    private BehandlingId behandlingId;
 
     @OneToOne(mappedBy = "oppgave")
-    protected Reservasjon reservasjon;
+    private Reservasjon reservasjon;
 
     @Column(name = "FEILUTBETALING_BELOP")
-    protected BigDecimal feilutbetalingBelop;
+    private BigDecimal feilutbetalingBelop;
 
     @Column(name = "FEILUTBETALING_START")
-    protected LocalDateTime feilutbetalingStart;
+    private LocalDate feilutbetalingStart;
 
     @Version
     @Column(name = "versjon", nullable = false)
@@ -149,7 +157,7 @@ public class Oppgave extends BaseEntitet {
         return behandlingId;
     }
 
-    public LocalDateTime getBehandlingsfrist() {
+    public LocalDate getBehandlingsfrist() {
         return behandlingsfrist;
     }
 
@@ -177,7 +185,7 @@ public class Oppgave extends BaseEntitet {
         return feilutbetalingBelop;
     }
 
-    public LocalDateTime getFeilutbetalingStart() {
+    public LocalDate getFeilutbetalingStart() {
         return feilutbetalingStart;
     }
 
@@ -232,7 +240,7 @@ public class Oppgave extends BaseEntitet {
         this.behandlendeEnhet = behandlendeEnhet;
     }
 
-    public void setBehandlingsfrist(LocalDateTime behandlingsfrist) {
+    public void setBehandlingsfrist(LocalDate behandlingsfrist) {
         this.behandlingsfrist = behandlingsfrist;
     }
 
@@ -260,12 +268,12 @@ public class Oppgave extends BaseEntitet {
         this.feilutbetalingBelop = feilutbetalingBelop;
     }
 
-    public void setFeilutbetalingStart(LocalDateTime feilutbetalingStart) {
+    public void setFeilutbetalingStart(LocalDate feilutbetalingStart) {
         this.feilutbetalingStart = feilutbetalingStart;
     }
 
     public static class Builder {
-        protected Oppgave tempOppgave;
+        private final Oppgave tempOppgave;
 
         Builder() {
             tempOppgave = new Oppgave();
@@ -306,7 +314,7 @@ public class Oppgave extends BaseEntitet {
             return this;
         }
 
-        public Builder medBehandlingsfrist(LocalDateTime behandlingsfrist) {
+        public Builder medBehandlingsfrist(LocalDate behandlingsfrist) {
             tempOppgave.behandlingsfrist = behandlingsfrist;
             return this;
         }
@@ -331,13 +339,13 @@ public class Oppgave extends BaseEntitet {
             return this;
         }
 
-        public Builder medFeilutbetalingStart(LocalDateTime feilutbetalingStart) {
+        public Builder medFeilutbetalingStart(LocalDate feilutbetalingStart) {
             tempOppgave.feilutbetalingStart = feilutbetalingStart;
             return this;
         }
 
         public Builder medKriterier(Set<OppgaveEgenskap> egenskaper) {
-            egenskaper.forEach(oppgaveEgenskap -> tempOppgave.leggTilOppgaveEgenskap(oppgaveEgenskap));
+            egenskaper.forEach(tempOppgave::leggTilOppgaveEgenskap);
             return this;
         }
 
@@ -348,7 +356,7 @@ public class Oppgave extends BaseEntitet {
             tempOppgave.fagsakYtelseType = FagsakYtelseType.FORELDREPENGER;
             tempOppgave.behandlingType = BehandlingType.FØRSTEGANGSSØKNAD;
             tempOppgave.behandlendeEnhet = enhet;
-            tempOppgave.behandlingsfrist = LocalDateTime.now();
+            tempOppgave.behandlingsfrist = LocalDate.now();
             tempOppgave.behandlingOpprettet = LocalDateTime.now();
             tempOppgave.førsteStønadsdag = LocalDate.now().plusMonths(1);
             return this;

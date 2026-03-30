@@ -79,7 +79,7 @@ public class AvdelingslederTjeneste {
         oppgavefilter.setFiltreringBehandlingTyper(sakslisteLagre.behandlingTyper());
         oppgavefilter.setFiltreringYtelseTyper(sakslisteLagre.fagsakYtelseTyper());
         oppgavefilter.setAndreKriterierTyper(sakslisteLagre.andreKriterie().inkluder(), sakslisteLagre.andreKriterie().ekskluder());
-        oppgaveRepository.lagre(oppgavefilter);
+        oppgaveRepository.flette(oppgavefilter);
     }
 
     public List<Saksbehandler> saksbehandlereForOppgaveListe(OppgaveFiltrering oppgaveFiltrering) {

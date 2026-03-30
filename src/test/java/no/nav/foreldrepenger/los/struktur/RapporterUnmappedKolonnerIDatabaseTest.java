@@ -30,19 +30,18 @@ import jakarta.persistence.Persistence;
 import no.nav.foreldrepenger.los.JpaExtension;
 
 /**
- * Denne testen rapporterer kun tabeller og kolonner som ikke er mappet i
- * hibernate. Det kan være gyldige grunner til det (f.eks. dersom det kun
- * aksesseres gjennom native sql), men p.t. høyst sannsynlig ikke. Bør
- * gjennomgås jevnlig for å luke manglende contract av db skjema.
+ * Denne testen rapporterer kun tabeller og kolonner som ikke er mappet i hibernate.
+ * Det kan være gyldige grunner til det (f.eks. kun aksesseres gjennom native sql), men p.t. høyst sannsynlig ikke.
+ * Bør gjennomgås jevnlig for å luke manglende contract av db skjema.
  */
 @ExtendWith(JpaExtension.class)
 class RapporterUnmappedKolonnerIDatabaseTest {
     private static final Logger LOG = LoggerFactory.getLogger(RapporterUnmappedKolonnerIDatabaseTest.class);
 
+    private static final String PROSESS_TASK_PARTITION = "PROSESS_TASK_PARTITION_";
     private static final Set<String> UNNTA_TABELLER = Set.of("SCHEMA_VERSION", "STARTUPDATA", "FLYWAY_SCHEMA_HISTORY");
     private static final Map<String, Set<String>> UNNTA_KOLONNER = Map.of(
-        "BEHANDLING", Set.of("SIST_OPPDATERT_TIDSPUNKT"),
-        "PROSESS_TASK", Set.of("SISTE_KJOERING_PLUKK_TS", "SISTE_KJOERING_SLUTT_TS")
+        "PROSESS_TASK", Set.of("SISTE_KJOERING_PLUKK_TS", "SISTE_KJOERING_SLUTT_TS", "PARTITION_KEY")
     );
 
     private static EntityManagerFactory entityManagerFactory;
@@ -66,29 +65,27 @@ class RapporterUnmappedKolonnerIDatabaseTest {
 
     @SuppressWarnings("unchecked")
     private NavigableMap<String, Set<String>> getColumns(String namespace) {
+        Predicate<Object[]> filterPTP = (Object[] cols) -> !((String) cols[0]).toUpperCase().startsWith(PROSESS_TASK_PARTITION);
         Predicate<Object[]> filterSchemaVer = (Object[] cols) -> !UNNTA_TABELLER.contains(((String) cols[0]).toUpperCase());
         var groupingBy = Collectors.groupingBy((Object[] cols) -> ((String) cols[0]).toUpperCase(), TreeMap::new,
                 Collectors.mapping((Object[] cols) -> ((String) cols[1]).toUpperCase(), Collectors.toCollection(TreeSet::new)));
 
-        var em = entityManagerFactory.createEntityManager();
-        try {
+        try (var em = entityManagerFactory.createEntityManager()) {
             if (namespace == null) {
-                return (NavigableMap<String, Set<String>>) em
-                        .createNativeQuery(
-                                "select table_name, column_name from information_schema.columns where table_schema = current_schema() AND is_generated = 'NEVER'")
-                        .getResultStream()
-                        .filter(filterSchemaVer)
-                        .collect(groupingBy);
-            }
-            return (NavigableMap<String, Set<String>>) em
-                    .createNativeQuery(
-                            "select table_name, column_name from information_schema.columns where table_schema = :ns AND is_generated = 'NEVER'")
-                    .setParameter("ns", namespace)
+                return (NavigableMap<String, Set<String>>) em.createNativeQuery(
+                        "select table_name, column_name from information_schema.columns where table_schema = current_schema() AND is_generated = 'NEVER'")
                     .getResultStream()
+                    .filter(filterPTP)
                     .filter(filterSchemaVer)
                     .collect(groupingBy);
-        } finally {
-            em.close();
+            }
+            return (NavigableMap<String, Set<String>>) em.createNativeQuery(
+                    "select table_name, column_name from information_schema.columns where table_schema = :ns AND is_generated = 'NEVER'")
+                .setParameter("ns", namespace)
+                .getResultStream()
+                .filter(filterPTP)
+                .filter(filterSchemaVer)
+                .collect(groupingBy);
         }
     }
 

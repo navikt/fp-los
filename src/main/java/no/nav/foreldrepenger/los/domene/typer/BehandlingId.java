@@ -7,12 +7,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 
 @Embeddable
 public class BehandlingId {
 
     @JsonValue
-    @Column(name = "behandling_id")
+    @NotNull
+    @Column(name = "behandling_id", nullable = false)
     private UUID value;
 
     public BehandlingId(UUID value) {

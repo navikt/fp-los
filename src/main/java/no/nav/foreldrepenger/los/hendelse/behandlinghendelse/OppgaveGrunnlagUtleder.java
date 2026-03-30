@@ -129,7 +129,7 @@ class OppgaveGrunnlagUtleder {
             behandlingsårsaker, behandlingDto.faresignaler(), behandlingDto.refusjonskrav(),
             mapFagsakEgenskaper(losFagsakEgenskaperDto.saksegenskaper()),
             behandlingDto.foreldrepengerDto() == null ? null : behandlingDto.foreldrepengerDto().førsteUttakDato(), behandlingsegenskaper,
-            mapStatus(behandlingDto), førsteFeilutbetalingDato == null ? null : førsteFeilutbetalingDato.atStartOfDay(), behandlingDto.tilbakeDto().feilutbetaltBeløp());
+            mapStatus(behandlingDto), førsteFeilutbetalingDato, behandlingDto.tilbakeDto().feilutbetaltBeløp());
     }
 
     private static OppgaveGrunnlag.AksjonspunktType mapFraFpTilbake(LosBehandlingDto.LosAksjonspunktDto aksjonspunktDto) {
