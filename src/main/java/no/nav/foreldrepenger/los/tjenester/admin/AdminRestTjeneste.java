@@ -1,5 +1,8 @@
 package no.nav.foreldrepenger.los.tjenester.admin;
 
+import static java.time.temporal.TemporalAdjusters.next;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,10 +21,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.los.felles.prosesstask.RekjørFeiledeTasksBatchTask;
+import no.nav.foreldrepenger.los.felles.prosesstask.SlettGamleTasksBatchTask;
 import no.nav.foreldrepenger.los.migrering.FssGcpMigrasjonTask;
 import no.nav.foreldrepenger.los.oppgave.OppgaveTjeneste;
+import no.nav.foreldrepenger.los.oppgavekø.SlettUtdaterteTask;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
 import no.nav.foreldrepenger.los.statistikk.SnapshotEnhetYtelseBehandlingTask;
+import no.nav.foreldrepenger.los.statistikk.kø.HentStatistikkForAlleKøerTask;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.DriftAvdelingEnhetDto;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.DriftOpprettAvdelingEnhetDto;
 import no.nav.foreldrepenger.los.tjenester.admin.dto.EnkelBehandlingIdDto;
@@ -147,22 +154,34 @@ public class AdminRestTjeneste {
     }
 
     @POST
-    @Path("/start-statistikktask-ytelse-behandling")
+    @Path("/start-planlagte-tasks")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Fjerne saksbehandlere fra grupper når saksbehandler mangler i avdeling", tags = "admin")
+    @Operation(description = "Start behandlingstatistikk ved behov", tags = "admin")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = false)
     public Response startStatistikkTaskYtelseBehandling() {
-        var schedulerType = TaskType.forProsessTask(SnapshotEnhetYtelseBehandlingTask.class);
+        startScheduledTask(TaskType.forProsessTask(SnapshotEnhetYtelseBehandlingTask.class),
+            LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 0)));
+        startScheduledTask(TaskType.forProsessTask(HentStatistikkForAlleKøerTask.class), LocalDateTime.now());
+        startScheduledTask(TaskType.forProsessTask(OppdaterSaksbehandlerTask.class),
+            LocalDateTime.of(LocalDate.now().with(next(DayOfWeek.WEDNESDAY)), LocalTime.of(19, 0)));
+        startScheduledTask(TaskType.forProsessTask(RekjørFeiledeTasksBatchTask.class), LocalDateTime.now());
+        startScheduledTask(TaskType.forProsessTask(SlettGamleTasksBatchTask.class),
+            LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(2, 0)));
+        startScheduledTask(TaskType.forProsessTask(SlettUtdaterteTask.class),
+            LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(2, 30)));
+        return Response.ok().build();
+    }
+
+    private void startScheduledTask(TaskType taskType, LocalDateTime start) {
         var eksisterende = prosessTaskTjeneste.finnAlle(ProsessTaskStatus.KLAR).stream()
             .map(ProsessTaskData::taskType)
-            .anyMatch(schedulerType::equals);
+            .anyMatch(taskType::equals);
         if (!eksisterende) {
-            var taskData = ProsessTaskData.forProsessTask(SnapshotEnhetYtelseBehandlingTask.class);
-            taskData.setNesteKjøringEtter(LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 0)));
+            var taskData = ProsessTaskData.forTaskType(taskType);
+            taskData.setNesteKjøringEtter(start);
             prosessTaskTjeneste.lagre(taskData);
         }
-        return Response.ok().build();
     }
 
     @POST
