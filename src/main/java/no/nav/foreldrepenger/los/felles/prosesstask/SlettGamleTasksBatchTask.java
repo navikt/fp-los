@@ -1,11 +1,12 @@
 package no.nav.foreldrepenger.los.felles.prosesstask;
 
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.MottattHendelseRepository;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -29,8 +30,8 @@ public class SlettGamleTasksBatchTask implements ProsessTaskHandler {
 
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
-        var slettet = prosessTaskTjeneste.slettÅrsgamleFerdige();
-        LOG.info("Slettet {} tasks som er over ett år gamle.", slettet);
+        var slettet = prosessTaskTjeneste.slettFerdigeEldreEnn(LocalDateTime.now().minusWeeks(4));
+        LOG.info("Slettet {} tasks som er over 4 uker gamle.", slettet);
         hendelseRepository.slettMånedsGamle();
     }
 }
