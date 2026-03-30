@@ -39,7 +39,7 @@ public class OppgaveEgenskap implements Serializable {
 
     // feltet brukes i query for å ekskludere egne oppgaver i beslutterkøer
     @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}")
-    @Column(name = "SISTE_SAKSBEHANDLER_FOR_TOTR")
+    @Column(name = "siste_saksbehandler_totrinn")
     private String sisteSaksbehandlerForTotrinn;
 
     protected OppgaveEgenskap() {
