@@ -84,8 +84,7 @@ class NøkkeltallBehandlingTest {
             .medId(UUID.randomUUID())
             .medKildeSystem(Fagsystem.FPSAK)
             .medBehandlingType(type)
-            .medVentefrist(frist)
-            .build();
+            .medVentefrist(frist);
         oppgaveRepository.lagreBehandling(behandling);
         entityManager.flush();
     }

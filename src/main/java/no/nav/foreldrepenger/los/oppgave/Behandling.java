@@ -4,18 +4,24 @@ package no.nav.foreldrepenger.los.oppgave;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.NaturalId;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -71,6 +77,9 @@ public class Behandling extends BaseEntitet {
 
     @Column(name = "AKTIVE_AKSJONSPUNKT")
     private String aktiveAksjonspunkt;
+
+    @OneToMany(mappedBy = "behandling", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<BehandlingEgenskap> behandlingEgenskaper = new HashSet<>();
 
     @Column(name = "VENTEFRIST")
     private LocalDateTime ventefrist;
@@ -137,6 +146,10 @@ public class Behandling extends BaseEntitet {
         return aktiveAksjonspunkt;
     }
 
+    public Set<AndreKriterierType> getKriterier() {
+        return behandlingEgenskaper.stream().map(BehandlingEgenskap::getAndreKriterierType).collect(Collectors.toSet());
+    }
+
     public LocalDateTime getVentefrist() {
         return ventefrist;
     }
@@ -165,8 +178,9 @@ public class Behandling extends BaseEntitet {
         return feilutbetalingStart;
     }
 
+
     public static Builder builder(Optional<Behandling> behandling) {
-        return new Builder(behandling.orElseGet(Behandling::new));
+        return behandling.map(Builder::oppdater).orElseGet(Builder::ny);
     }
 
     // Setters added for migration purposes - can be removed after migration
@@ -206,6 +220,18 @@ public class Behandling extends BaseEntitet {
         this.aktiveAksjonspunkt = aktiveAksjonspunkt;
     }
 
+    public void setKriterier(Set<AndreKriterierType> kriterier) {
+        this.behandlingEgenskaper.clear();
+        this.behandlingEgenskaper.addAll(kriterier.stream().map(k -> new BehandlingEgenskap(this, k)).toList());
+    }
+
+    public void leggTilKriterie(AndreKriterierType kriterie) {
+        Objects.requireNonNull(kriterie, "kriterie");
+        if (this.behandlingEgenskaper.stream().map(BehandlingEgenskap::getAndreKriterierType).noneMatch(kriterie::equals)) {
+            behandlingEgenskaper.add(new BehandlingEgenskap(this, kriterie));
+        }
+    }
+
     public void setVentefrist(LocalDateTime ventefrist) {
         this.ventefrist = ventefrist;
     }
@@ -236,14 +262,24 @@ public class Behandling extends BaseEntitet {
 
     @Override
     public String toString() {
-        return "Oppgave{" + "id=" + id.toString() + ", saksnummer=" + saksnummer + ", kildeSystem=" + kildeSystem + '}';
+        return "Behandling{" + "id=" + id.toString() + ", saksnummer=" + saksnummer + ", kildeSystem=" + kildeSystem + '}';
     }
 
     public static class Builder {
         private final Behandling behandlingKladd;
+        private final boolean erOppdatering;
 
-        private Builder(Behandling behandling) {
-            behandlingKladd = behandling;
+        private Builder(Behandling behandling, boolean erOppdatering) {
+            this.behandlingKladd = behandling;
+            this.erOppdatering = erOppdatering;
+        }
+
+        private static Builder oppdater(Behandling behandling) {
+            return new Builder(behandling, true);
+        }
+
+        private static Builder ny() {
+            return new Builder(new Behandling(), false);
         }
 
         public Builder medId(UUID id) {
@@ -326,6 +362,12 @@ public class Behandling extends BaseEntitet {
             return this;
         }
 
+        public Builder medKriterier(Set<AndreKriterierType> kriterier) {
+            behandlingKladd.behandlingEgenskaper.clear();
+            behandlingKladd.behandlingEgenskaper.addAll(kriterier.stream().map(k -> new BehandlingEgenskap(behandlingKladd, k)).toList());
+            return this;
+        }
+
         public Builder dummyBehandling(String enhet, BehandlingTilstand tilstand) {
             behandlingKladd.id = UUID.nameUUIDFromBytes("331133L".getBytes());
             behandlingKladd.saksnummer = new Saksnummer("3478293");
@@ -355,6 +397,10 @@ public class Behandling extends BaseEntitet {
                 throw new IllegalArgumentException("Utviklerfeil: Angitt tilbakebetalingsinformasjon i FPSAK-oppgave");
             }
             return behandlingKladd;
+        }
+
+        public boolean erOppdatering() {
+            return erOppdatering;
         }
     }
 }

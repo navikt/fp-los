@@ -216,20 +216,6 @@ public class GcpImportRepository {
             }
 
             entityManager.flush();
-
-            if (!gcpBehandlingMap.isEmpty()) {
-                entityManager.createQuery("delete from BehandlingEgenskap be where be.behandlingId in :ids")
-                    .setParameter("ids", gcpBehandlingMap.keySet())
-                    .executeUpdate();
-            }
-
-            for (BehandlingDataDto dto : batch) {
-                for (var egenskapDto : dto.egenskaper()) {
-                    entityManager.persist(GcpImportMapper.mapBehandlingEgenskap(egenskapDto, dto.id()));
-                }
-            }
-
-            entityManager.flush();
             entityManager.clear();
         }
         return count;
