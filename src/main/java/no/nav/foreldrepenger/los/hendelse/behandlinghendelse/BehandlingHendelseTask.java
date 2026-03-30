@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.OppgaveGrunnlag.Beh
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.foreldrepenger.los.reservasjon.ReservasjonRepository;
@@ -156,12 +154,6 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
     private Oppgave lagOppgave(OppgaveGrunnlag oppgaveGrunnlag, Fagsystem kilde, Set<AndreKriterierType> kriterier) {
         LOG.info("Utledet kriterier {} for oppgave til behandling {}", kriterier, oppgaveGrunnlag.behandlingUuid());
 
-        var oppgaveEgenskaper = kriterier.stream()
-            .map(k -> new OppgaveEgenskap.Builder().medAndreKriterierType(k)
-                .medSisteSaksbehandlerForTotrinn(k == AndreKriterierType.TIL_BESLUTTER ? oppgaveGrunnlag.ansvarligSaksbehandlerIdent() : null)
-                .build())
-            .collect(Collectors.toSet());
-
         return Oppgave.builder()
             .medSystem(kilde)
             .medSaksnummer(oppgaveGrunnlag.saksnummer())
@@ -174,7 +166,7 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
             .medBehandlingId(new BehandlingId(oppgaveGrunnlag.behandlingUuid()))
             .medFørsteStønadsdag(oppgaveGrunnlag.førsteUttaksdatoForeldrepenger())
             .medBehandlingsfrist(oppgaveGrunnlag.behandlingsfrist())
-            .medKriterier(oppgaveEgenskaper)
+            .medKriterier(kriterier, oppgaveGrunnlag.ansvarligSaksbehandlerIdent())
             .medFeilutbetalingBeløp(oppgaveGrunnlag.feilutbetalingBeløp())
             .medFeilutbetalingStart(oppgaveGrunnlag.feilutbetalingStart())
             .build();

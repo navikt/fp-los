@@ -21,7 +21,6 @@ import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.reservasjon.ReservasjonKonstanter;
 
 class ReservasjonUtlederTest {
@@ -195,12 +194,7 @@ class ReservasjonUtlederTest {
 
     private Oppgave lagOppgaveMedKriterie(AndreKriterierType kriteria) {
         var oppgave = lagOppgaveMedEnhet();
-        var builder = OppgaveEgenskap.builder().medAndreKriterierType(kriteria);
-        if (kriteria.erTilBeslutter()) {
-            builder.medSisteSaksbehandlerForTotrinn(SAKSBEHANDLER);
-        }
-        var egenskap = builder.build();
-        oppgave.leggTilOppgaveEgenskap(egenskap);
+        oppgave.leggTilOppgaveEgenskap(kriteria, kriteria.erTilBeslutter() ? SAKSBEHANDLER : null);
         return oppgave;
     }
 

@@ -1,35 +1,37 @@
 package no.nav.foreldrepenger.los.oppgave;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 
 @Entity(name = "OppgaveEgenskap")
+@IdClass(OppgaveEgenskap.OppgaveEgenskapIdType.class)
 @Table(name = "OPPGAVE_EGENSKAP")
-public class OppgaveEgenskap extends BaseEntitet {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
-    private Long id;
+public class OppgaveEgenskap implements Serializable {
 
+    @Embeddable
+    public record OppgaveEgenskapIdType(Oppgave oppgave, AndreKriterierType andreKriterierType) implements Serializable { }
+
+    @Id
     @NotNull
     @ManyToOne
     @JoinColumn(name = "OPPGAVE_ID", nullable = false)
     private Oppgave oppgave;
 
+    @Id
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
@@ -40,16 +42,30 @@ public class OppgaveEgenskap extends BaseEntitet {
     @Column(name = "SISTE_SAKSBEHANDLER_FOR_TOTR")
     private String sisteSaksbehandlerForTotrinn;
 
-    @Version
-    @Column(name = "versjon", nullable = false)
-    private long versjon;
-
     protected OppgaveEgenskap() {
         // Hibernate
     }
 
-    public Long getId() {
-        return id;
+    protected OppgaveEgenskap(Oppgave oppgave, AndreKriterierType andreKriterierType) {
+        Objects.requireNonNull(oppgave);
+        Objects.requireNonNull(andreKriterierType);
+        if (andreKriterierType.erTilBeslutter()) {
+            throw new IllegalArgumentException("Feil constructor for OppgaveEgenskap " + andreKriterierType.name());
+        }
+        this.oppgave = oppgave;
+        this.andreKriterierType = andreKriterierType;
+    }
+
+    protected OppgaveEgenskap(Oppgave oppgave, AndreKriterierType andreKriterierType, String sisteSaksbehandlerForTotrinn) {
+        Objects.requireNonNull(oppgave);
+        Objects.requireNonNull(andreKriterierType);
+        if (!andreKriterierType.erTilBeslutter()) {
+            throw new IllegalArgumentException("Feil constructor for OppgaveEgenskap  " + andreKriterierType.name());
+        }
+        Objects.requireNonNull(sisteSaksbehandlerForTotrinn);
+        this.oppgave = oppgave;
+        this.andreKriterierType = andreKriterierType;
+        this.sisteSaksbehandlerForTotrinn = sisteSaksbehandlerForTotrinn.trim().toUpperCase();
     }
 
     void setOppgave(Oppgave oppgave) {
@@ -78,39 +94,5 @@ public class OppgaveEgenskap extends BaseEntitet {
     @Override
     public int hashCode() {
         return Objects.hash(andreKriterierType, sisteSaksbehandlerForTotrinn);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private AndreKriterierType andreKriterierType;
-        private String sisteSaksbehandlerForTotrinn;
-
-        public Builder medAndreKriterierType(AndreKriterierType andreKriterierType) {
-            this.andreKriterierType = andreKriterierType;
-            return this;
-        }
-
-        public Builder medSisteSaksbehandlerForTotrinn(String sisteSaksbehandler) {
-            this.sisteSaksbehandlerForTotrinn = sisteSaksbehandler != null ? sisteSaksbehandler.toUpperCase() : null;
-            return this;
-        }
-
-        public OppgaveEgenskap build() {
-            if (andreKriterierType == null) {
-                throw new IllegalStateException("AndreKriterierType kan ikke være null");
-            }
-
-            if (andreKriterierType.erTilBeslutter() && sisteSaksbehandlerForTotrinn == null) {
-                throw new IllegalStateException("Mangler sisteSaksbehandlerForTotrinn for AndreKriterierType " + AndreKriterierType.TIL_BESLUTTER);
-            }
-
-            var oppgaveEgenskap = new OppgaveEgenskap();
-            oppgaveEgenskap.andreKriterierType = andreKriterierType;
-            oppgaveEgenskap.sisteSaksbehandlerForTotrinn = sisteSaksbehandlerForTotrinn;
-            return oppgaveEgenskap;
-        }
     }
 }

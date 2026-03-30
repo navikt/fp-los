@@ -247,19 +247,13 @@ COMMENT ON COLUMN oppgave.saksnummer IS 'Saksnummer fra fpsak';
 COMMENT ON COLUMN oppgave.system IS 'Hvilket system oppgaven kommer fra';
 
 CREATE TABLE oppgave_egenskap (
-	id bigint NOT NULL CONSTRAINT pk_oppgave_egenskap PRIMARY KEY,
 	oppgave_id bigint NOT NULL CONSTRAINT fk_oppgave_egenskap_2 REFERENCES oppgave(id),
 	andre_kriterier_type varchar(100) NOT NULL,
-	versjon bigint NOT NULL DEFAULT 0,
-	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',
-	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
-	endret_av varchar(20),
-	endret_tid TIMESTAMP(3),
-	siste_saksbehandler_for_totr varchar(20)
+	siste_saksbehandler_for_totr varchar(20),
+    CONSTRAINT pk_oppgave_egenskap PRIMARY KEY (oppgave_id, andre_kriterier_type)
 ) ;
 COMMENT ON TABLE oppgave_egenskap IS 'Tabell inneholder filtreringer for andre kriterier';
 COMMENT ON COLUMN oppgave_egenskap.andre_kriterier_type IS 'Kode for de andre kriteriene oppgavene skal filtreres på';
-COMMENT ON COLUMN oppgave_egenskap.id IS 'PK';
 COMMENT ON COLUMN oppgave_egenskap.oppgave_id IS 'Oppgave egenskapen hører til';
 COMMENT ON COLUMN oppgave_egenskap.siste_saksbehandler_for_totr IS 'Saksbehandleren som sendte behandlingen til totrinnskontroll';
 
