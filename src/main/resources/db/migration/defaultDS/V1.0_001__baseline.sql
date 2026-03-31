@@ -314,10 +314,8 @@ COMMENT ON COLUMN stat_oppgave_filter.tidsstempel IS 'Tidsstempel for når stati
 -- -------------------------------------------------------------------------------------
 CREATE TABLE mottatt_hendelse (
 	hendelse_uid varchar(100) NOT NULL CONSTRAINT pk_mottatt_hendelse PRIMARY KEY,
-	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',
-	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
-	endret_av varchar(20),
-	endret_tid TIMESTAMP(3)
+	mottatt_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp()
 ) ;
 COMMENT ON TABLE mottatt_hendelse IS 'Holder unik identifikator for alle mottatte hendelser';
 COMMENT ON COLUMN mottatt_hendelse.hendelse_uid IS 'Unik identifikator for hendelse mottatt';
+COMMENT ON COLUMN mottatt_hendelse.mottatt_tid IS 'Hendelse mottatt tidspunkt';
