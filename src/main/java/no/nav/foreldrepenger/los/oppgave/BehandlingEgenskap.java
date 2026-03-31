@@ -21,7 +21,7 @@ import jakarta.validation.constraints.NotNull;
 public class BehandlingEgenskap implements Serializable {
 
     @Embeddable
-    public static record BehandlingEgenskapIdType(Behandling behandling, AndreKriterierType andreKriterierType) implements Serializable { }
+    public record BehandlingEgenskapIdType(Behandling behandling, AndreKriterierType andreKriterierType) implements Serializable { }
 
     @Id
     @NotNull

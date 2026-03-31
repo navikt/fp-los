@@ -109,11 +109,16 @@ public class Oppgave extends BaseEntitet {
         // Hibernate
     }
 
-    public void leggTilOppgaveEgenskap(OppgaveEgenskap oppgaveEgenskap) {
-        Objects.requireNonNull(oppgaveEgenskap, "oppgaveEgenskap");
-        oppgaveEgenskaper.removeIf(oe -> oe.getAndreKriterierType().equals(oppgaveEgenskap.getAndreKriterierType()));
-        oppgaveEgenskaper.add(oppgaveEgenskap);
-        oppgaveEgenskap.setOppgave(this);
+    public void leggTilOppgaveEgenskap(AndreKriterierType andreKriterierType, String ansvarligSaksbehandlerForTotrinn) {
+        Objects.requireNonNull(andreKriterierType, "andreKriterierType");
+        if (andreKriterierType.erTilBeslutter()) {
+            Objects.requireNonNull(ansvarligSaksbehandlerForTotrinn, "ansvarligSaksbehandlerForTotrinn");
+            oppgaveEgenskaper.removeIf(oe -> andreKriterierType.equals(oe.getAndreKriterierType()));
+            oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType, ansvarligSaksbehandlerForTotrinn));
+        } else {
+            oppgaveEgenskaper.removeIf(oe -> andreKriterierType.equals(oe.getAndreKriterierType()));
+            oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType));
+        }
     }
 
     public void clearOppgaveEgenskaper() {
@@ -344,8 +349,8 @@ public class Oppgave extends BaseEntitet {
             return this;
         }
 
-        public Builder medKriterier(Set<OppgaveEgenskap> egenskaper) {
-            egenskaper.forEach(tempOppgave::leggTilOppgaveEgenskap);
+        public Builder medKriterier(Set<AndreKriterierType> kriterier, String ansvarligSaksbehandlerForTotrinn) {
+            kriterier.forEach(k -> tempOppgave.leggTilOppgaveEgenskap(k, ansvarligSaksbehandlerForTotrinn));
             return this;
         }
 

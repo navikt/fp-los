@@ -10,13 +10,11 @@ import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
@@ -105,20 +103,11 @@ public final class GcpImportMapper {
         oppgave.clearOppgaveEgenskaper();
         if (dto.oppgaveEgenskaper() != null) {
             for (var egenskapDto : dto.oppgaveEgenskaper()) {
-                oppgave.leggTilOppgaveEgenskap(mapOppgaveEgenskap(egenskapDto));
+                oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
         oppgave.setSkipAutoAudit(true);
         return oppgave;
-    }
-
-    static OppgaveEgenskap mapOppgaveEgenskap(OppgaveEgenskapDataDto dto) {
-        var builder = OppgaveEgenskap.builder()
-                .medAndreKriterierType(dto.andreKriterierType());
-        if (dto.sisteSaksbehandlerForTotrinn() != null) {
-            builder.medSisteSaksbehandlerForTotrinn(dto.sisteSaksbehandlerForTotrinn());
-        }
-        return builder.build();
     }
 
     static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon) {

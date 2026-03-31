@@ -21,7 +21,6 @@ import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.Filtreringstype;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.foreldrepenger.los.oppgave.OppgaveKøRepository;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.oppgave.Periodefilter;
@@ -168,11 +167,7 @@ class OppgaveKøTjenesteTest {
 
 
     private void leggtilOppgaveMedEkstraEgenskaper(Oppgave oppgave, AndreKriterierType andreKriterierType) {
-        var oppgaveEgenskapBuilder = OppgaveEgenskap.builder().medAndreKriterierType(andreKriterierType);
-        if (andreKriterierType.erTilBeslutter()) {
-            oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("z999998");
-        }
-        oppgave.leggTilOppgaveEgenskap(oppgaveEgenskapBuilder.build());
+        oppgave.leggTilOppgaveEgenskap(andreKriterierType, andreKriterierType.erTilBeslutter() ? "z999998" : null);
         oppgaveRepository.lagre(oppgave);
         oppgaveRepository.refresh(oppgave);
     }

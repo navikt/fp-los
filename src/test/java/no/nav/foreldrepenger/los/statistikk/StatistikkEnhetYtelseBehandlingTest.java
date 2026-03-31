@@ -15,7 +15,6 @@ import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 
 @ExtendWith(JpaExtension.class)
@@ -71,12 +70,10 @@ class StatistikkEnhetYtelseBehandlingTest {
         entityManager.persist(innsynOppgave);
         entityManager.persist(annenAvdeling);
 
-        beslutterOppgave.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
+        beslutterOppgave.leggTilOppgaveEgenskap(AndreKriterierType.TIL_BESLUTTER, "z999999");
         entityManager.persist(beslutterOppgave);
 
-        beslutterOppgave2.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
+        beslutterOppgave2.leggTilOppgaveEgenskap(AndreKriterierType.TIL_BESLUTTER, "z999999");
         entityManager.persist(beslutterOppgave2);
 
         entityManager.persist(lukketOppgave);

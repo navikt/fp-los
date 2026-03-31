@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -67,14 +68,9 @@ class OppgaveRepositoryTest {
     }
     private Saksnummer setupOppgaveMedEgenskaper(AndreKriterierType... kriterier) {
         var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
-        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medSaksnummer(saksnummer).build();
-        for (var kriterie : kriterier) {
-            var oppgaveEgenskapBuilder = OppgaveEgenskap.builder().medAndreKriterierType(kriterie);
-            if (kriterie.erTilBeslutter()) {
-                oppgaveEgenskapBuilder.medSisteSaksbehandlerForTotrinn("z999999");
-            }
-            oppgave.leggTilOppgaveEgenskap(oppgaveEgenskapBuilder.build());
-        }
+        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medSaksnummer(saksnummer)
+            .medKriterier(Set.of(kriterier), "z999999")
+            .build();
         entityManager.persist(oppgave);
         entityManager.flush();
         return saksnummer;
@@ -184,26 +180,24 @@ class OppgaveRepositoryTest {
             .medSaksnummer(new Saksnummer("111"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(10))
             .medBehandlingsfrist(LocalDate.now().plusDays(10))
+            .medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD, AndreKriterierType.TIL_BESLUTTER), "z999999")
             .build();
-        førsteOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.PAPIRSØKNAD).build());
-        førsteOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         var andreOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingId(behandlingId2)
             .medSaksnummer(new Saksnummer("222"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(9))
             .medBehandlingsfrist(LocalDate.now().plusDays(5))
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
             .build();
-        andreOppgave.leggTilOppgaveEgenskap(
-            OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
         var tredjeOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingId(behandlingId3)
             .medSaksnummer(new Saksnummer("333"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(8))
             .medBehandlingsfrist(LocalDate.now().plusDays(15))
+            .medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null)
             .build();
-        tredjeOppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.PAPIRSØKNAD).build());
         var fjerdeOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET)
             .medBehandlingId(behandlingId4)
@@ -390,9 +384,9 @@ class OppgaveRepositoryTest {
     @Test
     void avdelingslederTellerMedEgneReservasjoner() {
         var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
-        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medSaksnummer(saksnummer).build();
-        oppgave.leggTilOppgaveEgenskap(OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn(
-            BrukerIdent.brukerIdent()).build());
+        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medSaksnummer(saksnummer)
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), BrukerIdent.brukerIdent())
+            .build();
         entityManager.persist(oppgave);
         entityManager.flush();
 
@@ -434,10 +428,9 @@ class OppgaveRepositoryTest {
     @Test
     void skalKunneSorterePåOppgaveOpprettetTidStigende() {
         Function<LocalDate, Oppgave> lagBeslutterOppgave = (LocalDate behandlingsfrist) -> {
-            var oppgave = basicOppgaveBuilder().medBehandlingsfrist(behandlingsfrist).build();
-            oppgave.leggTilOppgaveEgenskap(
-                OppgaveEgenskap.builder().medAndreKriterierType(AndreKriterierType.TIL_BESLUTTER).medSisteSaksbehandlerForTotrinn("z999999").build());
-            return oppgave;
+            return basicOppgaveBuilder().medBehandlingsfrist(behandlingsfrist)
+                .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
+                .build();
         };
 
         var now = LocalDateTime.now();
