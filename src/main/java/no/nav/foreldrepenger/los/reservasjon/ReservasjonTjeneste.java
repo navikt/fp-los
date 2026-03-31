@@ -67,7 +67,7 @@ public class ReservasjonTjeneste {
             return r;
         })).orElseGet(() -> new Reservasjon(oppgave));
         if (reservasjon.erAktiv()) {
-            LOG.info("Fant aktiv reservasjon for oppgave {} reservasjon {}", oppgave.getId(), reservasjon.getId());
+            LOG.info("Fant aktiv reservasjon for oppgave {} reservasjon {}", oppgave.getId(), reservasjon.getReservertAv());
         } else {
             LOG.info("Fant ikke aktiv reservasjon for oppgave {}", oppgave.getId());
             reservasjon.setReservertTil(standardReservasjon());

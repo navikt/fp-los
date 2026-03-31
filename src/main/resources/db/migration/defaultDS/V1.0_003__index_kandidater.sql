@@ -16,13 +16,10 @@ CREATE INDEX idx_behandling_feilutbet_start ON behandling (feilutbetaling_start)
 CREATE INDEX idx_behandling_egenskap_beh_id ON behandling_egenskap (behandling_id);
 CREATE INDEX idx_behandling_egenskap_kriterie_type ON behandling_egenskap (andre_kriterier_type);
 
-CREATE INDEX idx_filtrering_andre_krit_filtrering_type ON filtrering_andre_kriterier (oppgave_filtrering_id, andre_kriterier_type);
 CREATE INDEX idx_filtrering_andre_krit_kriterie_type ON filtrering_andre_kriterier (andre_kriterier_type);
-CREATE INDEX idx_filtr_beh_type_filtrering_type ON filtrering_behandling_type (oppgave_filtrering_id, behandling_type);
 CREATE INDEX idx_filtr_beh_type_type ON filtrering_behandling_type (behandling_type);
 CREATE INDEX idx_filtrering_saksbehandler_sbh_id ON filtrering_saksbehandler (saksbehandler_id);
 CREATE INDEX idx_filtrering_saksbehandler_filtrering_id ON filtrering_saksbehandler (oppgave_filtrering_id);
-CREATE INDEX idx_filtr_ytelse_type_filtrering_type ON filtrering_ytelse_type (oppgave_filtrering_id, fagsak_ytelse_type);
 CREATE INDEX idx_filtr_ytelse_type_type ON filtrering_ytelse_type (fagsak_ytelse_type);
 CREATE INDEX idx_gruppe_tilknytning_saksbehandler_id ON gruppe_tilknytning (saksbehandler_id);
 CREATE INDEX idx_gruppe_tilknytning_gruppe_id ON gruppe_tilknytning (gruppe_id);
@@ -61,16 +58,6 @@ CREATE INDEX idx_oppgave_feilutbet_belop ON oppgave (feilutbetaling_belop);
 
 -- feilutbetaling_start: brukes i datoFilter og ORDER BY (KøSortering.FEILUTBETALINGSTART)
 CREATE INDEX idx_oppgave_feilutbet_start ON oppgave (feilutbetaling_start);
-
-
--- -------------------------------------------------------------------------------------
--- 3. oppgave_egenskap: Kompositt-indeks for korrelerte subspørringer
---
---    andreKriterierSubquery: WHERE oe.oppgave = o AND oe.andreKriterierType IN (...)
---    Erstatter idx_oppgave_egenskap_oppgave_id som ikke dekker begge kolonner.
--- -------------------------------------------------------------------------------------
-CREATE INDEX idx_oppgave_egenskap_oppgave_kriterie ON oppgave_egenskap (oppgave_id, andre_kriterier_type);
-
 
 -- -------------------------------------------------------------------------------------
 -- 4. reservasjon: Indeks på reservert_av for spørringer i ReservasjonRepository

@@ -110,9 +110,8 @@ public final class GcpImportMapper {
         return oppgave;
     }
 
-    static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon) {
-        reservasjon.setId(dto.id());
-        reservasjon.setOppgaveId(dto.oppgaveId());
+    static void mapReservasjon(Oppgave oppgave, ReservasjonDataDto dto, Reservasjon reservasjon) {
+        reservasjon.setOppgave(oppgave);
         reservasjon.setReservertTil(dto.reservertTil());
         reservasjon.setReservertAv(dto.reservertAv());
         reservasjon.setFlyttetAv(dto.flyttetAv());

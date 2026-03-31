@@ -1,12 +1,13 @@
 package no.nav.foreldrepenger.los.reservasjon;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+
+import org.hibernate.annotations.NaturalId;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -23,19 +24,11 @@ import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 public class Reservasjon extends BaseEntitet {
 
     @Id
-    @NotNull
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
-    private Long id;
-
+    @NaturalId
     @NotNull
     @OneToOne(optional = false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "oppgave_id", updatable = false, insertable = false, unique = true)
     private Oppgave oppgave;
-
-    // legger til rå kolonne for gcp-migrering
-    @NotNull
-    @Column(name = "oppgave_id", nullable = false)
-    private Long oppgaveId;
 
     @Column(name = "RESERVERT_TIL")
     private LocalDateTime reservertTil;
@@ -63,12 +56,8 @@ public class Reservasjon extends BaseEntitet {
     }
 
     public Reservasjon(Oppgave oppgave) {
+        Objects.requireNonNull(oppgave, "oppgave");
         this.oppgave = oppgave;
-        this.oppgaveId = oppgave.getId();
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public Oppgave getOppgave() {
@@ -104,8 +93,8 @@ public class Reservasjon extends BaseEntitet {
     }
 
     public void setOppgave(Oppgave oppgave) {
+        Objects.requireNonNull(oppgave, "oppgave");
         this.oppgave = oppgave;
-        this.oppgaveId = oppgave != null ? oppgave.getId() : null;
     }
 
     public void setReservertAv(String reservertAv) {
@@ -122,13 +111,5 @@ public class Reservasjon extends BaseEntitet {
 
     public void setBegrunnelse(String begrunnelse) {
         this.begrunnelse = begrunnelse;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setOppgaveId(Long oppgaveId) {
-        this.oppgaveId = oppgaveId;
     }
 }

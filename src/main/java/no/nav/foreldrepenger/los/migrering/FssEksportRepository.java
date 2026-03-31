@@ -243,7 +243,6 @@ public class FssEksportRepository {
             return null;
         }
         return new ReservasjonDataDto(
-                reservasjon.getId(),
                 reservasjon.getOppgave().getId(),
                 reservasjon.getReservertTil(),
                 reservasjon.getReservertAv(),
