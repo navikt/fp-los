@@ -87,32 +87,33 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
         var oppgaveGrunnlag = OppgaveGrunnlagUtleder.lagGrunnlag(dto, egenskaper);
         var kriterier = KriterieUtleder.utledKriterier(oppgaveGrunnlag, beskyttelseKriterier);
 
+        var sammeAktiveAksjonspunkt = Objects.equals(eksisterendeBehandling.map(Behandling::getAktiveAksjonspunkt).orElse(null), mapAktiveAksjonspunkt(dto));
+        var reservasjonskandidat = ReservasjonUtleder.erReservasjonskandidat(oppgaveGrunnlag, eksisterendeBehandling);
+
+        behandlingTjeneste.lagreBehandling(dto, kilde, eksisterendeBehandling, kriterier);
+
         if (skalEksistereOppgave(oppgaveGrunnlag)) {
-            var oppgave = lagOppgave(oppgaveGrunnlag, kilde, kriterier);
+            var behandling = behandlingTjeneste.hentBehandling(dto);
+            var oppgave = lagOppgave(behandling, oppgaveGrunnlag, kilde, kriterier);
             //Prøver å beholde oppgave for å unngå at statistikk teller tilbakehopp som en avluttet oppgave
-            if (skalBeholdeEksisterendeOppgave(eksisterendeOppgave, oppgave, eksisterendeBehandling, dto)) {
+            if (skalBeholdeEksisterendeOppgave(eksisterendeOppgave, oppgave, sammeAktiveAksjonspunkt)) {
                 LOG.info("Eksisterende oppgave {} for behandling {} er lik den utledede oppgaven. Ingen ny oppgave nødvendig.",
-                    eksisterendeOppgave.orElseThrow().getId(), oppgave.getBehandlingId());
+                    eksisterendeOppgave.orElseThrow().getId(), oppgave.getBehandling().getId());
             } else {
                 LOG.info("Oppretter oppgave for behandling {}", oppgaveGrunnlag.behandlingUuid());
                 oppgaveRepository.opprettOppgave(oppgave);
-                opprettReservasjon(oppgave, eksisterendeOppgave, eksisterendeBehandling, oppgaveGrunnlag);
+                opprettReservasjon(oppgave, eksisterendeOppgave, reservasjonskandidat, oppgaveGrunnlag);
                 eksisterendeOppgave.ifPresent(o -> avsluttOppgave(o, oppgaveGrunnlag.behandlingUuid()));
             }
         } else {
             eksisterendeOppgave.ifPresent(o -> avsluttOppgave(o, oppgaveGrunnlag.behandlingUuid()));
         }
-
-        behandlingTjeneste.lagreBehandling(dto, kilde, eksisterendeBehandling, kriterier);
     }
 
     private static boolean skalBeholdeEksisterendeOppgave(Optional<Oppgave> eksisterendeOppgave,
                                                           Oppgave oppgave,
-                                                          Optional<Behandling> eksisterendeBehandling,
-                                                          LosBehandlingDto dto) {
+                                                          boolean likeAktiveAksjonspunkt) {
         var likOppgave = eksisterendeOppgave.isPresent() && erLik(oppgave, eksisterendeOppgave.get());
-        var likeAktiveAksjonspunkt = Objects.equals(eksisterendeBehandling.map(Behandling::getAktiveAksjonspunkt).orElse(null),
-            mapAktiveAksjonspunkt(dto));
         return likOppgave && likeAktiveAksjonspunkt;
     }
 
@@ -142,16 +143,16 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
 
     private void opprettReservasjon(Oppgave oppgave,
                                     Optional<Oppgave> eksisterendeOppgave,
-                                    Optional<Behandling> eksisterendeBehandling,
+                                    boolean reservasjonskandidat,
                                     OppgaveGrunnlag oppgaveGrunnlag) {
-        var reservasjon = ReservasjonUtleder.utledReservasjon(oppgave, eksisterendeOppgave, eksisterendeBehandling, oppgaveGrunnlag);
+        var reservasjon = ReservasjonUtleder.utledReservasjon(oppgave, eksisterendeOppgave, reservasjonskandidat, oppgaveGrunnlag);
         reservasjon.ifPresent(r -> {
             LOG.info("Opprettet reservasjon for oppgave {}", oppgave.getId());
             reservasjonRepository.lagre(r);
         });
     }
 
-    private Oppgave lagOppgave(OppgaveGrunnlag oppgaveGrunnlag, Fagsystem kilde, Set<AndreKriterierType> kriterier) {
+    private Oppgave lagOppgave(Behandling behandling, OppgaveGrunnlag oppgaveGrunnlag, Fagsystem kilde, Set<AndreKriterierType> kriterier) {
         LOG.info("Utledet kriterier {} for oppgave til behandling {}", kriterier, oppgaveGrunnlag.behandlingUuid());
 
         return Oppgave.builder()
@@ -163,7 +164,7 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
             .medFagsakYtelseType(oppgaveGrunnlag.ytelse())
             .medAktiv(true)
             .medBehandlingOpprettet(oppgaveGrunnlag.opprettetTidspunkt())
-            .medBehandlingId(new BehandlingId(oppgaveGrunnlag.behandlingUuid()))
+            .medBehandling(behandling)
             .medFørsteStønadsdag(oppgaveGrunnlag.førsteUttaksdatoForeldrepenger())
             .medBehandlingsfrist(oppgaveGrunnlag.behandlingsfrist())
             .medKriterier(kriterier, oppgaveGrunnlag.ansvarligSaksbehandlerIdent())

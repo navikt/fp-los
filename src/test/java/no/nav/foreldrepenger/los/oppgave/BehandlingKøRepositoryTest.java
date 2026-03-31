@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.avdelingsleder.AvdelingslederTjeneste;
-import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
@@ -35,32 +34,24 @@ class BehandlingKøRepositoryTest {
 
     private final Behandling førstegangBehandlingAksjonspunkt = Behandling.builder(Optional.empty())
         .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .medKildeSystem(Fagsystem.FPSAK)
         .medId(UUID.randomUUID())
         .build();
     private final Behandling førstegangBehandlingVent = Behandling.builder(Optional.empty())
         .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.VENT_MANUELL)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .medKildeSystem(Fagsystem.FPSAK)
         .medId(UUID.randomUUID())
         .build();
     private final Behandling klageOppgave = Behandling.builder(Optional.empty())
         .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.VENT_MANUELL)
         .medBehandlingType(BehandlingType.KLAGE)
-        .medKildeSystem(Fagsystem.FPSAK)
         .medId(UUID.randomUUID())
         .build();
     private final Behandling innsynOppgave = Behandling.builder(Optional.empty())
         .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.VENT_REGISTERDATA)
         .medBehandlingType(BehandlingType.INNSYN)
-        .medKildeSystem(Fagsystem.FPSAK)
         .medId(UUID.randomUUID())
         .build();
     private final Behandling førstegangOppgaveBergen = Behandling.builder(Optional.empty())
         .dummyBehandling(AVDELING_BERGEN_ENHET, BehandlingTilstand.VENT_KOMPLETT)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .medKildeSystem(Fagsystem.FPSAK)
         .medId(UUID.randomUUID())
         .build();
     private EntityManager entityManager;

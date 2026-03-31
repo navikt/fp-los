@@ -15,8 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.JpaExtension;
-import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
-import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.oppgavekø.SlettUtdaterteTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -44,15 +42,13 @@ class SlettUtdaterteTaskTest {
 
         var behandling = Behandling.builder(Optional.empty())
             .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AVSLUTTET)
-            .medKildeSystem(Fagsystem.FPSAK)
             .medId(behandlingId)
             .medAvsluttet(LocalDateTime.now().minusMonths(5))
             .build();
         entityManager.persist(behandling);
 
         var oppgave = Oppgave.builder()
-            .dummyOppgave(AVDELING_DRAMMEN_ENHET)
-            .medBehandlingId(new BehandlingId(behandlingId))
+            .dummyOppgave(AVDELING_DRAMMEN_ENHET, behandling)
             .medSaksnummer(new Saksnummer("111"))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(10))
             .medBehandlingsfrist(LocalDate.now().plusDays(10))

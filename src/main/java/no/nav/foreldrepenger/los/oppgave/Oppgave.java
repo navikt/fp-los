@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,6 +20,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -44,9 +45,11 @@ public class Oppgave extends BaseEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
     private Long id;
 
+    @NotNull
     @Embedded
     private Saksnummer saksnummer; // Denne er de-facto non-null
 
+    @NotNull
     @Embedded
     private AktørId aktørId;
 
@@ -89,8 +92,10 @@ public class Oppgave extends BaseEntitet {
     @Column(name = "OPPGAVE_AVSLUTTET")
     private LocalDateTime oppgaveAvsluttet;
 
-    @Embedded
-    private BehandlingId behandlingId;
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "BEHANDLING_ID", nullable = false)
+    private Behandling behandling;
 
     @OneToOne(mappedBy = "oppgave")
     private Reservasjon reservasjon;
@@ -159,7 +164,11 @@ public class Oppgave extends BaseEntitet {
     }
 
     public BehandlingId getBehandlingId() {
-        return behandlingId;
+        return new BehandlingId(behandling.getId());
+    }
+
+    public Behandling getBehandling() {
+        return behandling;
     }
 
     public LocalDate getBehandlingsfrist() {
@@ -229,8 +238,8 @@ public class Oppgave extends BaseEntitet {
         this.id = id;
     }
 
-    public void setBehandlingId(BehandlingId behandlingId) {
-        this.behandlingId = behandlingId;
+    public void setBehandling(Behandling behandling) {
+        this.behandling = behandling;
     }
 
     public void setBehandlingType(BehandlingType behandlingType) {
@@ -284,8 +293,8 @@ public class Oppgave extends BaseEntitet {
             tempOppgave = new Oppgave();
         }
 
-        public Builder medBehandlingId(BehandlingId behandlingId) {
-            tempOppgave.behandlingId = behandlingId;
+        public Builder medBehandling(Behandling behandling) {
+            tempOppgave.behandling = behandling;
             return this;
         }
 
@@ -354,8 +363,8 @@ public class Oppgave extends BaseEntitet {
             return this;
         }
 
-        public Builder dummyOppgave(String enhet) {
-            tempOppgave.behandlingId = new BehandlingId(UUID.nameUUIDFromBytes("331133L".getBytes()));
+        public Builder dummyOppgave(String enhet, Behandling behandling) {
+            tempOppgave.behandling = behandling;
             tempOppgave.saksnummer = new Saksnummer("3478293");
             tempOppgave.aktørId = AktørId.dummy();
             tempOppgave.fagsakYtelseType = FagsakYtelseType.FORELDREPENGER;

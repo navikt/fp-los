@@ -97,7 +97,8 @@ public class GcpImportRepository {
                 .getResultList());
 
             for (var dto : batch) {
-                var oppgave = GcpImportMapper.mapOppgave(dto);
+                var behandling = entityManager.find(Behandling.class, dto.behandlingId().toUUID());
+                var oppgave = GcpImportMapper.mapOppgave(dto, behandling);
 
                 if (gcpOppgaveIds.contains(dto.id())) {
                     entityManager.merge(oppgave);

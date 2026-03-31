@@ -224,7 +224,7 @@ CREATE TABLE oppgave (
 	endret_tid TIMESTAMP(3),
 	forste_stonadsdag DATE,
 	oppgave_avsluttet TIMESTAMP(3),
-	behandling_id uuid NOT NULL,
+	behandling_id uuid NOT NULL CONSTRAINT fk_oppgave_01 REFERENCES behandling(id),
 	saksnummer varchar(19),
 	feilutbetaling_belop decimal(19,2),
 	feilutbetaling_start DATE

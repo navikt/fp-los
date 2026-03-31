@@ -374,6 +374,7 @@ public class Behandling extends BaseEntitet {
             behandlingKladd.aktørId = AktørId.dummy();
             behandlingKladd.fagsakYtelseType = FagsakYtelseType.FORELDREPENGER;
             behandlingKladd.behandlingType = BehandlingType.FØRSTEGANGSSØKNAD;
+            behandlingKladd.kildeSystem = Fagsystem.FPSAK;
             behandlingKladd.behandlendeEnhet = enhet;
             behandlingKladd.behandlingsfrist = LocalDate.now();
             behandlingKladd.behandlingTilstand = tilstand;

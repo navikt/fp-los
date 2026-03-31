@@ -69,11 +69,13 @@ public class SlettUtdaterteTask implements ProsessTaskHandler {
 
     private int slettEldreUtløpteBehandlinger(LocalDateTime før) {
         entityManager.createQuery("delete from BehandlingEgenskap where behandling.id in" +
-                " (select id from Behandling where behandlingTilstand = :avsluttet AND avsluttet < :foer)")
+                " (select id from Behandling where behandlingTilstand = :avsluttet AND avsluttet < :foer)" +
+                " AND behandling.id NOT IN (select behandling.id from Oppgave)")
             .setParameter(FØR, før)
             .setParameter("avsluttet", BehandlingTilstand.AVSLUTTET)
             .executeUpdate();
-        return entityManager.createQuery("delete from Behandling where behandlingTilstand = :avsluttet AND avsluttet < :foer")
+        return entityManager.createQuery("delete from Behandling b where b.behandlingTilstand = :avsluttet AND b.avsluttet < :foer" +
+                " AND b.id NOT IN (select behandling.id from Oppgave)")
             .setParameter(FØR, før)
             .setParameter("avsluttet", BehandlingTilstand.AVSLUTTET)
             .executeUpdate();

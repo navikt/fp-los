@@ -81,12 +81,12 @@ public final class GcpImportMapper {
                             dto.endretAv(), dto.endretTidspunkt());
     }
 
-    static Oppgave mapOppgave(OppgaveDataDto dto) {
+    static Oppgave mapOppgave(OppgaveDataDto dto, Behandling behandling) {
         var oppgave = new Oppgave();
         oppgave.setId(dto.id());
         oppgave.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
         oppgave.setAktørId(dto.aktørId());
-        oppgave.setBehandlingId(dto.behandlingId());
+        oppgave.setBehandling(behandling);
         oppgave.setBehandlingType(dto.behandlingType());
         oppgave.setFagsakYtelseType(dto.fagsakYtelseType());
         oppgave.setBehandlendeEnhet(dto.behandlendeEnhet());

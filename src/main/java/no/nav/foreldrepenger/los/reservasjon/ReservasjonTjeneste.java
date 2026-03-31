@@ -129,7 +129,7 @@ public class ReservasjonTjeneste {
         var sisteReserverteMetadata = reservasjonRepository.hentSisteReserverteMetadata(BrukerIdent.brukerIdent(), kunAktive);
         var oppgaveIder = sisteReserverteMetadata.stream().map(SisteReserverteMetadata::oppgaveId).toList();
         var oppgaveListe = oppgaveRepository.hentOppgaverReadOnly(oppgaveIder);
-        var behandlingTilstandMap = behandlingTjeneste.hentBehandlinger(oppgaveListe.stream().map(Oppgave::getBehandlingId).collect(Collectors.toSet()))
+        var behandlingTilstandMap = oppgaveListe.stream().map(Oppgave::getBehandling).collect(Collectors.toSet())
             .stream().collect(Collectors.toMap(Behandling::getId, Behandling::getBehandlingTilstand));
         var oppgaveMap = oppgaveListe.stream().collect(Collectors.toMap(Oppgave::getId, Function.identity()));
         return sisteReserverteMetadata.stream().map(mr -> {
@@ -141,7 +141,7 @@ public class ReservasjonTjeneste {
     }
 
     private static OppgaveBehandlingStatus mapStatus(Oppgave oppgave, Map<UUID, BehandlingTilstand> behandlingTilstandSet) {
-        var behandlingTilstand = behandlingTilstandSet.getOrDefault(oppgave.getBehandlingId().getValue(), BehandlingTilstand.INGEN);
+        var behandlingTilstand = behandlingTilstandSet.getOrDefault(oppgave.getBehandling().getId(), BehandlingTilstand.INGEN);
         return switch (behandlingTilstand) {
             case AKSJONSPUNKT -> {
                 var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper().stream()

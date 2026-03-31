@@ -9,7 +9,9 @@ import static org.assertj.core.api.Assertions.fail;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,16 +42,7 @@ class OppgaveTjenesteTest {
     private ReservasjonTjeneste reservasjonTjeneste;
     private AvdelingslederTjeneste avdelingslederTjeneste;
 
-    private final Oppgave førstegangOppgave = Oppgave.builder()
-        .dummyOppgave(AVDELING_DRAMMEN_ENHET)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .build();
-    private final Oppgave klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medBehandlingType(BehandlingType.KLAGE).build();
-    private final Oppgave innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medBehandlingType(BehandlingType.INNSYN).build();
-    private final Oppgave førstegangOppgaveBergen = Oppgave.builder()
-        .dummyOppgave(AVDELING_BERGEN_ENHET)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .build();
+    private Oppgave førstegangOppgave;
 
     @BeforeEach
     void setup(EntityManager entityManager) {
@@ -72,6 +65,19 @@ class OppgaveTjenesteTest {
         oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
+
+        var fgbid = UUID.randomUUID();
+        var klageid = UUID.randomUUID();
+        var innsynid = UUID.randomUUID();
+        var bergenid = UUID.randomUUID();
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(fgbid));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(klageid).medBehandlingType(BehandlingType.KLAGE));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_BERGEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(bergenid).medBehandlingType(BehandlingType.INNSYN));
+        førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var førstegangOppgaveBergen = Oppgave.builder().dummyOppgave(AVDELING_BERGEN_ENHET, oppgaveRepository.hentBehandling(bergenid)).build();
         oppgaveRepository.lagre(førstegangOppgave);
         oppgaveRepository.lagre(klageOppgave);
         oppgaveRepository.lagre(innsynOppgave);
@@ -158,8 +164,16 @@ class OppgaveTjenesteTest {
 
 
     private Oppgave opprettOgLargeOppgaveTilSortering(int dagerSidenOpprettet, int dagersidenBehandlingsFristGikkUt, int førsteStønadsdag) {
+        var bid = UUID.randomUUID();
+        var behbuilder = Behandling.builder(Optional.empty())
+            .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
+            .medId(bid)
+            .medOpprettet(LocalDateTime.now().minusDays(dagerSidenOpprettet))
+            .medBehandlingsfrist(LocalDate.now().minusDays(dagersidenBehandlingsFristGikkUt))
+            .medFørsteStønadsdag(LocalDate.now().minusDays(førsteStønadsdag));
+        oppgaveRepository.lagreBehandling(behbuilder);
         var oppgave = Oppgave.builder()
-            .dummyOppgave(AVDELING_DRAMMEN_ENHET)
+            .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(bid))
             .medBehandlingOpprettet(LocalDateTime.now().minusDays(dagerSidenOpprettet))
             .medBehandlingsfrist(LocalDate.now().minusDays(dagersidenBehandlingsFristGikkUt))
             .medFørsteStønadsdag(LocalDate.now().minusDays(førsteStønadsdag))
