@@ -15,9 +15,9 @@ import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 @ApplicationScoped
 public class BehandlingKøRepository {
 
-    private static final String SELECT_COUNT_FROM_BEHANDLING = "SELECT count(1) from Behandling o ";
+    private static final String SELECT_COUNT_FROM_BEHANDLING = "SELECT count(1) from Behandling b ";
 
-    private static final String BEHANDLINGOPPRETTET_FELT_SQL = "o.opprettet";
+    private static final String BEHANDLINGOPPRETTET_FELT_SQL = "b.opprettet";
 
     private static final Map<KøSortering, Boolean> SORTERING_ER_DATE_FELT = Map.of(
         KøSortering.BEHANDLINGSFRIST, true,
@@ -52,8 +52,8 @@ public class BehandlingKøRepository {
 
         var qlStringBuilder = new StringBuilder()
             .append(SELECT_COUNT_FROM_BEHANDLING)
-            .append(" WHERE o.behandlendeEnhet = :enhetsnummer ")
-            .append(" AND o.behandlingTilstand in (:ventTilstand) ")
+            .append(" WHERE b.behandlendeEnhet = :enhetsnummer ")
+            .append(" AND b.behandlingTilstand in (:ventTilstand) ")
             .append(OppgaveKøRepository.filtrerBehandlingType(oppgavespørring, parameters))
             .append(OppgaveKøRepository.filtrerYtelseType(oppgavespørring, parameters))
             .append(andreKriterierSubquery(oppgavespørring, parameters))
@@ -77,17 +77,17 @@ public class BehandlingKøRepository {
             parameters.put("inkluderAktKoder", inkluderAkt);
             parameters.put("inkluderAktAntall", inkluderAkt.size());
             sb.append(" AND :inkluderAktAntall = (")
-                .append("   SELECT COUNT(oe.andreKriterierType) ")
-                .append("   FROM BehandlingEgenskap oe ")
-                .append("   WHERE oe.behandling.id = o.id ")
-                .append("     AND oe.andreKriterierType IN (:inkluderAktKoder)")
+                .append("   SELECT COUNT(be.andreKriterierType) ")
+                .append("   FROM BehandlingEgenskap be ")
+                .append("   WHERE be.behandling.id = b.id ")
+                .append("     AND be.andreKriterierType IN (:inkluderAktKoder)")
                 .append(" ) ");
         }
         if (!ekskluderAkt.isEmpty()) {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
             sb.append("AND NOT EXISTS ( ")
-                .append("SELECT 1 FROM BehandlingEgenskap oe ")
-                .append("WHERE oe.behandling.id = o.id AND oe.andreKriterierType IN (:ekskluderAktKoder)")
+                .append("SELECT 1 FROM BehandlingEgenskap be ")
+                .append("WHERE be.behandling.id = b.id AND be.andreKriterierType IN (:ekskluderAktKoder)")
                 .append(") ");
         }
 

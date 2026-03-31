@@ -21,21 +21,21 @@ import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 @ApplicationScoped
 public class OppgaveKøRepository {
 
-    private static final String SELECT_FROM_OPPGAVE = "from Oppgave o ";
-    private static final String SELECT_COUNT_FROM_OPPGAVE = "SELECT count(1) from Oppgave o ";
+    private static final String SELECT_FROM_OPPGAVE = "from Oppgave o join Behandling b on o.behandling = b ";
+    private static final String SELECT_COUNT_FROM_OPPGAVE = "SELECT count(1) from Oppgave o JOIN Behandling b on o.behandling = b";
 
-    private static final String BEHANDLINGSFRIST_FELT_SQL = "o.behandlingsfrist";
-    private static final String BEHANDLINGOPPRETTET_FELT_SQL = "o.behandlingOpprettet";
-    private static final String FØRSTE_STØNADSDAG_FELT_SQL = "o.førsteStønadsdag";
-    private static final String FEILUTBETALINGSTART_FELT_SQL = "o.feilutbetalingStart";
-    private static final String FEILUTBETALINGBELOP_FELT_SQL = "o.feilutbetalingBelop";
+    private static final String BEHANDLINGSFRIST_FELT_SQL = "b.behandlingsfrist";
+    private static final String BEHANDLINGOPPRETTET_FELT_SQL = "b.opprettet";
+    private static final String FØRSTE_STØNADSDAG_FELT_SQL = "b.førsteStønadsdag";
+    private static final String FEILUTBETALINGSTART_FELT_SQL = "b.feilutbetalingStart";
+    private static final String FEILUTBETALINGBELOP_FELT_SQL = "b.feilutbetalingBelop";
 
-    private static final String ORDER_BY_BEHANDLINGSFRIST_ASC = "ORDER BY o.behandlingsfrist ASC";
-    private static final String ORDER_BY_BEHANDLINGOPPRETTET_ASC = "ORDER BY o.behandlingOpprettet ASC";
-    private static final String ORDER_BY_FØRSTE_STØNADSDAG_ASC = "ORDER BY o.førsteStønadsdag ASC";
-    private static final String ORDER_BY_FØRSTE_STØNADSDAG_DESC = "ORDER BY o.førsteStønadsdag DESC NULLS LAST";
-    private static final String ORDER_BY_FEILUTBETALINGSTART_ASC = "ORDER BY o.feilutbetalingStart ASC";
-    private static final String ORDER_BY_FEILUTBETALINGBELOP_DESC = "ORDER BY o.feilutbetalingBelop DESC";
+    private static final String ORDER_BY_BEHANDLINGSFRIST_ASC = "ORDER BY b.behandlingsfrist ASC";
+    private static final String ORDER_BY_BEHANDLINGOPPRETTET_ASC = "ORDER BY b.opprettet ASC";
+    private static final String ORDER_BY_FØRSTE_STØNADSDAG_ASC = "ORDER BY b.førsteStønadsdag ASC";
+    private static final String ORDER_BY_FØRSTE_STØNADSDAG_DESC = "ORDER BY b.førsteStønadsdag DESC NULLS LAST";
+    private static final String ORDER_BY_FEILUTBETALINGSTART_ASC = "ORDER BY b.feilutbetalingStart ASC";
+    private static final String ORDER_BY_FEILUTBETALINGBELOP_DESC = "ORDER BY b.feilutbetalingBelop DESC";
     private static final String ORDER_BY_OPPGAVE_OPPRETTET_ASC = "ORDER BY o.opprettetTidspunkt ASC";
 
     private static final Map<KøSortering, Boolean> SORTERING_ER_DATE_FELT = Map.of(
@@ -195,7 +195,7 @@ public class OppgaveKøRepository {
             return "";
         }
         parameters.put("behtyper", queryDto.getBehandlingTyper());
-        return "AND o.behandlingType in :behtyper ";
+        return "AND b.behandlingType in :behtyper ";
     }
 
     static String filtrerYtelseType(Oppgavespørring queryDto, Map<String, Object> parameters) {
@@ -203,7 +203,7 @@ public class OppgaveKøRepository {
             return "";
         }
         parameters.put("fagsakYtelseType", queryDto.getYtelseTyper());
-        return "AND o.fagsakYtelseType in :fagsakYtelseType ";
+        return "AND b.fagsakYtelseType in :fagsakYtelseType ";
     }
 
     private static String reserverteSubquery(Oppgavespørring oppgavespørring, Map<String, Object> parameters) {

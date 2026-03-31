@@ -209,42 +209,22 @@ COMMENT ON COLUMN behandling_egenskap.behandling_id IS 'Referanse til behandling
 -- -------------------------------------------------------------------------------------
 CREATE TABLE oppgave (
 	id bigint NOT NULL CONSTRAINT pk_oppgave PRIMARY KEY,
-	aktor_id varchar(50),
+    behandling_id uuid NOT NULL CONSTRAINT fk_oppgave_01 REFERENCES behandling(id),
 	behandlende_enhet varchar(10) NOT NULL,
 	aktiv varchar(1) NOT NULL DEFAULT 'Y',
-	behandling_type varchar(100) NOT NULL,
-	fagsak_ytelse_type varchar(100) NOT NULL,
-	system varchar(100),
-	behandlingsfrist DATE,
-	behandling_opprettet TIMESTAMP(3),
+    oppgave_avsluttet TIMESTAMP(3),
 	versjon bigint NOT NULL DEFAULT 0,
 	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',
 	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
 	endret_av varchar(20),
-	endret_tid TIMESTAMP(3),
-	forste_stonadsdag DATE,
-	oppgave_avsluttet TIMESTAMP(3),
-	behandling_id uuid NOT NULL CONSTRAINT fk_oppgave_01 REFERENCES behandling(id),
-	saksnummer varchar(19),
-	feilutbetaling_belop decimal(19,2),
-	feilutbetaling_start DATE
+	endret_tid TIMESTAMP(3)
 ) ;
 COMMENT ON TABLE oppgave IS 'Tabell som skal inneholde informasjon om behandlinger som trenger intervensjon av en saksbehandler';
 COMMENT ON COLUMN oppgave.aktiv IS 'Setter oppgaveegenskap til aktiv eller inaktiv etter egenskapen sin tilstand';
-COMMENT ON COLUMN oppgave.aktor_id IS 'Aktør id';
 COMMENT ON COLUMN oppgave.behandlende_enhet IS 'Enheten som har oppgaven satt til seg';
 COMMENT ON COLUMN oppgave.behandling_id IS 'Behandling id for behandling i fagsystem';
-COMMENT ON COLUMN oppgave.behandling_opprettet IS 'Tidspunktet behandlingen ble opprettet';
-COMMENT ON COLUMN oppgave.behandling_type IS 'Hva slags behandlingstype behandlingen har';
-COMMENT ON COLUMN oppgave.behandlingsfrist IS 'Behandlingsfrist';
-COMMENT ON COLUMN oppgave.fagsak_ytelse_type IS 'Hva slags ytelse type fagsaken har';
-COMMENT ON COLUMN oppgave.feilutbetaling_belop IS 'Feilutbetalt beløp fra fptilbake';
-COMMENT ON COLUMN oppgave.feilutbetaling_start IS 'Startdato for feilutbetaling fra fptilbake';
-COMMENT ON COLUMN oppgave.forste_stonadsdag IS 'Første stønadsdag';
 COMMENT ON COLUMN oppgave.id IS 'PK';
 COMMENT ON COLUMN oppgave.oppgave_avsluttet IS 'Tidspunkt for avslutting av Oppgave';
-COMMENT ON COLUMN oppgave.saksnummer IS 'Saksnummer fra fpsak';
-COMMENT ON COLUMN oppgave.system IS 'Hvilket system oppgaven kommer fra';
 
 CREATE TABLE oppgave_egenskap (
 	oppgave_id bigint NOT NULL CONSTRAINT fk_oppgave_egenskap_2 REFERENCES oppgave(id),

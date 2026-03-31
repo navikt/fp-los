@@ -44,20 +44,20 @@ public class StatistikkRepository {
     public List<OppgaveEnhetYtelseBehandling> hentÅpneOppgaverPerEnhetYtelseBehandling() {
         return entityManager.createQuery("""
             Select new no.nav.foreldrepenger.los.statistikk.OppgaveEnhetYtelseBehandling(
-                o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType, Count(o.id))
-            FROM Oppgave o
-            WHERE aktiv = true
-            GROUP BY o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType
+                o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType, Count(o.id))
+            FROM Oppgave o JOIN Behandling b ON o.behandling = b
+            WHERE o.aktiv = true
+            GROUP BY o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType
             """, OppgaveEnhetYtelseBehandling.class).getResultList();
     }
 
     public List<OppgaveEnhetYtelseBehandling> hentOpprettetOppgaverPerEnhetYtelseBehandling() {
         return entityManager.createQuery("""
             Select new no.nav.foreldrepenger.los.statistikk.OppgaveEnhetYtelseBehandling(
-                o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType, Count(o.id))
-            FROM Oppgave o
+                o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType, Count(o.id))
+            FROM Oppgave o JOIN Behandling b ON o.behandling = b
             WHERE o.opprettetTidspunkt > :opprettet
-            GROUP BY o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType
+            GROUP BY o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType
             """, OppgaveEnhetYtelseBehandling.class)
             .setParameter("opprettet", LocalDateTime.now().minusHours(24))
             .getResultList();
@@ -66,10 +66,10 @@ public class StatistikkRepository {
     public List<OppgaveEnhetYtelseBehandling> hentAvsluttetOppgaverPerEnhetYtelseBehandling() {
         return entityManager.createQuery("""
             Select new no.nav.foreldrepenger.los.statistikk.OppgaveEnhetYtelseBehandling(
-                o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType, Count(o.id))
-            FROM Oppgave o
+                o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType, Count(o.id))
+            FROM Oppgave o JOIN Behandling b ON o.behandling = b
             WHERE o.aktiv = false and o.oppgaveAvsluttet > :endret
-            GROUP BY o.behandlendeEnhet, o.fagsakYtelseType, o.behandlingType
+            GROUP BY o.behandlendeEnhet, b.fagsakYtelseType, b.behandlingType
             """, OppgaveEnhetYtelseBehandling.class)
             .setParameter("endret", LocalDateTime.now().minusHours(24))
             .getResultList();

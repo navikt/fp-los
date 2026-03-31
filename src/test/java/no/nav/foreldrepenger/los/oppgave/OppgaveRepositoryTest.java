@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +73,6 @@ class OppgaveRepositoryTest {
         var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer).medKriterier(kriterier));
         var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medSaksnummer(saksnummer)
             .medKriterier(kriterier, "z999999")
             .build();
         entityManager.persist(oppgave);
@@ -178,37 +176,22 @@ class OppgaveRepositoryTest {
         lagStandardSettMedBehandlinger();
         var førsteOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medSaksnummer(new Saksnummer("111"))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(10))
-            .medBehandlingsfrist(LocalDate.now().plusDays(10))
             .medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD, AndreKriterierType.TIL_BESLUTTER), "z999999")
             .build();
         var andreOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
-            .medSaksnummer(new Saksnummer("222"))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(9))
-            .medBehandlingsfrist(LocalDate.now().plusDays(5))
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
             .build();
         var tredjeOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId3.toUUID()))
-            .medSaksnummer(new Saksnummer("333"))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(8))
-            .medBehandlingsfrist(LocalDate.now().plusDays(15))
             .medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null)
             .build();
         var fjerdeOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId4.toUUID()))
-            .medSaksnummer(new Saksnummer("444"))
-            .medBehandlingOpprettet(LocalDateTime.now())
-            .medBehandlingsfrist(LocalDate.now())
             .build();
 
         var femteOppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId5.toUUID()))
-            .medSaksnummer(new Saksnummer("555"))
-            .medBehandlingOpprettet(LocalDateTime.now())
-            .medBehandlingsfrist(LocalDate.now().plusYears(1))
             .build();
 
         entityManager.persist(førsteOppgave);
@@ -272,8 +255,8 @@ class OppgaveRepositoryTest {
 
     @Test
     void testReservering() {
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(LocalDate.now().minusDays(10)));
-        var oppgave = basicOppgaveBuilder(LocalDate.now().minusDays(10)).build();
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medOpprettet(LocalDate.now().minusDays(10).atStartOfDay()));
+        var oppgave = basicOppgaveBuilder().build();
         entityManager.persist(oppgave);
         entityManager.flush();
         var reservertOppgave = oppgaveRepository.hentReservasjon(oppgave.getId());
@@ -327,9 +310,10 @@ class OppgaveRepositoryTest {
 
     @Test
     void filtrerPåOpprettetDatoTomDato() {
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
-        var aktuellOppgave = basicOppgaveBuilder(LocalDate.now().minusDays(2)).build();
-        var uaktuellOppgave = basicOppgaveBuilder(LocalDate.now()).build();
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medOpprettet(LocalDateTime.now().minusDays(2)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medOpprettet(LocalDateTime.now()));
+        var aktuellOppgave = basicOppgaveBuilder().build();
+        var uaktuellOppgave = basicOppgaveBuilder(behandlingId2.toUUID()).build();
         oppgaveRepository.lagre(uaktuellOppgave);
         oppgaveRepository.lagre(aktuellOppgave);
         var filtrerTomDato = LocalDate.now().minusDays(1);
@@ -342,10 +326,12 @@ class OppgaveRepositoryTest {
 
     @Test
     void filtrerPåFørsteStønadsdag() {
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
-        var oppgave1 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now().minusDays(1)).build();
-        var oppgave2 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now()).build();
-        var oppgave3 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now().plusDays(5)).build();
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medFørsteStønadsdag(LocalDate.now().minusDays(1)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medFørsteStønadsdag(LocalDate.now()));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medFørsteStønadsdag(LocalDate.now().plusDays(5)));
+        var oppgave1 = basicOppgaveBuilder(behandlingId1.toUUID()).build();
+        var oppgave2 = basicOppgaveBuilder(behandlingId2.toUUID()).build();
+        var oppgave3 = basicOppgaveBuilder(behandlingId3.toUUID()).build();
         oppgaveRepository.lagre(oppgave1);
         oppgaveRepository.lagre(oppgave2);
         oppgaveRepository.lagre(oppgave3);
@@ -357,17 +343,13 @@ class OppgaveRepositoryTest {
 
     @Test
     void filtrerSorterFeilutbetaltBeløp() {
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()));
-        var oppgave1 = tilbakekrevingOppgaveBuilder()
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(2L))
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L)).medFeilutbetalingBelop(BigDecimal.valueOf(100L)));
+        var oppgave1 = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID())
             .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medFeilutbetalingBeløp(BigDecimal.valueOf(100L))
             .build();
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()));
-        var oppgave2 = tilbakekrevingOppgaveBuilder()
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L)).medFeilutbetalingBelop(BigDecimal.valueOf(200L)));
+        var oppgave2 = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID())
             .medBehandling(oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(1L))
-            .medFeilutbetalingBeløp(BigDecimal.valueOf(200L))
             .build();
         oppgaveRepository.lagre(oppgave1);
         oppgaveRepository.lagre(oppgave2);
@@ -389,18 +371,19 @@ class OppgaveRepositoryTest {
         // lager hendelse som fører til oppgave. Formålet er at saksbehandler skal avklare
         // status på grunnlaget. Funksjonelt kan det variere om filtrene som brukes i enhetene
         // fanger opp disse (fom/tom på feltet vil ekskludere bla).
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()));
-        var oppgaveUtenStartDato = tilbakekrevingOppgaveBuilder().medBehandlingOpprettet(LocalDateTime.now().minusDays(2L))
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID())
+            .medOpprettet(LocalDateTime.now().minusDays(2L))
+            .medFeilutbetalingBelop(BigDecimal.valueOf(0L))
+            .medFeilutbetalingStart(null));
+        var oppgaveUtenStartDato = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID())
             .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medFeilutbetalingBeløp(BigDecimal.valueOf(0L))
-            .medFeilutbetalingStart(null)
             .build();
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()));
-        var oppgaveMedStartDato = tilbakekrevingOppgaveBuilder()
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID())
+            .medOpprettet(LocalDateTime.now().minusDays(1L))
+            .medFeilutbetalingBelop(BigDecimal.valueOf(10L))
+            .medFeilutbetalingStart(LocalDate.now()));
+        var oppgaveMedStartDato = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID())
             .medBehandling(oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(1L))
-            .medFeilutbetalingBeløp(BigDecimal.valueOf(10L))
-            .medFeilutbetalingStart(LocalDate.now())
             .build();
         oppgaveRepository.lagre(oppgaveUtenStartDato);
         oppgaveRepository.lagre(oppgaveMedStartDato);
@@ -413,11 +396,14 @@ class OppgaveRepositoryTest {
 
     @Test
     void skalKunneSorterePåFørsteStønadsdagSynkende() {
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
-        var oppgave1 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now().minusDays(1)).build();
-        var oppgave2 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now()).build();
-        var oppgave3 = basicOppgaveBuilder().medFørsteStønadsdag(LocalDate.now().plusDays(5)).build();
-        var oppgave4 = basicOppgaveBuilder().medFørsteStønadsdag(null).build(); // verifiserer nulls last
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medFørsteStønadsdag(LocalDate.now().minusDays(1)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medFørsteStønadsdag(LocalDate.now()));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medFørsteStønadsdag(LocalDate.now().plusDays(5)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId4.toUUID()).medFørsteStønadsdag(null));
+        var oppgave1 = basicOppgaveBuilder(behandlingId1.toUUID()).build();
+        var oppgave2 = basicOppgaveBuilder(behandlingId2.toUUID()).build();
+        var oppgave3 = basicOppgaveBuilder(behandlingId3.toUUID()).build();
+        var oppgave4 = basicOppgaveBuilder(behandlingId4.toUUID()).build(); // verifiserer nulls last
         oppgaveRepository.lagre(oppgave1);
         oppgaveRepository.lagre(oppgave2);
         oppgaveRepository.lagre(oppgave3);
@@ -445,7 +431,6 @@ class OppgaveRepositoryTest {
         var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
         var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medSaksnummer(saksnummer)
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), BrukerIdent.brukerIdent())
             .build();
         entityManager.persist(oppgave);
@@ -487,23 +472,21 @@ class OppgaveRepositoryTest {
 
     @Test
     void skalKunneSorterePåOppgaveOpprettetTidStigende() {
-        Function<LocalDate, Oppgave> lagBeslutterOppgave = (LocalDate behandlingsfrist) -> {
-            return basicOppgaveBuilder().medBehandlingsfrist(behandlingsfrist)
-                .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
-                .build();
-        };
-
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
 
         var now = LocalDateTime.now();
         var t1 = now.minusHours(3);
-        var t2   = now.minusHours(2);
-        var t3   = now.minusHours(1);
+        var t2 = now.minusHours(2);
+        var t3 = now.minusHours(1);
+
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medBehandlingsfrist(t1.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medBehandlingsfrist(t2.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medBehandlingsfrist(t3.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+
 
         // setter omvendt tid på behandlingsfrist for å sørge for motsatt sortering med default sortering
-        var beslutterOppgaveEldste = lagBeslutterOppgave.apply(t3.toLocalDate());
-        var beslutterOppgaveMellomste = lagBeslutterOppgave.apply(t2.toLocalDate());
-        var beslutterOppgaveNyeste = lagBeslutterOppgave.apply(t1.toLocalDate());
+        var beslutterOppgaveEldste = basicOppgaveBuilder(behandlingId3.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
+        var beslutterOppgaveMellomste = basicOppgaveBuilder(behandlingId2.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
+        var beslutterOppgaveNyeste = basicOppgaveBuilder(behandlingId1.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
 
         entityManager.persist(beslutterOppgaveEldste);
         entityManager.persist(beslutterOppgaveMellomste);
@@ -567,35 +550,29 @@ class OppgaveRepositoryTest {
     }
 
     private Oppgave.Builder basicOppgaveBuilder() {
-        return basicOppgaveBuilder(LocalDate.now());
+        return basicOppgaveBuilder(behandlingId1.toUUID());
     }
 
-    private Oppgave.Builder basicOppgaveBuilder(LocalDate opprettetDato) {
+    private Oppgave.Builder basicOppgaveBuilder(UUID behandlingId) {
         return Oppgave.builder()
-            .medSaksnummer(new Saksnummer("1337"))
-            .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medAktørId(AktørId.dummy())
-            .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-            .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
+            .medBehandling(oppgaveRepository.hentBehandling(behandlingId))
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDate.now())
-            .medBehandlendeEnhet(AVDELING_DRAMMEN_ENHET)
-            .medBehandlingOpprettet(opprettetDato.atStartOfDay());
+            .medBehandlendeEnhet(AVDELING_DRAMMEN_ENHET);
     }
 
     private Behandling.Builder basicBehandlingBuilder() {
-        return basicBehandlingBuilder(LocalDate.now());
+        return basicBehandlingBuilder(behandlingId1.toUUID());
     }
 
-    private Behandling.Builder basicBehandlingBuilder(LocalDate opprettetDato) {
+    private Behandling.Builder basicBehandlingBuilder(UUID behandlingId) {
         return Behandling.builder(Optional.empty())
             .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
-            .medId(behandlingId1.toUUID())
+            .medId(behandlingId)
             .medSaksnummer(new Saksnummer("1337"))
             .medAktørId(AktørId.dummy())
             .medBehandlingsfrist(LocalDate.now())
             .medBehandlendeEnhet(AVDELING_DRAMMEN_ENHET)
-            .medOpprettet(opprettetDato.atStartOfDay());
+            .medOpprettet(LocalDateTime.now());
     }
 
     private void lagBehandling() {
@@ -610,25 +587,16 @@ class OppgaveRepositoryTest {
 
     private Oppgave lagOppgave(String behandlendeEnhet) {
         return Oppgave.builder()
-            .medSaksnummer(new Saksnummer("1337"))
             .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .medAktørId(AktørId.dummy())
             .medBehandlendeEnhet(behandlendeEnhet)
-            .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-            .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDate.now())
             .build();
     }
 
-    private Oppgave.Builder tilbakekrevingOppgaveBuilder() {
+    private Oppgave.Builder tilbakekrevingOppgaveBuilder(UUID behandlingId) {
         return Oppgave.builder()
-            .medSaksnummer(new Saksnummer("42"))
-            .medFagsakYtelseType(FagsakYtelseType.FORELDREPENGER)
-            .medSystem(Fagsystem.FPTILBAKE)
-            .medBehandlingType(BehandlingType.TILBAKEBETALING)
             .medAktiv(true)
-            .medAktørId(AktørId.dummy())
+            .medBehandling(oppgaveRepository.hentBehandling(behandlingId))
             .medBehandlendeEnhet(AVDELING_DRAMMEN_ENHET);
     }
 

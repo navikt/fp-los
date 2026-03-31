@@ -75,8 +75,8 @@ class OppgaveTjenesteTest {
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_BERGEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(bergenid).medBehandlingType(BehandlingType.INNSYN));
         førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).build();
-        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).build();
-        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).build();
         var førstegangOppgaveBergen = Oppgave.builder().dummyOppgave(AVDELING_BERGEN_ENHET, oppgaveRepository.hentBehandling(bergenid)).build();
         oppgaveRepository.lagre(førstegangOppgave);
         oppgaveRepository.lagre(klageOppgave);
@@ -174,9 +174,6 @@ class OppgaveTjenesteTest {
         oppgaveRepository.lagreBehandling(behbuilder);
         var oppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(bid))
-            .medBehandlingOpprettet(LocalDateTime.now().minusDays(dagerSidenOpprettet))
-            .medBehandlingsfrist(LocalDate.now().minusDays(dagersidenBehandlingsFristGikkUt))
-            .medFørsteStønadsdag(LocalDate.now().minusDays(førsteStønadsdag))
             .build();
         oppgaveRepository.lagre(oppgave);
         return oppgave;

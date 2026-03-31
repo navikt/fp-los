@@ -84,19 +84,10 @@ public final class GcpImportMapper {
     static Oppgave mapOppgave(OppgaveDataDto dto, Behandling behandling) {
         var oppgave = new Oppgave();
         oppgave.setId(dto.id());
-        oppgave.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
-        oppgave.setAktørId(dto.aktørId());
         oppgave.setBehandling(behandling);
-        oppgave.setBehandlingType(dto.behandlingType());
-        oppgave.setFagsakYtelseType(dto.fagsakYtelseType());
         oppgave.setBehandlendeEnhet(dto.behandlendeEnhet());
-        oppgave.setBehandlingsfrist(dto.behandlingsfrist());
-        oppgave.setBehandlingOpprettet(dto.behandlingOpprettet());
-        oppgave.setFørsteStønadsdag(dto.førsteStønadsdag());
         oppgave.setAktiv(dto.aktiv());
         oppgave.setOppgaveAvsluttet(dto.oppgaveAvsluttet());
-        oppgave.setFeilutbetalingBelop(dto.feilutbetalingBelop());
-        oppgave.setFeilutbetalingStart(dto.feilutbetalingStart());
         setBaseEntitetFields(oppgave, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
 
