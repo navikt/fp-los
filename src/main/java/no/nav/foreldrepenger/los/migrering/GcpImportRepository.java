@@ -20,6 +20,7 @@ import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
+import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
@@ -112,13 +113,13 @@ public class GcpImportRepository {
             var fssReservasjonIds = batch.stream()
                 .map(OppgaveDataDto::reservasjonDataDto)
                 .filter(Objects::nonNull)
-                .map(ReservasjonDataDto::id)
+                .map(ReservasjonDataDto::oppgaveId)
                 .collect(Collectors.toSet());
 
-            var gcpReservasjonerMap = entityManager.createQuery("from Reservasjon b where b.id in :ids", Reservasjon.class)
+            var gcpReservasjonerMap = entityManager.createQuery("from Reservasjon b where b.oppgave.id in :ids", Reservasjon.class)
                 .setParameter("ids", fssReservasjonIds)
                 .getResultStream()
-                .collect(Collectors.toMap(Reservasjon::getId, r -> r));
+                .collect(Collectors.toMap(r -> r.getOppgave().getId(), r -> r));
 
             for (var dto : batch) {
                 var resDto = dto.reservasjonDataDto();
@@ -126,10 +127,11 @@ public class GcpImportRepository {
                     continue;
                 }
 
-                var reservasjon = gcpReservasjonerMap.getOrDefault(resDto.id(), new Reservasjon());
-                GcpImportMapper.mapReservasjon(resDto, reservasjon);
+                var oppgave = entityManager.find(Oppgave.class, dto.id());
+                var reservasjon = gcpReservasjonerMap.getOrDefault(resDto.oppgaveId(), new Reservasjon());
+                GcpImportMapper.mapReservasjon(oppgave, resDto, reservasjon);
 
-                if (gcpReservasjonerMap.containsKey(resDto.id())) {
+                if (gcpReservasjonerMap.containsKey(resDto.oppgaveId())) {
                     entityManager.merge(reservasjon);
                 } else {
                     entityManager.persist(reservasjon);

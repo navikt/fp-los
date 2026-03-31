@@ -258,10 +258,9 @@ COMMENT ON COLUMN oppgave_egenskap.oppgave_id IS 'Oppgave egenskapen hører til'
 COMMENT ON COLUMN oppgave_egenskap.siste_saksbehandler_totrinn IS 'Saksbehandleren som sendte behandlingen til totrinnskontroll';
 
 CREATE TABLE reservasjon (
-	id bigint NOT NULL CONSTRAINT pk_reservasjon PRIMARY KEY,
 	oppgave_id bigint NOT NULL
-	    CONSTRAINT fk_reservasjon_oppgave_id REFERENCES oppgave(id)
-	    CONSTRAINT uidx_reservasjon_oppgave_id UNIQUE,
+	    CONSTRAINT pk_reservasjon PRIMARY KEY
+	    CONSTRAINT fk_reservasjon_oppgave_id REFERENCES oppgave(id),
 	reservert_til TIMESTAMP(3),
 	reservert_av varchar(20) NOT NULL ,
 	versjon bigint NOT NULL DEFAULT 0,
@@ -277,7 +276,6 @@ COMMENT ON TABLE reservasjon IS 'Tabell som skal inneholde reservasjoner av oppg
 COMMENT ON COLUMN reservasjon.begrunnelse IS 'Begrunnelse for opphør/flytting av reservasjon';
 COMMENT ON COLUMN reservasjon.flyttet_av IS 'Ident som har flyttet reservasjonen';
 COMMENT ON COLUMN reservasjon.flyttet_tidspunkt IS 'Tidspunkt for flytting av reservasjonen';
-COMMENT ON COLUMN reservasjon.id IS 'PK';
 COMMENT ON COLUMN reservasjon.oppgave_id IS 'FK: relasjon til Oppgave';
 COMMENT ON COLUMN reservasjon.reservert_av IS 'Saksbehandler ident til saksbehandler som har reservert oppgaven';
 COMMENT ON COLUMN reservasjon.reservert_til IS 'Tidspunkt for når reservasjonen går ut';
