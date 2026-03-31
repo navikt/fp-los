@@ -16,6 +16,9 @@ CREATE INDEX idx_behandling_feilutbet_start ON behandling (feilutbetaling_start)
 CREATE INDEX idx_behandling_egenskap_beh_id ON behandling_egenskap (behandling_id);
 CREATE INDEX idx_behandling_egenskap_kriterie_type ON behandling_egenskap (andre_kriterier_type);
 
+CREATE INDEX idx_oppgave_egenskap_beh_id ON oppgave_egenskap (oppgave_id);
+CREATE INDEX idx_oppgave_egenskap_kriterie_type ON oppgave_egenskap (andre_kriterier_type);
+
 CREATE INDEX idx_filtrering_andre_krit_kriterie_type ON filtrering_andre_kriterier (andre_kriterier_type);
 CREATE INDEX idx_filtr_beh_type_type ON filtrering_behandling_type (behandling_type);
 CREATE INDEX idx_filtrering_saksbehandler_sbh_id ON filtrering_saksbehandler (saksbehandler_id);
