@@ -17,7 +17,7 @@ class ReservasjonUtleder {
     }
 
     static Optional<Reservasjon> utledReservasjon(Oppgave nyOppgave, Optional<Oppgave> eksisterendeOppgaveOpt,
-                                           Optional<Behandling> eksisterendeBehandlingOpt, OppgaveGrunnlag oppgaveGrunnlag) {
+                                           boolean reservasjonskandidat, OppgaveGrunnlag oppgaveGrunnlag) {
         if (eksisterendeOppgaveOpt.isPresent()) {
             var eksisterendeOppgave = eksisterendeOppgaveOpt.get();
             if (harEndretEnhet(oppgaveGrunnlag, eksisterendeOppgave)) {
@@ -39,11 +39,14 @@ class ReservasjonUtleder {
             }
             return Optional.empty();
         }
-        if (oppgaveGrunnlag.ansvarligSaksbehandlerIdent() != null && (erNyManuellRevurdering(oppgaveGrunnlag, eksisterendeBehandlingOpt) || erPåVent(
-            eksisterendeBehandlingOpt))) {
+        if (oppgaveGrunnlag.ansvarligSaksbehandlerIdent() != null && reservasjonskandidat) {
             return Optional.of(ReservasjonTjeneste.opprettReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent(), null));
         }
         return Optional.empty();
+    }
+
+    public static boolean erReservasjonskandidat(OppgaveGrunnlag oppgaveGrunnlag, Optional<Behandling> lagretBehandling) {
+        return erPåVent(lagretBehandling) || erNyManuellRevurdering(oppgaveGrunnlag, lagretBehandling);
     }
 
     private static boolean erPåVent(Optional<Behandling> lagretBehandling) {

@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.jpa.HibernateHints;
@@ -155,10 +154,8 @@ public class OppgaveRepository {
         return Optional.ofNullable(entityManager.find(Behandling.class, behandlingId));
     }
 
-    public List<Behandling> finnBehandlinger(Set<UUID> behandlingIder) {
-        return entityManager.createQuery("FROM Behandling where id in (:behandlingIder)", Behandling.class)
-            .setParameter("behandlingIder", behandlingIder)
-            .getResultList();
+    public Behandling hentBehandling(UUID behandlingId) {
+        return finnBehandling(behandlingId).orElseThrow();
     }
 
     public void lagreBehandling(Behandling.Builder behandlingBuilder) {

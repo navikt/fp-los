@@ -7,7 +7,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.avdelingsleder.AvdelingslederTjeneste;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
+import no.nav.foreldrepenger.los.oppgave.Behandling;
+import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.Filtreringstype;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
@@ -41,16 +45,6 @@ class OppgaveKøTjenesteTest {
     private AvdelingslederTjeneste avdelingslederTjeneste;
     private OppgaveKøTjeneste oppgaveKøTjeneste;
 
-    private final Oppgave førstegangOppgave = Oppgave.builder()
-        .dummyOppgave(AVDELING_DRAMMEN_ENHET)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .build();
-    private final Oppgave klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medBehandlingType(BehandlingType.KLAGE).build();
-    private final Oppgave innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET).medBehandlingType(BehandlingType.INNSYN).build();
-    private final Oppgave førstegangOppgaveBergen = Oppgave.builder()
-        .dummyOppgave(NASJONAL)
-        .medBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD)
-        .build();
     private EntityManager entityManager;
 
     @BeforeEach
@@ -157,20 +151,24 @@ class OppgaveKøTjenesteTest {
         oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
-        leggtilOppgaveMedEkstraEgenskaper(førstegangOppgave, AndreKriterierType.TIL_BESLUTTER);
-        leggtilOppgaveMedEkstraEgenskaper(førstegangOppgave, AndreKriterierType.PAPIRSØKNAD);
-        leggtilOppgaveMedEkstraEgenskaper(klageOppgave, AndreKriterierType.PAPIRSØKNAD);
+
+        var fgbid = UUID.randomUUID();
+        var klageid = UUID.randomUUID();
+        var innsynid = UUID.randomUUID();
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.BESLUTTER).medId(fgbid).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD, AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.PAPIRSØKNAD).medId(klageid).medBehandlingType(BehandlingType.KLAGE).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD)));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
+        var førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD, AndreKriterierType.TIL_BESLUTTER), "z999998") .build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+
+        oppgaveRepository.lagre(førstegangOppgave);
+        oppgaveRepository.lagre(klageOppgave);
         oppgaveRepository.lagre(innsynOppgave);
         entityManager.refresh(oppgaveFiltrering);
         return oppgaveFiltrering.getId();
     }
 
-
-    private void leggtilOppgaveMedEkstraEgenskaper(Oppgave oppgave, AndreKriterierType andreKriterierType) {
-        oppgave.leggTilOppgaveEgenskap(andreKriterierType, andreKriterierType.erTilBeslutter() ? "z999998" : null);
-        oppgaveRepository.lagre(oppgave);
-        oppgaveRepository.refresh(oppgave);
-    }
 
     private List<OppgaveFiltrering> leggInnEtSettMedLister(int antallLister) {
         List<OppgaveFiltrering> filtre = new ArrayList<>();
@@ -195,6 +193,21 @@ class OppgaveKøTjenesteTest {
         oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
+
+        var fgbid = UUID.randomUUID();
+        var klageid = UUID.randomUUID();
+        var innsynid = UUID.randomUUID();
+        var bergenid = UUID.randomUUID();
+        oppgaveRepository.lagreBehandling(
+            Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(fgbid));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(klageid).medBehandlingType(BehandlingType.KLAGE));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
+        oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(NASJONAL, BehandlingTilstand.AKSJONSPUNKT).medId(bergenid).medBehandlingType(BehandlingType.INNSYN));
+        var førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var førstegangOppgaveBergen = Oppgave.builder().dummyOppgave(NASJONAL, oppgaveRepository.hentBehandling(bergenid)).build();
+
         oppgaveRepository.lagre(førstegangOppgave);
         oppgaveRepository.lagre(klageOppgave);
         oppgaveRepository.lagre(innsynOppgave);

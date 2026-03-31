@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
@@ -41,8 +40,12 @@ public class BehandlingTjeneste {
     BehandlingTjeneste() {
     }
 
-    public List<Behandling> hentBehandlinger(Set<BehandlingId> behandlingIder) {
-        return oppgaveRepository.finnBehandlinger(behandlingIder.stream().map(BehandlingId::getValue).collect(Collectors.toSet()));
+    public Behandling hentBehandling(LosBehandlingDto dto) {
+        return oppgaveRepository.hentBehandling(dto.behandlingUuid());
+    }
+
+    public Optional<Behandling> finnBehandling(LosBehandlingDto dto) {
+        return oppgaveRepository.finnBehandling(dto.behandlingUuid());
     }
 
     public void mottaBehandlingMigrering(LosBehandlingDto dto, LosFagsakEgenskaperDto egenskaper,

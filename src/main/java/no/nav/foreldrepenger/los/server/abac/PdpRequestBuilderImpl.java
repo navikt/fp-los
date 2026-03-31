@@ -55,7 +55,7 @@ public class PdpRequestBuilderImpl implements PdpRequestBuilder {
             return;
         }
         MDC_EXTENDED_LOG_CONTEXT.add("fagsak", oppgave.getSaksnummer().getVerdi());
-        MDC_EXTENDED_LOG_CONTEXT.add("behandling", oppgave.getBehandlingId().getValue());
+        MDC_EXTENDED_LOG_CONTEXT.add("behandling", oppgave.getBehandling().getId());
     }
 
     private Oppgave hentOppgave(AbacDataAttributter dataAttributter) {

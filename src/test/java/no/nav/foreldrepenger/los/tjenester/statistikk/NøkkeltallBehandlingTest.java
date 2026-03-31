@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.JpaExtension;
-import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
@@ -82,7 +81,6 @@ class NøkkeltallBehandlingTest {
         var behandling = Behandling.builder(Optional.empty())
             .dummyBehandling(AVDELING_DRAMMEN_ENHET, tilstand)
             .medId(UUID.randomUUID())
-            .medKildeSystem(Fagsystem.FPSAK)
             .medBehandlingType(type)
             .medVentefrist(frist);
         oppgaveRepository.lagreBehandling(behandling);
