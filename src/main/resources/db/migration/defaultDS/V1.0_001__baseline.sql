@@ -16,8 +16,8 @@ CREATE TABLE avdeling (
 	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
 	endret_av varchar(20),
 	endret_tid TIMESTAMP(3),
-	krever_kode_6 varchar(1) NOT NULL DEFAULT 'N',
-	aktiv varchar(1) NOT NULL DEFAULT 'J'
+	krever_kode_6 boolean NOT NULL DEFAULT false,
+	aktiv boolean NOT NULL DEFAULT true
 ) ;
 COMMENT ON TABLE avdeling IS 'Tabell som inneholder avdelingene som kan utføre oppgaver';
 COMMENT ON COLUMN avdeling.avdeling_enhet IS 'Identifikasjon på enhet som har oppgaver';
@@ -114,7 +114,7 @@ COMMENT ON COLUMN oppgave_filtrering.tom_dato IS 'Datointervall til og med dato'
 CREATE TABLE filtrering_andre_kriterier (
 	oppgave_filtrering_id bigint NOT NULL CONSTRAINT fk_oppgave_filtrering_1 REFERENCES oppgave_filtrering(id),
 	andre_kriterier_type varchar(100) NOT NULL,
-	inkluder varchar(1) NOT NULL DEFAULT 'J',
+	inkluder boolean NOT NULL DEFAULT true,
     CONSTRAINT pk_filtrering_andre_kriterier PRIMARY KEY (oppgave_filtrering_id, andre_kriterier_type)
 ) ;
 COMMENT ON TABLE filtrering_andre_kriterier IS 'Tabell inneholder filtreringer for andre kriterier';
@@ -211,7 +211,7 @@ CREATE TABLE oppgave (
 	id bigint NOT NULL CONSTRAINT pk_oppgave PRIMARY KEY,
     behandling_id uuid NOT NULL CONSTRAINT fk_oppgave_01 REFERENCES behandling(id),
 	behandlende_enhet varchar(10) NOT NULL,
-	aktiv varchar(1) NOT NULL DEFAULT 'Y',
+	aktiv boolean NOT NULL DEFAULT true,
     oppgave_avsluttet TIMESTAMP(3),
 	versjon bigint NOT NULL DEFAULT 0,
 	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',

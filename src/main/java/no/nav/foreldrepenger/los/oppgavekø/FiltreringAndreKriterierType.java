@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
-import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @Entity(name = "FiltreringAndreKriterier")
 @IdClass(FiltreringAndreKriterierType.FiltreringAndreKriterierIdType.class)
@@ -38,7 +36,6 @@ public class FiltreringAndreKriterierType implements Serializable {
 
     //Verdi som viser om filtreringen skal inkludere eller ekskludere oppgaver med det gitte innslaget.
     @NotNull
-    @Convert(converter = BooleanToStringConverter.class)
     @Column(name = "INKLUDER", nullable = false)
     private boolean inkluder = true;
 

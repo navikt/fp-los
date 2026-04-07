@@ -11,7 +11,6 @@ import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,7 +31,6 @@ import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
-import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @Entity(name = "Oppgave")
 @Table(name = "OPPGAVE")
@@ -51,7 +49,6 @@ public class Oppgave extends BaseEntitet {
     private Set<OppgaveEgenskap> oppgaveEgenskaper = new HashSet<>();
 
     @NotNull
-    @Convert(converter = BooleanToStringConverter.class)
     @Column(name = "AKTIV", nullable = false)
     private boolean aktiv = true;
 

@@ -33,7 +33,7 @@ public class ReservasjonRepository {
         *       vil ev. nye reservasjoner overskrive.
         * Siste join henter siste oppgave tilkyttet behandlingen, uavhengig av "eier" av denne.
         */
-        var kunAktiveValue = kunAktive ? List.of("J") : List.of("J", "N");
+        var kunAktiveValue = kunAktive ? List.of(Boolean.TRUE) : List.of(Boolean.TRUE, Boolean.FALSE);
         var query = entityManager.createNativeQuery("""
             select
                 o.id as oppgave_id,

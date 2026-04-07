@@ -75,8 +75,8 @@ CREATE INDEX idx_reservasjon_reservert_til ON reservasjon (reservert_til);
 -- 6. oppgave: Partiell funksjonsindeks for SlettUtdaterteTask opprydding
 --
 --    WHERE aktiv = false AND coalesce(endretTidspunkt, opprettetTidspunkt) < :foer
---    Partiell indeks begrenser seg til inaktive rader (aktiv = 'N') for å holde
+--    Partiell indeks begrenser seg til inaktive rader (aktiv = false) for å holde
 --    indeksstørrelsen liten.
 -- -------------------------------------------------------------------------------------
 CREATE INDEX idx_oppgave_inaktiv_sist_endret ON oppgave (COALESCE(endret_tid, opprettet_tid))
-    WHERE aktiv = 'N';
+    WHERE aktiv = false;

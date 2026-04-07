@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.tjenester.avdelingsleder.nøkkeltall;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,7 +18,6 @@ import no.nav.foreldrepenger.los.tjenester.avdelingsleder.nøkkeltall.dto.Nøkke
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.nøkkeltall.dto.NøkkeltallBehandlingVentefristUtløperDto;
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.nøkkeltall.dto.OppgaverForAvdeling;
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.nøkkeltall.dto.OppgaverForFørsteStønadsdagUkeMåned;
-import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @ApplicationScoped
 public class NøkkeltallRepository {
@@ -44,12 +44,12 @@ public class NøkkeltallRepository {
     @SuppressWarnings("unchecked")
     public List<OppgaverForAvdeling> hentAlleOppgaverForAvdeling(String avdelingEnhet) {
         return entityManager.createNativeQuery("""
-                Select b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, CASE WHEN oe.ANDRE_KRITERIER_TYPE IS NOT NULL THEN 'J' ELSE 'N' END AS BESLUTTER_JN, Count(*) AS ANTALL
+                Select b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, CASE WHEN oe.ANDRE_KRITERIER_TYPE IS NOT NULL THEN true ELSE false END AS BESLUTTER_JN, Count(*) AS ANTALL
                 FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
                 LEFT JOIN OPPGAVE_EGENSKAP oe ON oe.OPPGAVE_ID = o.ID AND oe.ANDRE_KRITERIER_TYPE = :tilBeslutter
-                WHERE a.AVDELING_ENHET =:avdelingEnhet AND o.AKTIV='J'
+                WHERE a.AVDELING_ENHET =:avdelingEnhet AND o.AKTIV
                 GROUP BY b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, oe.ANDRE_KRITERIER_TYPE
-                ORDER BY 1,2,3
+                ORDER BY 1,2,3 desc
                 """)
             .setParameter(AVDELING_ENHET, avdelingEnhet)
             .setParameter(TIL_BESLUTTER, AndreKriterierType.TIL_BESLUTTER.getKode())
@@ -61,8 +61,8 @@ public class NøkkeltallRepository {
     private static OppgaverForAvdeling mapOppgaverForAvdeling(Object[] row) {
         var fagsakYtelseType = FagsakYtelseType.fraKode((String) row[0]); // NOSONAR
         var behandlingType = BehandlingType.fraKode((String) row[1]); // NOSONAR
-        var beslutterRaw = row[2] instanceof Character c ? Character.toString(c) : (String) row[2]; // NOSONAR
-        var tilBeslutter = new BooleanToStringConverter().convertToEntityAttribute(beslutterRaw);
+        var beslutterJN = (Boolean) row[2];
+        var tilBeslutter = Objects.equals(beslutterJN, Boolean.TRUE);
         var antall = (Long) row[3]; // NOSONAR
         return new OppgaverForAvdeling(fagsakYtelseType, behandlingType, !tilBeslutter, antall);
     }
@@ -76,7 +76,7 @@ public class NøkkeltallRepository {
                            else indre.fstonad end as DATO, YTELSE, Count(1) AS ANTALL from (
                   select b.FORSTE_STONADSDAG::date as fstonad, b.FAGSAK_YTELSE_TYPE as YTELSE
                   FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
-                  WHERE a.AVDELING_ENHET = :avdelingEnhet AND o.AKTIV='J' AND b.FORSTE_STONADSDAG IS NOT NULL and b.behandling_type = :behandlingType
+                  WHERE a.AVDELING_ENHET = :avdelingEnhet AND o.AKTIV AND b.FORSTE_STONADSDAG IS NOT NULL and b.behandling_type = :behandlingType
                ) indre GROUP BY indre.fstonad::date, YTELSE
             ) ytre
             group by date_trunc('month', ytre.DATO)::date, YTELSE
