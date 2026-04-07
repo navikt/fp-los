@@ -36,7 +36,7 @@ public class MottattHendelseRepository {
     }
 
     public void slettMånedsGamle() {
-        entityManager.createQuery("DELETE FROM MottattHendelse WHERE opprettetTidspunkt < :foer")
+        entityManager.createQuery("DELETE FROM MottattHendelse WHERE mottattTidspunkt < :foer")
             .setParameter("foer", LocalDateTime.now().minusWeeks(4))
             .executeUpdate();
         entityManager.flush();

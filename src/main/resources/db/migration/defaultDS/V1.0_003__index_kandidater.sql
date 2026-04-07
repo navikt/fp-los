@@ -16,6 +16,9 @@ CREATE INDEX idx_behandling_feilutbet_start ON behandling (feilutbetaling_start)
 CREATE INDEX idx_behandling_egenskap_beh_id ON behandling_egenskap (behandling_id);
 CREATE INDEX idx_behandling_egenskap_kriterie_type ON behandling_egenskap (andre_kriterier_type);
 
+CREATE INDEX idx_oppgave_egenskap_beh_id ON oppgave_egenskap (oppgave_id);
+CREATE INDEX idx_oppgave_egenskap_kriterie_type ON oppgave_egenskap (andre_kriterier_type);
+
 CREATE INDEX idx_filtrering_andre_krit_kriterie_type ON filtrering_andre_kriterier (andre_kriterier_type);
 CREATE INDEX idx_filtr_beh_type_type ON filtrering_behandling_type (behandling_type);
 CREATE INDEX idx_filtrering_saksbehandler_sbh_id ON filtrering_saksbehandler (saksbehandler_id);
@@ -23,14 +26,8 @@ CREATE INDEX idx_filtrering_saksbehandler_filtrering_id ON filtrering_saksbehand
 CREATE INDEX idx_filtr_ytelse_type_type ON filtrering_ytelse_type (fagsak_ytelse_type);
 CREATE INDEX idx_gruppe_tilknytning_saksbehandler_id ON gruppe_tilknytning (saksbehandler_id);
 CREATE INDEX idx_gruppe_tilknytning_gruppe_id ON gruppe_tilknytning (gruppe_id);
-CREATE INDEX idx_oppgave_behandling_type ON oppgave (behandling_type);
-CREATE INDEX idx_oppgave_ytelse_type ON oppgave (fagsak_ytelse_type);
 CREATE INDEX idx_oppgave_enhet_aktiv ON oppgave (aktiv, behandlende_enhet);
-CREATE INDEX idx_oppgave_behandlingsfrist ON oppgave (behandlingsfrist);
-CREATE INDEX idx_oppgave_behandling_opprettet ON oppgave (behandling_opprettet);
-CREATE INDEX idx_oppgave_stonadsdag ON oppgave (forste_stonadsdag);
 CREATE INDEX idx_oppgave_behandling_id ON oppgave (behandling_id);
-CREATE INDEX idx_oppgave_saksnummer ON oppgave (saksnummer);
 CREATE INDEX idx_oppgave_filtrering_avdeling_id ON oppgave_filtrering (avdeling_id);
 CREATE INDEX idx_saksbehandler_gruppe_avdeling_id ON saksbehandler_gruppe (avdeling_id);
 
@@ -52,12 +49,6 @@ CREATE INDEX idx_oppgave_opprettet_tid ON oppgave (opprettet_tid);
 
 -- oppgave_avsluttet: brukes i avsluttetEtterFilter
 CREATE INDEX idx_oppgave_avsluttet ON oppgave (oppgave_avsluttet);
-
--- feilutbetaling_belop: brukes i beløpFilter og ORDER BY (KøSortering.BELØP)
-CREATE INDEX idx_oppgave_feilutbet_belop ON oppgave (feilutbetaling_belop);
-
--- feilutbetaling_start: brukes i datoFilter og ORDER BY (KøSortering.FEILUTBETALINGSTART)
-CREATE INDEX idx_oppgave_feilutbet_start ON oppgave (feilutbetaling_start);
 
 -- -------------------------------------------------------------------------------------
 -- 4. reservasjon: Indeks på reservert_av for spørringer i ReservasjonRepository

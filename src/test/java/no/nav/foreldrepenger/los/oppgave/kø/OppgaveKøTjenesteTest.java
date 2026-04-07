@@ -159,8 +159,8 @@ class OppgaveKøTjenesteTest {
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.PAPIRSØKNAD).medId(klageid).medBehandlingType(BehandlingType.KLAGE).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD)));
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
         var førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD, AndreKriterierType.TIL_BESLUTTER), "z999998") .build();
-        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null).build();
-        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).build();
 
         oppgaveRepository.lagre(førstegangOppgave);
         oppgaveRepository.lagre(klageOppgave);
@@ -204,8 +204,8 @@ class OppgaveKøTjenesteTest {
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).medId(innsynid).medBehandlingType(BehandlingType.INNSYN));
         oppgaveRepository.lagreBehandling(Behandling.builder(Optional.empty()).dummyBehandling(NASJONAL, BehandlingTilstand.AKSJONSPUNKT).medId(bergenid).medBehandlingType(BehandlingType.INNSYN));
         var førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).build();
-        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).build();
-        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).build();
         var førstegangOppgaveBergen = Oppgave.builder().dummyOppgave(NASJONAL, oppgaveRepository.hentBehandling(bergenid)).build();
 
         oppgaveRepository.lagre(førstegangOppgave);

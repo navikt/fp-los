@@ -44,11 +44,11 @@ public class NøkkeltallRepository {
     @SuppressWarnings("unchecked")
     public List<OppgaverForAvdeling> hentAlleOppgaverForAvdeling(String avdelingEnhet) {
         return entityManager.createNativeQuery("""
-                Select o.FAGSAK_YTELSE_TYPE, o.BEHANDLING_TYPE, CASE WHEN oe.ANDRE_KRITERIER_TYPE IS NOT NULL THEN 'J' ELSE 'N' END AS BESLUTTER_JN, Count(*) AS ANTALL
-                FROM OPPGAVE o INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
+                Select b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, CASE WHEN oe.ANDRE_KRITERIER_TYPE IS NOT NULL THEN 'J' ELSE 'N' END AS BESLUTTER_JN, Count(*) AS ANTALL
+                FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
                 LEFT JOIN OPPGAVE_EGENSKAP oe ON oe.OPPGAVE_ID = o.ID AND oe.ANDRE_KRITERIER_TYPE = :tilBeslutter
                 WHERE a.AVDELING_ENHET =:avdelingEnhet AND o.AKTIV='J'
-                GROUP BY o.FAGSAK_YTELSE_TYPE, o.BEHANDLING_TYPE, oe.ANDRE_KRITERIER_TYPE
+                GROUP BY b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, oe.ANDRE_KRITERIER_TYPE
                 ORDER BY 1,2,3
                 """)
             .setParameter(AVDELING_ENHET, avdelingEnhet)
@@ -74,9 +74,9 @@ public class NøkkeltallRepository {
                select case when indre.fstonad < current_date - 245 then (current_date - 245)
                            when indre.fstonad > current_date + 126 then (current_date + 126)
                            else indre.fstonad end as DATO, YTELSE, Count(1) AS ANTALL from (
-                  select o.FORSTE_STONADSDAG::date as fstonad, o.FAGSAK_YTELSE_TYPE as YTELSE
-                  FROM OPPGAVE o INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
-                  WHERE a.AVDELING_ENHET = :avdelingEnhet AND o.AKTIV='J' AND o.FORSTE_STONADSDAG IS NOT NULL and o.behandling_type = :behandlingType
+                  select b.FORSTE_STONADSDAG::date as fstonad, b.FAGSAK_YTELSE_TYPE as YTELSE
+                  FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
+                  WHERE a.AVDELING_ENHET = :avdelingEnhet AND o.AKTIV='J' AND b.FORSTE_STONADSDAG IS NOT NULL and b.behandling_type = :behandlingType
                ) indre GROUP BY indre.fstonad::date, YTELSE
             ) ytre
             group by date_trunc('month', ytre.DATO)::date, YTELSE

@@ -156,20 +156,10 @@ public class BehandlingHendelseTask implements ProsessTaskHandler {
         LOG.info("Utledet kriterier {} for oppgave til behandling {}", kriterier, oppgaveGrunnlag.behandlingUuid());
 
         return Oppgave.builder()
-            .medSystem(kilde)
-            .medSaksnummer(oppgaveGrunnlag.saksnummer())
-            .medAktørId(oppgaveGrunnlag.aktørId())
             .medBehandlendeEnhet(oppgaveGrunnlag.behandlendeEnhetId())
-            .medBehandlingType(oppgaveGrunnlag.behandlingstype())
-            .medFagsakYtelseType(oppgaveGrunnlag.ytelse())
             .medAktiv(true)
-            .medBehandlingOpprettet(oppgaveGrunnlag.opprettetTidspunkt())
             .medBehandling(behandling)
-            .medFørsteStønadsdag(oppgaveGrunnlag.førsteUttaksdatoForeldrepenger())
-            .medBehandlingsfrist(oppgaveGrunnlag.behandlingsfrist())
             .medKriterier(kriterier, oppgaveGrunnlag.ansvarligSaksbehandlerIdent())
-            .medFeilutbetalingBeløp(oppgaveGrunnlag.feilutbetalingBeløp())
-            .medFeilutbetalingStart(oppgaveGrunnlag.feilutbetalingStart())
             .build();
     }
 

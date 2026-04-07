@@ -204,13 +204,8 @@ class ReservasjonUtlederTest {
     private static Oppgave lagOppgaveMedEnhet(Behandling behandling) {
         return Oppgave.builder()
             .medBehandling(behandling)
-            .medSaksnummer(behandling.getSaksnummer())
-            .medAktørId(behandling.getAktørId())
             .medBehandlendeEnhet(behandling.getBehandlendeEnhet())
             .medAktiv(true)
-            .medBehandlingsfrist(LocalDate.now().plusDays(10))
-            .medBehandlingOpprettet(LocalDateTime.now())
-            .medFørsteStønadsdag(LocalDate.now().plusMonths(1))
             .build();
     }
 

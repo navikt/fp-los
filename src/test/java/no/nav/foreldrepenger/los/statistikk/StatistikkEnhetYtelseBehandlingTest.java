@@ -69,8 +69,8 @@ class StatistikkEnhetYtelseBehandlingTest {
 
         var førstegangOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgbid)).build();
         var førstegangOppgave2 = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(fgb2id)).build();
-        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).medBehandlingType(BehandlingType.KLAGE).build();
-        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).medBehandlingType(BehandlingType.INNSYN).build();
+        var klageOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(klageid)).build();
+        var innsynOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(innsynid)).build();
         var annenAvdeling = Oppgave.builder().dummyOppgave(ANNEN_ENHET, oppgaveRepository.hentBehandling(annenavdid)).build();
         var beslutterOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(beslid))
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
