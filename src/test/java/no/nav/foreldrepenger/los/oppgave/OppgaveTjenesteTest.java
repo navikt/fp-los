@@ -189,6 +189,7 @@ class OppgaveTjenesteTest {
         reservasjonTjeneste.reserverOppgave(førstegangOppgave);
         assertThat(oppgaveKøTjeneste.hentOppgaver(oppgaveFiltreringId, 100)).hasSize(2);
         assertThat(reservasjonTjeneste.hentSaksbehandlersReserverteAktiveOppgaver()).hasSize(1);
+        assertThat(reservasjonTjeneste.hentSaksbehandlersSisteReserverteMedStatus(false)).hasSize(1);
         assertThat(reservasjonTjeneste.hentReservasjonerForAvdeling(AVDELING_DRAMMEN_ENHET)).hasSize(1);
         assertThat(reservasjonTjeneste.hentReservasjonerForAvdeling(AVDELING_BERGEN_ENHET)).isEmpty();
         var reservasjon = reservasjonTjeneste.hentSaksbehandlersReserverteAktiveOppgaver()
