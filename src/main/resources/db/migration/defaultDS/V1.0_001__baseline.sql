@@ -211,7 +211,7 @@ CREATE TABLE oppgave (
 	id bigint NOT NULL CONSTRAINT pk_oppgave PRIMARY KEY,
     behandling_id uuid NOT NULL CONSTRAINT fk_oppgave_01 REFERENCES behandling(id),
 	behandlende_enhet varchar(10) NOT NULL,
-	aktiv varchar(1) NOT NULL DEFAULT 'J',
+	aktiv varchar(1) NOT NULL DEFAULT 'Y',
     oppgave_avsluttet TIMESTAMP(3),
 	versjon bigint NOT NULL DEFAULT 0,
 	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',
