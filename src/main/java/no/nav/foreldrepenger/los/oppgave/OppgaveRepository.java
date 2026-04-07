@@ -42,7 +42,7 @@ public class OppgaveRepository {
     }
 
     public List<Oppgave> hentAktiveOppgaverForSaksnummer(Collection<Saksnummer> saksnummerListe) {
-        return entityManager.createQuery("from Oppgave o where o.saksnummer in :saksnummerListe and o.aktiv = true order by o.saksnummer desc",
+        return entityManager.createQuery("from Oppgave o where o.behandling.saksnummer in :saksnummerListe and o.aktiv = true order by o.behandling.saksnummer desc",
             Oppgave.class).setParameter("saksnummerListe", saksnummerListe).getResultList();
     }
 
