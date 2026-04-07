@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.los.organisasjon;
 import org.hibernate.annotations.NaturalId;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -11,7 +10,6 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
-import no.nav.vedtak.felles.jpa.converters.BooleanToStringConverter;
 
 @Entity(name = "avdeling")
 @Table(name = "AVDELING")
@@ -34,12 +32,10 @@ public class Avdeling extends BaseEntitet {
 
     @NotNull
     @Column(name = "KREVER_KODE_6", nullable = false)
-    @Convert(converter = BooleanToStringConverter.class)
     private boolean kreverKode6 = Boolean.FALSE;
 
     @NotNull
     @Column(name = "AKTIV", nullable = false)
-    @Convert(converter = BooleanToStringConverter.class)
     private boolean erAktiv = true;
 
     @Version
