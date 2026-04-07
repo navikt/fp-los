@@ -245,9 +245,9 @@ CREATE TABLE reservasjon (
 	reservert_av varchar(20) NOT NULL ,
 	versjon bigint NOT NULL DEFAULT 0,
 	opprettet_av varchar(20) NOT NULL DEFAULT 'VL',
-	opprettet_tid TIMESTAMP(6) NOT NULL DEFAULT statement_timestamp(),
+	opprettet_tid TIMESTAMP(3) NOT NULL DEFAULT statement_timestamp(),
 	endret_av varchar(20),
-	endret_tid TIMESTAMP(6),
+	endret_tid TIMESTAMP(3),
 	flyttet_av varchar(100),
 	flyttet_tidspunkt TIMESTAMP(3),
 	begrunnelse varchar(500)
