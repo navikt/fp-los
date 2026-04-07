@@ -12,6 +12,7 @@ CREATE INDEX idx_behandling_opprettet ON behandling (opprettet);
 CREATE INDEX idx_behandling_stonadsdag ON behandling (forste_stonadsdag);
 CREATE INDEX idx_behandling_feilutbet_belop ON behandling (feilutbetaling_belop);
 CREATE INDEX idx_behandling_feilutbet_start ON behandling (feilutbetaling_start);
+CREATE INDEX idx_behandling_saksnummer ON behandling (saksnummer);
 
 CREATE INDEX idx_behandling_egenskap_beh_id ON behandling_egenskap (behandling_id);
 CREATE INDEX idx_behandling_egenskap_kriterie_type ON behandling_egenskap (andre_kriterier_type);
@@ -79,11 +80,3 @@ CREATE INDEX idx_reservasjon_reservert_til ON reservasjon (reservert_til);
 -- -------------------------------------------------------------------------------------
 CREATE INDEX idx_oppgave_inaktiv_sist_endret ON oppgave (COALESCE(endret_tid, opprettet_tid))
     WHERE aktiv = 'N';
-
-
--- -------------------------------------------------------------------------------------
--- 7. behandling: Indeks på saksnummer for oppslag via OppgaveRepository
---
---    hentAktiveOppgaverForSaksnummer: WHERE o.behandling.saksnummer IN (:saksnummerListe)
--- -------------------------------------------------------------------------------------
-CREATE INDEX idx_behandling_saksnummer ON behandling (saksnummer);
