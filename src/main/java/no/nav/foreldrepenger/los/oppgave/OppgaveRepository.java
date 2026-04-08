@@ -42,7 +42,8 @@ public class OppgaveRepository {
     }
 
     public List<Oppgave> hentAktiveOppgaverForSaksnummer(Collection<Saksnummer> saksnummerListe) {
-        return entityManager.createQuery("from Oppgave o where o.behandling.saksnummer in :saksnummerListe and o.aktiv = true order by o.behandling.saksnummer desc",
+        return entityManager.createQuery(
+            "from Oppgave o where o.behandling.saksnummer in :saksnummerListe and o.aktiv order by o.behandling.saksnummer desc",
             Oppgave.class).setParameter("saksnummerListe", saksnummerListe).getResultList();
     }
 
@@ -90,11 +91,8 @@ public class OppgaveRepository {
                 and r.reservertTil > :nå
             )
             and o.id in ( :oppgaveId )
-            and o.aktiv = true
-            """, Long.class)
-            .setParameter("nå", LocalDateTime.now())
-            .setParameter("oppgaveId", oppgaveIder)
-            .getSingleResult();
+            and o.aktiv
+            """, Long.class).setParameter("nå", LocalDateTime.now()).setParameter("oppgaveId", oppgaveIder).getSingleResult();
         return oppgaveIder.size() == fortsattTilgjengelige.intValue();
     }
 
@@ -113,17 +111,17 @@ public class OppgaveRepository {
     }
 
     public List<Oppgave> hentOppgaver(BehandlingId behandlingId) {
-        return entityManager.createQuery("FROM Oppgave o where o.behandlingId = :behandlingId", Oppgave.class)
-            .setParameter(BEHANDLING_ID_FELT_SQL, behandlingId)
+        return entityManager.createQuery("FROM Oppgave o where o.behandling.id = :behandlingId", Oppgave.class)
+            .setParameter(BEHANDLING_ID_FELT_SQL, behandlingId.toUUID())
             .getResultList();
     }
 
     public Optional<Oppgave> hentAktivOppgave(BehandlingId behandlingId) {
         var oppgaver = entityManager.createQuery("""
             FROM Oppgave o
-            where o.behandlingId = :behandlingId
-            and o.aktiv = :aktiv
-            """, Oppgave.class).setParameter(BEHANDLING_ID_FELT_SQL, behandlingId).setParameter("aktiv", true).getResultList();
+            where o.behandling.id = :behandlingId
+            and o.aktiv
+            """, Oppgave.class).setParameter(BEHANDLING_ID_FELT_SQL, behandlingId.toUUID()).getResultList();
         if (oppgaver.size() > 1) {
             LOG.warn("Flere enn én aktive oppgaver for behandlingId {}", behandlingId);
         }
@@ -175,7 +173,8 @@ public class OppgaveRepository {
     }
 
     public void fraknyttSaksbehandlerOppgaveFiltrering(Saksbehandler saksbehandler, OppgaveFiltrering oppgaveFiltrering) {
-        entityManager.createQuery("DELETE from FiltreringSaksbehandlerRelasjon where saksbehandler = :saksbehandler and oppgaveFiltrering = :oppgaveFiltrering")
+        entityManager.createQuery(
+                "DELETE from FiltreringSaksbehandlerRelasjon where saksbehandler = :saksbehandler and oppgaveFiltrering = :oppgaveFiltrering")
             .setParameter("saksbehandler", saksbehandler)
             .setParameter("oppgaveFiltrering", oppgaveFiltrering)
             .executeUpdate();
@@ -188,15 +187,13 @@ public class OppgaveRepository {
     }
 
     public List<OppgaveFiltrering> oppgaveFiltreringerForSaksbehandler(Saksbehandler saksbehandler) {
-        return entityManager.createQuery("select oppgaveFiltrering from FiltreringSaksbehandlerRelasjon where saksbehandler = :saksbehandler", OppgaveFiltrering.class)
-            .setParameter("saksbehandler", saksbehandler)
-            .getResultList();
+        return entityManager.createQuery("select oppgaveFiltrering from FiltreringSaksbehandlerRelasjon where saksbehandler = :saksbehandler",
+            OppgaveFiltrering.class).setParameter("saksbehandler", saksbehandler).getResultList();
     }
 
     public List<Saksbehandler> saksbehandlereForOppgaveFiltrering(OppgaveFiltrering oppgaveFiltrering) {
-        return entityManager.createQuery("select saksbehandler from FiltreringSaksbehandlerRelasjon where oppgaveFiltrering = :oppgaveFiltrering", Saksbehandler.class)
-            .setParameter("oppgaveFiltrering", oppgaveFiltrering)
-            .getResultList();
+        return entityManager.createQuery("select saksbehandler from FiltreringSaksbehandlerRelasjon where oppgaveFiltrering = :oppgaveFiltrering",
+            Saksbehandler.class).setParameter("oppgaveFiltrering", oppgaveFiltrering).getResultList();
     }
 
 }
