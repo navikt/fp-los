@@ -32,6 +32,8 @@ import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
+import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
+import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 @ExtendWith(JpaExtension.class)
 class OppgaveRepositoryTest {
@@ -57,9 +59,8 @@ class OppgaveRepositoryTest {
     @Test
     void testHentingAvOppgaver() {
         lagStandardSettMedOppgaver();
-        var alleOppgaverSpørring = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(),
-            new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null,
-            Filtreringstype.ALLE, null, null);
+        var alleOppgaverSpørring = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+            new ArrayList<>(), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null);
 
         var oppgaves = oppgaveKøRepository.hentOppgaver(alleOppgaverSpørring);
         assertThat(oppgaves).hasSize(5);
@@ -70,9 +71,10 @@ class OppgaveRepositoryTest {
     @Test
     void testOppgaveSpørringMedEgenskaperfiltrering() {
         var kriterier = Set.of(AndreKriterierType.UTLANDSSAK, AndreKriterierType.UTBETALING_TIL_BRUKER);
-        var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
+        var saksnummer = new Saksnummer(String.valueOf(Math.abs(new Random().nextLong() % 999999999)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer).medKriterier(kriterier));
-        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
+        var oppgave = Oppgave.builder()
+            .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
             .medKriterier(kriterier, "z999999")
             .build();
         entityManager.persist(oppgave);
@@ -90,14 +92,16 @@ class OppgaveRepositoryTest {
     @Test
     void testEkskluderingOgInkluderingAvOppgaver() {
         lagStandardSettMedOppgaver();
-        var oppgaver = oppgaveKøRepository.hentOppgaver(new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
-            List.of(AndreKriterierType.TIL_BESLUTTER, AndreKriterierType.PAPIRSØKNAD), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null,
-            Filtreringstype.ALLE, null, null));
+        var oppgaver = oppgaveKøRepository.hentOppgaver(
+            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+                List.of(AndreKriterierType.TIL_BESLUTTER, AndreKriterierType.PAPIRSØKNAD), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null,
+                null, null, Filtreringstype.ALLE, null, null));
         assertThat(oppgaver).hasSize(1);
 
         oppgaver = oppgaveKøRepository.hentOppgaver(
-            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(), List.of(AndreKriterierType.TIL_BESLUTTER),
-                new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null));
+            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+                List.of(AndreKriterierType.TIL_BESLUTTER), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null,
+                Filtreringstype.ALLE, null, null));
         assertThat(oppgaver).hasSize(2);
 
         oppgaver = oppgaveKøRepository.hentOppgaver(
@@ -113,13 +117,14 @@ class OppgaveRepositoryTest {
         assertThat(oppgaver).hasSize(3);
 
         oppgaver = oppgaveKøRepository.hentOppgaver(
-            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(), List.of(AndreKriterierType.PAPIRSØKNAD),
-                List.of(AndreKriterierType.TIL_BESLUTTER), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null));
+            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+                List.of(AndreKriterierType.PAPIRSØKNAD), List.of(AndreKriterierType.TIL_BESLUTTER), Periodefilter.FAST_PERIODE, null, null, null,
+                null, Filtreringstype.ALLE, null, null));
         assertThat(oppgaver).hasSize(1);
         var antallOppgaver = oppgaveKøRepository.hentAntallOppgaver(
-                new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(), List.of(AndreKriterierType.PAPIRSØKNAD),
-                List.of(AndreKriterierType.TIL_BESLUTTER), Periodefilter.FAST_PERIODE, null, null, null, null,
-                Filtreringstype.LEDIGE, null, null));
+            new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+                List.of(AndreKriterierType.PAPIRSØKNAD), List.of(AndreKriterierType.TIL_BESLUTTER), Periodefilter.FAST_PERIODE, null, null, null,
+                null, Filtreringstype.LEDIGE, null, null));
         assertThat(antallOppgaver).isEqualTo(1);
 
         var antallOppgaverForAvdeling = oppgaveKøRepository.hentAntallOppgaverForAvdeling(AVDELING_DRAMMEN_ENHET);
@@ -186,13 +191,9 @@ class OppgaveRepositoryTest {
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId3.toUUID()))
             .medKriterier(Set.of(AndreKriterierType.PAPIRSØKNAD), null)
             .build();
-        var fjerdeOppgave = Oppgave.builder()
-            .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId4.toUUID()))
-            .build();
+        var fjerdeOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId4.toUUID())).build();
 
-        var femteOppgave = Oppgave.builder()
-            .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId5.toUUID()))
-            .build();
+        var femteOppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId5.toUUID())).build();
 
         entityManager.persist(førsteOppgave);
         entityManager.persist(andreOppgave);
@@ -318,8 +319,8 @@ class OppgaveRepositoryTest {
         oppgaveRepository.lagre(aktuellOppgave);
         var filtrerTomDato = LocalDate.now().minusDays(1);
         var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.OPPRETT_BEHANDLING, List.of(BehandlingType.FØRSTEGANGSSØKNAD),
-            List.of(FagsakYtelseType.FORELDREPENGER), List.of(), List.of(), Periodefilter.FAST_PERIODE,
-            null, filtrerTomDato, null, null, Filtreringstype.ALLE, null, null);
+            List.of(FagsakYtelseType.FORELDREPENGER), List.of(), List.of(), Periodefilter.FAST_PERIODE, null, filtrerTomDato, null, null,
+            Filtreringstype.ALLE, null, null);
         var oppgaveResultat = oppgaveKøRepository.hentOppgaver(query);
         assertThat(oppgaveResultat).containsExactly(aktuellOppgave);
     }
@@ -335,21 +336,21 @@ class OppgaveRepositoryTest {
         oppgaveRepository.lagre(oppgave1);
         oppgaveRepository.lagre(oppgave2);
         oppgaveRepository.lagre(oppgave3);
-        Assertions.assertThat(filterOppgaver(oppgave1.getFørsteStønadsdag(), oppgave3.getFørsteStønadsdag())).containsExactlyInAnyOrder(oppgave2, oppgave1,
-            oppgave3);
+        Assertions.assertThat(filterOppgaver(oppgave1.getFørsteStønadsdag(), oppgave3.getFørsteStønadsdag()))
+            .containsExactlyInAnyOrder(oppgave2, oppgave1, oppgave3);
         Assertions.assertThat(filterOppgaver(oppgave1.getFørsteStønadsdag(), oppgave1.getFørsteStønadsdag())).containsExactly(oppgave1);
         Assertions.assertThat(filterOppgaver(oppgave1.getFørsteStønadsdag().minusDays(10), oppgave1.getFørsteStønadsdag().minusDays(1))).isEmpty();
     }
 
     @Test
     void filtrerSorterFeilutbetaltBeløp() {
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L)).medFeilutbetalingBelop(BigDecimal.valueOf(100L)));
-        var oppgave1 = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID())
-            .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L))
+            .medFeilutbetalingBelop(BigDecimal.valueOf(100L)));
+        var oppgave1 = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID()).medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
             .build();
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L)).medFeilutbetalingBelop(BigDecimal.valueOf(200L)));
-        var oppgave2 = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID())
-            .medBehandling(oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L))
+            .medFeilutbetalingBelop(BigDecimal.valueOf(200L)));
+        var oppgave2 = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID()).medBehandling(oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
             .build();
         oppgaveRepository.lagre(oppgave1);
         oppgaveRepository.lagre(oppgave2);
@@ -371,25 +372,21 @@ class OppgaveRepositoryTest {
         // lager hendelse som fører til oppgave. Formålet er at saksbehandler skal avklare
         // status på grunnlaget. Funksjonelt kan det variere om filtrene som brukes i enhetene
         // fanger opp disse (fom/tom på feltet vil ekskludere bla).
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID())
-            .medOpprettet(LocalDateTime.now().minusDays(2L))
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId1.toUUID()).medOpprettet(LocalDateTime.now().minusDays(2L))
             .medFeilutbetalingBelop(BigDecimal.valueOf(0L))
             .medFeilutbetalingStart(null));
-        var oppgaveUtenStartDato = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID())
-            .medBehandling(oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
-            .build();
-        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID())
-            .medOpprettet(LocalDateTime.now().minusDays(1L))
+        var oppgaveUtenStartDato = tilbakekrevingOppgaveBuilder(behandlingId1.toUUID()).medBehandling(
+            oppgaveRepository.hentBehandling(behandlingId1.toUUID())).build();
+        oppgaveRepository.lagreBehandling(tilbakekrevingBehandlingBuilder(behandlingId2.toUUID()).medOpprettet(LocalDateTime.now().minusDays(1L))
             .medFeilutbetalingBelop(BigDecimal.valueOf(10L))
             .medFeilutbetalingStart(LocalDate.now()));
-        var oppgaveMedStartDato = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID())
-            .medBehandling(oppgaveRepository.hentBehandling(behandlingId2.toUUID()))
-            .build();
+        var oppgaveMedStartDato = tilbakekrevingOppgaveBuilder(behandlingId2.toUUID()).medBehandling(
+            oppgaveRepository.hentBehandling(behandlingId2.toUUID())).build();
         oppgaveRepository.lagre(oppgaveUtenStartDato);
         oppgaveRepository.lagre(oppgaveMedStartDato);
 
-        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, FEILUTBETALINGSTART, List.of(), List.of(), List.of(),
-            List.of(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null);
+        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, FEILUTBETALINGSTART, List.of(), List.of(), List.of(), List.of(),
+            Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null);
         var oppgaver = oppgaveKøRepository.hentOppgaver(query);
         assertThat(oppgaver).containsExactly(oppgaveMedStartDato, oppgaveUtenStartDato);
     }
@@ -409,13 +406,14 @@ class OppgaveRepositoryTest {
         oppgaveRepository.lagre(oppgave3);
         oppgaveRepository.lagre(oppgave4);
 
-        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG_SYNKENDE, List.of(), List.of(), List.of(), List.of(), Periodefilter.FAST_PERIODE,
-            null, null, null, null, Filtreringstype.ALLE, null, null);
+        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG_SYNKENDE, List.of(), List.of(), List.of(), List.of(),
+            Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null);
         var oppgaver = oppgaveKøRepository.hentOppgaver(query);
         Assertions.assertThat(oppgaver).containsExactly(oppgave3, oppgave2, oppgave1, oppgave4);
 
-        var queryAvgrenset = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG_SYNKENDE, List.of(), List.of(), List.of(), List.of(), Periodefilter.FAST_PERIODE,
-            oppgave2.getFørsteStønadsdag(), oppgave3.getFørsteStønadsdag(), null, null, Filtreringstype.ALLE, null, null);
+        var queryAvgrenset = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG_SYNKENDE, List.of(), List.of(), List.of(),
+            List.of(), Periodefilter.FAST_PERIODE, oppgave2.getFørsteStønadsdag(), oppgave3.getFørsteStønadsdag(), null, null, Filtreringstype.ALLE,
+            null, null);
         var oppgaverAvgrenset = oppgaveKøRepository.hentOppgaver(queryAvgrenset);
         Assertions.assertThat(oppgaverAvgrenset).containsExactly(oppgave3, oppgave2);
     }
@@ -428,42 +426,39 @@ class OppgaveRepositoryTest {
 
     @Test
     void avdelingslederTellerMedEgneReservasjoner() {
-        var saksnummer = new Saksnummer(String.valueOf (Math.abs(new Random().nextLong() % 999999999)));
+        var saksnummer = new Saksnummer(String.valueOf(Math.abs(new Random().nextLong() % 999999999)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
-        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
+        var oppgave = Oppgave.builder()
+            .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), BrukerIdent.brukerIdent())
             .build();
         entityManager.persist(oppgave);
         entityManager.flush();
 
         // saksbehandlere bør ikke få opp et antall som ikke stemmer med det de ser i køen (egne vedtak til beslutter filtreres bort fra beslutterkø)
-        var beslutterKøIkkeAvdelingsleder = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, List.of(),
-            List.of(), List.of(AndreKriterierType.TIL_BESLUTTER), List.of(), Periodefilter.FAST_PERIODE, null, null, null, null,
-            Filtreringstype.LEDIGE, null, null);
+        var beslutterKøIkkeAvdelingsleder = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, List.of(), List.of(),
+            List.of(AndreKriterierType.TIL_BESLUTTER), List.of(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.LEDIGE, null,
+            null);
         var oppgaver = oppgaveKøRepository.hentAntallOppgaver(beslutterKøIkkeAvdelingsleder);
         assertThat(oppgaver).isZero();
 
         // avdelingsleder skal se antallet i avdelingslederkontekst, også eventuelle egne foreslåtte vedtak der avdelingsleder også er saksbehandler
-        var beslutterKøAvdelingsleder = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, List.of(),
-            List.of(), List.of(AndreKriterierType.TIL_BESLUTTER), List.of(), Periodefilter.FAST_PERIODE, null, null, null, null,
-            Filtreringstype.ALLE, null, null);
+        var beslutterKøAvdelingsleder = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, List.of(), List.of(),
+            List.of(AndreKriterierType.TIL_BESLUTTER), List.of(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null,
+            null);
         var oppgaveAntallAdelingsleder = oppgaveKøRepository.hentAntallOppgaver(beslutterKøAvdelingsleder);
         assertThat(oppgaveAntallAdelingsleder).isEqualTo(1);
     }
 
     @Test
     void lagre_behandling_finn_den() {
-        var behandling= Behandling.builder(Optional.empty())
-            .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
-            .build();
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT).build();
         oppgaveRepository.lagre(behandling);
         var hentet = oppgaveRepository.finnBehandling(behandling.getId());
         assertThat(hentet).isPresent();
         assertThat(hentet.get().getId()).isEqualTo(behandling.getId());
         assertThat(hentet.get().getBehandlingTilstand()).isEqualTo(BehandlingTilstand.AKSJONSPUNKT);
-        var oppdatert = Behandling.builder(hentet)
-            .medBehandlingTilstand(BehandlingTilstand.VENT_MANUELL)
-            .build();
+        var oppdatert = Behandling.builder(hentet).medBehandlingTilstand(BehandlingTilstand.VENT_MANUELL).build();
         oppgaveRepository.lagre(oppdatert);
         hentet = oppgaveRepository.finnBehandling(behandling.getId());
         assertThat(hentet).isPresent();
@@ -478,15 +473,21 @@ class OppgaveRepositoryTest {
         var t2 = now.minusHours(2);
         var t3 = now.minusHours(1);
 
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medBehandlingsfrist(t1.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medBehandlingsfrist(t2.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medBehandlingsfrist(t3.toLocalDate()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medBehandlingsfrist(t1.toLocalDate())
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medBehandlingsfrist(t2.toLocalDate())
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medBehandlingsfrist(t3.toLocalDate())
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
 
 
         // setter omvendt tid på behandlingsfrist for å sørge for motsatt sortering med default sortering
-        var beslutterOppgaveEldste = basicOppgaveBuilder(behandlingId3.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
-        var beslutterOppgaveMellomste = basicOppgaveBuilder(behandlingId2.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
-        var beslutterOppgaveNyeste = basicOppgaveBuilder(behandlingId1.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999").build();
+        var beslutterOppgaveEldste = basicOppgaveBuilder(behandlingId3.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
+            .build();
+        var beslutterOppgaveMellomste = basicOppgaveBuilder(behandlingId2.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
+            .build();
+        var beslutterOppgaveNyeste = basicOppgaveBuilder(behandlingId1.toUUID()).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), "z999999")
+            .build();
 
         entityManager.persist(beslutterOppgaveEldste);
         entityManager.persist(beslutterOppgaveMellomste);
@@ -499,53 +500,33 @@ class OppgaveRepositoryTest {
         setOpprettetTid(beslutterOppgaveNyeste, t3);
         entityManager.flush();
 
-        var oppgaveOpprettetSorteringQuery = new Oppgavespørring(
-            AVDELING_DRAMMEN_ENHET,
-            KøSortering.OPPGAVE_OPPRETTET,
-            List.of(),
-            List.of(),
-            List.of(AndreKriterierType.TIL_BESLUTTER),
-            List.of(),
-            Periodefilter.FAST_PERIODE,
-            null, null, null, null,
-            Filtreringstype.ALLE,
-            null, null
-        );
+        var oppgaveOpprettetSorteringQuery = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.OPPGAVE_OPPRETTET, List.of(), List.of(),
+            List.of(AndreKriterierType.TIL_BESLUTTER), List.of(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null,
+            null);
         var oppgaver = oppgaveKøRepository.hentOppgaver(oppgaveOpprettetSorteringQuery);
         assertThat(oppgaver).hasSize(3);
         assertThat(oppgaver).extracting(Oppgave::getId)
-            .containsExactly(
-                beslutterOppgaveEldste.getId(),
-                beslutterOppgaveMellomste.getId(),
-                beslutterOppgaveNyeste.getId()
-            );
+            .containsExactly(beslutterOppgaveEldste.getId(), beslutterOppgaveMellomste.getId(), beslutterOppgaveNyeste.getId());
 
         // sjekker at default sortering gir motsatt rekkefølge
-        var defaultSorteringQuery = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(),
-            new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null,
-            Filtreringstype.ALLE, null, null);
+        var defaultSorteringQuery = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.BEHANDLINGSFRIST, new ArrayList<>(), new ArrayList<>(),
+            new ArrayList<>(), new ArrayList<>(), Periodefilter.FAST_PERIODE, null, null, null, null, Filtreringstype.ALLE, null, null);
         var defaultSorteringOppgaver = oppgaveKøRepository.hentOppgaver(defaultSorteringQuery);
         assertThat(defaultSorteringOppgaver).hasSize(3);
         assertThat(defaultSorteringOppgaver).extracting(Oppgave::getId)
-            .containsExactlyInAnyOrder(
-                beslutterOppgaveNyeste.getId(),
-                beslutterOppgaveMellomste.getId(),
-                beslutterOppgaveEldste.getId()
-            );
+            .containsExactlyInAnyOrder(beslutterOppgaveNyeste.getId(), beslutterOppgaveMellomste.getId(), beslutterOppgaveEldste.getId());
     }
 
     private void setOpprettetTid(Oppgave oppgave, LocalDateTime ts) {
-        entityManager.createNativeQuery(
-                "update OPPGAVE set OPPRETTET_TID = :ts where id = :id"
-            )
+        entityManager.createNativeQuery("update OPPGAVE set OPPRETTET_TID = :ts where id = :id")
             .setParameter("ts", ts)
             .setParameter("id", oppgave.getId())
             .executeUpdate();
     }
 
     private List<Oppgave> filterOppgaver(LocalDate filtrerFomDato, LocalDate filtrerTomDato) {
-        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG, List.of(), List.of(), List.of(), List.of(), Periodefilter.FAST_PERIODE,
-            filtrerFomDato, filtrerTomDato, null, null, Filtreringstype.ALLE, null, null);
+        var query = new Oppgavespørring(AVDELING_DRAMMEN_ENHET, KøSortering.FØRSTE_STØNADSDAG, List.of(), List.of(), List.of(), List.of(),
+            Periodefilter.FAST_PERIODE, filtrerFomDato, filtrerTomDato, null, null, Filtreringstype.ALLE, null, null);
         return oppgaveKøRepository.hentOppgaver(query);
     }
 
@@ -613,5 +594,297 @@ class OppgaveRepositoryTest {
         entityManager.flush();
     }
 
+    @Test
+    void hentAktiveOppgaverForSaksnummer_returnerKunAktive() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medSaksnummer(new Saksnummer("100")));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medSaksnummer(new Saksnummer("200")));
+        var aktivOppgave = basicOppgaveBuilder(behandlingId1.toUUID()).medAktiv(true).build();
+        var inaktivOppgave = basicOppgaveBuilder(behandlingId2.toUUID()).medAktiv(false).build();
+        entityManager.persist(aktivOppgave);
+        entityManager.persist(inaktivOppgave);
+        entityManager.flush();
+
+        var result = oppgaveRepository.hentAktiveOppgaverForSaksnummer(List.of(new Saksnummer("100"), new Saksnummer("200")));
+
+        assertThat(result).containsExactly(aktivOppgave);
+    }
+
+    @Test
+    void hentAktiveOppgaverForSaksnummer_returnerTomListeNårIngenMatch() {
+        var result = oppgaveRepository.hentAktiveOppgaverForSaksnummer(List.of(new Saksnummer("999")));
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void hentAlleOppgaveFiltreReadOnly_returnerAlle() {
+        var avdeling = avdelingDrammen(entityManager);
+        var filtrering1 = lagFiltrering("Kø A", avdeling);
+        var filtrering2 = lagFiltrering("Kø B", avdeling);
+        entityManager.persist(filtrering1);
+        entityManager.persist(filtrering2);
+        entityManager.flush();
+
+        var result = oppgaveRepository.hentAlleOppgaveFiltreReadOnly();
+
+        assertThat(result).extracting(OppgaveFiltrering::getNavn).contains("Kø A", "Kø B");
+    }
+
+    @Test
+    void lagreFiltrering_returnerIdOgKanHentes() {
+        var avdeling = avdelingDrammen(entityManager);
+        var filtrering = lagFiltrering("TestKø", avdeling);
+
+        var id = oppgaveRepository.lagreFiltrering(filtrering);
+
+        assertThat(id).isNotNull();
+        var hentet = oppgaveRepository.hentOppgaveFilterSett(id);
+        assertThat(hentet).isPresent();
+        assertThat(hentet.get().getNavn()).isEqualTo("TestKø");
+    }
+
+    @Test
+    void slettListe_sletterFiltreringen() {
+        var avdeling = avdelingDrammen(entityManager);
+        var filtrering = lagFiltrering("SlettMeg", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+
+        oppgaveRepository.slettListe(filtrering);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.hentOppgaveFilterSett(filtrering.getId())).isEmpty();
+    }
+
+    @Test
+    void sjekkOmOppgaverFortsattErTilgjengelige_ledigeOppgaverErTilgjengelige() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave = basicOppgaveBuilder().build();
+        entityManager.persist(oppgave);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.sjekkOmOppgaverFortsattErTilgjengelige(List.of(oppgave.getId()))).isTrue();
+    }
+
+    @Test
+    void sjekkOmOppgaverFortsattErTilgjengelige_reservertOppgaveErIkkeTilgjengelig() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave = basicOppgaveBuilder().build();
+        entityManager.persist(oppgave);
+        entityManager.flush();
+
+        var reservasjon = new Reservasjon(oppgave);
+        reservasjon.setReservertAv("Z999999");
+        reservasjon.setReservertTil(LocalDateTime.now().plusHours(2));
+        entityManager.persist(reservasjon);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.sjekkOmOppgaverFortsattErTilgjengelige(List.of(oppgave.getId()))).isFalse();
+    }
+
+    @Test
+    void sjekkOmOppgaverFortsattErTilgjengelige_inaktivOppgaveErIkkeTilgjengelig() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave = basicOppgaveBuilder().medAktiv(false).build();
+        entityManager.persist(oppgave);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.sjekkOmOppgaverFortsattErTilgjengelige(List.of(oppgave.getId()))).isFalse();
+    }
+
+    @Test
+    void hentOppgave_returnerOppgaveMedGittId() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave = basicOppgaveBuilder().build();
+        entityManager.persist(oppgave);
+        entityManager.flush();
+
+        var hentet = oppgaveRepository.hentOppgave(oppgave.getId());
+
+        assertThat(hentet).isEqualTo(oppgave);
+    }
+
+    @Test
+    void hentOppgaverReadOnly_returnerOppgaverForGitteIder() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()));
+        var oppgave1 = basicOppgaveBuilder(behandlingId1.toUUID()).build();
+        var oppgave2 = basicOppgaveBuilder(behandlingId2.toUUID()).build();
+        entityManager.persist(oppgave1);
+        entityManager.persist(oppgave2);
+        entityManager.flush();
+
+        var result = oppgaveRepository.hentOppgaverReadOnly(List.of(oppgave1.getId(), oppgave2.getId()));
+
+        assertThat(result).containsExactlyInAnyOrder(oppgave1, oppgave2);
+    }
+
+    @Test
+    void hentOppgaverReadOnly_tomListeGirTomtResultat() {
+        assertThat(oppgaveRepository.hentOppgaverReadOnly(List.of())).isEmpty();
+        assertThat(oppgaveRepository.hentOppgaverReadOnly(null)).isEmpty();
+    }
+
+    @Test
+    void hentOppgaver_returnerAlleOppgaverForBehandlingId() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave1 = basicOppgaveBuilder().medAktiv(true).build();
+        var oppgave2 = basicOppgaveBuilder().medAktiv(false).build();
+        entityManager.persist(oppgave1);
+        entityManager.persist(oppgave2);
+        entityManager.flush();
+
+        var result = oppgaveRepository.hentOppgaver(behandlingId1);
+
+        assertThat(result).containsExactlyInAnyOrder(oppgave1, oppgave2);
+    }
+
+    @Test
+    void hentAktivOppgave_returnerAktivOppgave() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var inaktiv = basicOppgaveBuilder().medAktiv(false).build();
+        var aktiv = basicOppgaveBuilder().medAktiv(true).build();
+        entityManager.persist(inaktiv);
+        entityManager.persist(aktiv);
+        entityManager.flush();
+
+        var result = oppgaveRepository.hentAktivOppgave(behandlingId1);
+
+        assertThat(result).isPresent().contains(aktiv);
+    }
+
+    @Test
+    void hentAktivOppgave_ingenAktivReturnererEmpty() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var inaktiv = basicOppgaveBuilder().medAktiv(false).build();
+        entityManager.persist(inaktiv);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.hentAktivOppgave(behandlingId1)).isEmpty();
+    }
+
+    @Test
+    void opprettOppgave_persisterOgReturnererOppgave() {
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder());
+        var oppgave = basicOppgaveBuilder().build();
+
+        var opprettet = oppgaveRepository.opprettOppgave(oppgave);
+        entityManager.flush();
+
+        assertThat(opprettet.getId()).isNotNull();
+        assertThat(DBTestUtil.hentAlle(entityManager, Oppgave.class)).contains(opprettet);
+    }
+
+    @Test
+    void tilknyttSaksbehandlerOppgaveFiltrering_leggerTilKnytning() {
+        var avdeling = avdelingDrammen(entityManager);
+        var saksbehandler = lagOgPersisterSaksbehandler("Z123456");
+        var filtrering = lagFiltrering("TestKø", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(filtrering)).containsExactly(saksbehandler);
+    }
+
+    @Test
+    void tilknyttSaksbehandlerOppgaveFiltrering_erIdempotent() {
+        var avdeling = avdelingDrammen(entityManager);
+        var saksbehandler = lagOgPersisterSaksbehandler("Z123456");
+        var filtrering = lagFiltrering("TestKø", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(filtrering)).containsExactly(saksbehandler);
+    }
+
+    @Test
+    void fraknyttSaksbehandlerOppgaveFiltrering_fjernKnytning() {
+        var avdeling = avdelingDrammen(entityManager);
+        var saksbehandler = lagOgPersisterSaksbehandler("Z123456");
+        var filtrering = lagFiltrering("TestKø", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering);
+        entityManager.flush();
+
+        oppgaveRepository.fraknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(filtrering)).isEmpty();
+    }
+
+    @Test
+    void fraknyttAlleSaksbehandlereFraOppgaveFiltrering_fjernAlleKnytninger() {
+        var avdeling = avdelingDrammen(entityManager);
+        var sb1 = lagOgPersisterSaksbehandler("Z111111");
+        var sb2 = lagOgPersisterSaksbehandler("Z222222");
+        var filtrering = lagFiltrering("TestKø", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb1, filtrering);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb2, filtrering);
+        entityManager.flush();
+
+        oppgaveRepository.fraknyttAlleSaksbehandlereFraOppgaveFiltrering(filtrering);
+        entityManager.flush();
+
+        assertThat(oppgaveRepository.saksbehandlereForOppgaveFiltrering(filtrering)).isEmpty();
+    }
+
+    @Test
+    void oppgaveFiltreringerForSaksbehandler_returnerTilknyttedeFiltreringer() {
+        var avdeling = avdelingDrammen(entityManager);
+        var saksbehandler = lagOgPersisterSaksbehandler("Z123456");
+        var filtrering1 = lagFiltrering("Kø 1", avdeling);
+        var filtrering2 = lagFiltrering("Kø 2", avdeling);
+        entityManager.persist(filtrering1);
+        entityManager.persist(filtrering2);
+        entityManager.flush();
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering1);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandler, filtrering2);
+        entityManager.flush();
+
+        var result = oppgaveRepository.oppgaveFiltreringerForSaksbehandler(saksbehandler);
+
+        assertThat(result).containsExactlyInAnyOrder(filtrering1, filtrering2);
+    }
+
+    @Test
+    void saksbehandlereForOppgaveFiltrering_returnerTilknyttedeSaksbehandlere() {
+        var avdeling = avdelingDrammen(entityManager);
+        var sb1 = lagOgPersisterSaksbehandler("Z111111");
+        var sb2 = lagOgPersisterSaksbehandler("Z222222");
+        var filtrering = lagFiltrering("TestKø", avdeling);
+        entityManager.persist(filtrering);
+        entityManager.flush();
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb1, filtrering);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb2, filtrering);
+        entityManager.flush();
+
+        var result = oppgaveRepository.saksbehandlereForOppgaveFiltrering(filtrering);
+
+        assertThat(result).containsExactlyInAnyOrder(sb1, sb2);
+    }
+
+    private OppgaveFiltrering lagFiltrering(String navn, Avdeling avdeling) {
+        var filtrering = new OppgaveFiltrering();
+        filtrering.setNavn(navn);
+        filtrering.setSortering(KøSortering.BEHANDLINGSFRIST);
+        filtrering.setAvdeling(avdeling);
+        return filtrering;
+    }
+
+    private Saksbehandler lagOgPersisterSaksbehandler(String ident) {
+        var saksbehandler = new Saksbehandler(ident, "Test Testesen", AVDELING_DRAMMEN_ENHET);
+        entityManager.persist(saksbehandler);
+        entityManager.flush();
+        return saksbehandler;
+    }
 
 }
