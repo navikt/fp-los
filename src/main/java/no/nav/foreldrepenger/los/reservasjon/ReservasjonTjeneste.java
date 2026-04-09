@@ -65,7 +65,7 @@ public class ReservasjonTjeneste {
             r.setBegrunnelse(null);
             r.setFlyttetAv(null);
             return r;
-        })).orElseGet(() -> new Reservasjon(oppgave, BrukerIdent.brukerIdent()));
+        })).orElseGet(() -> new Reservasjon(oppgave));
         if (reservasjon.erAktiv()) {
             LOG.info("Fant aktiv reservasjon for oppgave {} reservasjon {}", oppgave.getId(), reservasjon.getReservertAv());
         } else {

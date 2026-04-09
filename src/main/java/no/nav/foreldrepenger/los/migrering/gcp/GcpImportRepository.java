@@ -310,7 +310,7 @@ public class GcpImportRepository {
         var filtreringByImportId = new HashMap<Long, OppgaveFiltrering>();
 
         for (var dto : køOppsettDto.oppgaveFiltrering()) {
-            var avdeling = dto.avdelingId() != null ? entityManager.getReference(Avdeling.class, dto.avdelingId()) : null;
+            var avdeling = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var filtrering = entityManager.find(OppgaveFiltrering.class, dto.id());
             var erNyFiltrering = filtrering == null;
 
@@ -318,12 +318,8 @@ public class GcpImportRepository {
                 filtrering = new OppgaveFiltrering(dto.navn(), dto.køSortering(), avdeling);
             } else {
                 filtrering.setNavn(dto.navn());
-                if (dto.køSortering() != null) {
-                    filtrering.setSortering(dto.køSortering());
-                }
-                if (avdeling != null) {
-                    filtrering.setAvdeling(avdeling);
-                }
+                filtrering.setSortering(dto.køSortering());
+                filtrering.setAvdeling(avdeling);
             }
             filtrering.setBeskrivelse(dto.beskrivelse());
             filtrering.setFomDato(dto.fomDato());

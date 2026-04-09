@@ -19,7 +19,6 @@ import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
@@ -61,24 +60,12 @@ public final class GcpImportMapper {
     public static void mapBehandling(BehandlingDataDto dto, Behandling behandling) {
         behandling.setId(dto.id()); // Primary key
 
-        if (dto.saksnummer() != null) {
-            behandling.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
-        }
-        if (dto.aktørId() != null) {
-            behandling.setAktørId(dto.aktørId());
-        }
-        if (dto.kildeSystem() != null) {
-            behandling.setFagsystem(dto.kildeSystem());
-        }
-        if (dto.fagsakYtelseType() != null) {
-            behandling.setFagsakYtelseType(dto.fagsakYtelseType());
-        }
-        if (dto.behandlingType() != null) {
-            behandling.setBehandlingType(dto.behandlingType());
-        }
-        if (dto.behandlingTilstand() != null) {
-            behandling.setBehandlingTilstand(dto.behandlingTilstand());
-        }
+        behandling.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
+        behandling.setAktørId(dto.aktørId());
+        behandling.setFagsystem(dto.kildeSystem());
+        behandling.setFagsakYtelseType(dto.fagsakYtelseType());
+        behandling.setBehandlingType(dto.behandlingType());
+        behandling.setBehandlingTilstand(dto.behandlingTilstand());
 
         behandling.setAktiveAksjonspunkt(dto.aktiveAksjonspunkt());
         behandling.setVentefrist(dto.ventefrist());
@@ -129,13 +116,10 @@ public final class GcpImportMapper {
     }
 
     public static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
-        var filtrering = new OppgaveFiltrering(dto.navn(),
-            dto.køSortering() != null ? dto.køSortering() : KøSortering.BEHANDLINGSFRIST,
-            avdeling);
+        var filtrering = new OppgaveFiltrering(dto.navn(), dto.køSortering(), avdeling);
         filtrering.setId(dto.id());
         filtrering.setBeskrivelse(dto.beskrivelse());
 
-        // Skjermet field not available in OppgaveFiltrering entity TODO: fiks denne
         filtrering.setFomDato(dto.fomDato());
         filtrering.setTomDato(dto.tomDato());
         if (dto.fomDager() != null) {
@@ -145,9 +129,7 @@ public final class GcpImportMapper {
             filtrering.setTil(dto.tomDager());
         }
 
-        if (dto.periodeFilter() != null) {
-            filtrering.setPeriodefilter(dto.periodeFilter());
-        }
+        filtrering.setPeriodefilter(dto.periodeFilter());
 
         // Handle embedded collections
         filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
@@ -173,12 +155,8 @@ public final class GcpImportMapper {
 
     public static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,
                                      String endretAv, LocalDateTime endretTid) {
-        if (opprettetAv != null) {
-            entity.setOpprettetAv(opprettetAv);
-        }
-        if (opprettetTid != null) {
-            entity.setOpprettetTidspunkt(opprettetTid);
-        }
+        entity.setOpprettetAv(opprettetAv);
+        entity.setOpprettetTidspunkt(opprettetTid);
         if (endretAv != null) {
             entity.setEndretAv(endretAv);
         }

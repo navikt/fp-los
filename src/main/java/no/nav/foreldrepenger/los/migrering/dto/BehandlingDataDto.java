@@ -28,9 +28,9 @@ import no.nav.vedtak.util.InputValideringRegex;
  */
 @Valid
 public record BehandlingDataDto(
-    UUID id,  // Primary key
+    @NotNull UUID id,  // Primary key
     @NotNull @Valid SaksnummerDto saksnummer,
-    @Valid AktørId aktørId,
+    @NotNull @Valid AktørId aktørId,
     @NotNull @Valid Fagsystem kildeSystem,
     @NotNull @ValidKodeverk FagsakYtelseType fagsakYtelseType,
     @NotNull @ValidKodeverk BehandlingType behandlingType,
@@ -44,8 +44,8 @@ public record BehandlingDataDto(
     @Min(0) @Max(1_000_000_000) BigDecimal feilutbetalingBelop,
     LocalDate feilutbetalingStart,
     @NotNull @Size(max = 10) @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}") String behandlendeEnhet,
-    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
-    LocalDateTime opprettetTidspunkt,
+    @NotNull @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull LocalDateTime opprettetTidspunkt,
     @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt,
     @NotNull Set<@ValidKodeverk AndreKriterierType> egenskaper
