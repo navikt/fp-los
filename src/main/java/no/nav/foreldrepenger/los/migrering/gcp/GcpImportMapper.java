@@ -1,7 +1,8 @@
-package no.nav.foreldrepenger.los.migrering;
+package no.nav.foreldrepenger.los.migrering.gcp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
@@ -10,14 +11,18 @@ import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
+import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
+import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 /**
@@ -29,7 +34,7 @@ public final class GcpImportMapper {
         // Utility class
     }
 
-    static Avdeling mapAvdeling(AvdelingDataDto dto) {
+    public static Avdeling mapAvdeling(AvdelingDataDto dto) {
         var avdeling = new Avdeling(dto.avdelingEnhet(), dto.navn(), dto.kreverKode6());
         avdeling.setErAktiv(dto.aktiv());
         setBaseEntitetFields(avdeling, dto.opprettetAv(), dto.opprettetTidspunkt(),
@@ -37,14 +42,25 @@ public final class GcpImportMapper {
         return avdeling;
     }
 
-    static Saksbehandler mapSaksbehandler(SaksbehandlerDataDto dto) {
+    public static Saksbehandler mapSaksbehandler(SaksbehandlerDataDto dto) {
         var saksbehandler = new Saksbehandler(dto.saksbehandlerIdent(), dto.navn(), dto.ansattVedEnhet());
         setBaseEntitetFields(saksbehandler, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return saksbehandler;
     }
 
-    static void mapBehandling(BehandlingDataDto dto, Behandling behandling) {
+    public static SaksbehandlerGruppe mapSaksbehandlerGruppe(SaksbehandlerGruppeDataDto dto, Avdeling avdeling) {
+        var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn());
+        setIdUsingReflection(gruppe, dto.id());
+        if (avdeling != null) {
+            gruppe.setAvdeling(avdeling);
+        }
+        setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(),
+                            dto.endretAv(), dto.endretTidspunkt());
+        return gruppe;
+    }
+
+    public static void mapBehandling(BehandlingDataDto dto, Behandling behandling) {
         behandling.setId(dto.id()); // Primary key
 
         if (dto.saksnummer() != null) {
@@ -81,28 +97,29 @@ public final class GcpImportMapper {
                             dto.endretAv(), dto.endretTidspunkt());
     }
 
-    static Oppgave mapOppgave(OppgaveDataDto dto, Behandling behandling) {
-        var oppgave = new Oppgave();
+    public static void mapOppgave(OppgaveDataDto dto, Behandling behRef, Oppgave oppgave) {
         oppgave.setId(dto.id());
-        oppgave.setBehandling(behandling);
+        oppgave.setBehandling(behRef);
         oppgave.setBehandlendeEnhet(dto.behandlendeEnhet());
         oppgave.setAktiv(dto.aktiv());
         oppgave.setOppgaveAvsluttet(dto.oppgaveAvsluttet());
         setBaseEntitetFields(oppgave, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
 
-        oppgave.clearOppgaveEgenskaper();
+        Set<AndreKriterierType> oppgaveEgenskapTyper = dto.oppgaveEgenskaper() == null
+            ? Set.of()
+            : dto.oppgaveEgenskaper().stream().map(OppgaveEgenskapDataDto::andreKriterierType).collect(Collectors.toSet());
+        oppgave.beholdKunOppgaveEgenskaper(oppgaveEgenskapTyper);
         if (dto.oppgaveEgenskaper() != null) {
             for (var egenskapDto : dto.oppgaveEgenskaper()) {
                 oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
         oppgave.setSkipAutoAudit(true);
-        return oppgave;
     }
 
-    static void mapReservasjon(Oppgave oppgave, ReservasjonDataDto dto, Reservasjon reservasjon) {
-        reservasjon.setOppgave(oppgave);
+    public static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon, Oppgave oppgaveRef) {
+        reservasjon.setOppgave(oppgaveRef);
         reservasjon.setReservertTil(dto.reservertTil());
         reservasjon.setReservertAv(dto.reservertAv());
         reservasjon.setFlyttetAv(dto.flyttetAv());
@@ -113,7 +130,7 @@ public final class GcpImportMapper {
         reservasjon.setSkipAutoAudit(true);
     }
 
-    static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
+    public static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
         var filtrering = new OppgaveFiltrering();
         setIdUsingReflection(filtrering, dto.id());
         filtrering.setNavn(dto.navn());
@@ -157,7 +174,7 @@ public final class GcpImportMapper {
     }
 
     // Utility methods for setting private fields using reflection
-    static void setIdUsingReflection(Object entity, Long id) {
+    public static void setIdUsingReflection(Object entity, Long id) {
         try {
             var field = entity.getClass().getDeclaredField("id");
             field.setAccessible(true);
@@ -167,7 +184,7 @@ public final class GcpImportMapper {
         }
     }
 
-    static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,
+    public static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,
                                      String endretAv, LocalDateTime endretTid) {
         if (opprettetAv != null) {
             entity.setOpprettetAv(opprettetAv);

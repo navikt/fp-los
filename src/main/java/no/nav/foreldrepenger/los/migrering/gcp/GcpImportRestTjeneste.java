@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.los.migrering;
+package no.nav.foreldrepenger.los.migrering.gcp;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -43,7 +43,7 @@ public class GcpImportRestTjeneste {
     @Path("/lagre-bulk")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Lagrer bulk migreringsdata med bevarte ID-er (idempotent)", tags = "migrering")
+    @Operation(description = "Lagrer bulk migreringsdata", tags = "migrering")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = true)
     public Response lagreBulkData(@TilpassetAbacAttributt(supplierClass = GcpMigreringAbacDataSupplier.class) @NotNull @Valid BulkDataWrapper bulkData) {
         var resultat = gcpImportRepository.lagre(bulkData);

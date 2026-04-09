@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import no.nav.foreldrepenger.los.migrering.GcpImportRestTjeneste;
+import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRestTjeneste;
 
 import org.glassfish.jersey.server.ServerProperties;
 
