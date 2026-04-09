@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
@@ -15,6 +14,7 @@ import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.FiltreringSaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
@@ -87,23 +87,13 @@ public final class TestMigreringData {
     }
 
     public static OppgaveDataDto lagOppgaveDataDto(Long id, boolean aktiv, ReservasjonDataDto reservasjon) {
-        var behandlingId =  new BehandlingId(UUID.nameUUIDFromBytes(("oppgave-" + id).getBytes()));
+        var behandlingId = UUID.nameUUIDFromBytes(("oppgave-" + id).getBytes());
         return new OppgaveDataDto(
             id,
-            new SaksnummerDto("123456"),
-            new AktørId("9999999999999"),
             behandlingId,
-            BehandlingType.FØRSTEGANGSSØKNAD,
-            FagsakYtelseType.FORELDREPENGER,
             ENHET_DRAMMEN,
-            LocalDate.now().plusDays(30),
-            NOW.minusDays(5),
-            LocalDate.now().plusMonths(3),
             aktiv,
-            Fagsystem.FPSAK,
             aktiv ? null : NOW,
-            null,
-            null,
             "VL", NOW.minusDays(5),
             "VL", NOW,
             reservasjon,
@@ -111,9 +101,8 @@ public final class TestMigreringData {
         );
     }
 
-    public static ReservasjonDataDto lagReservasjonDataDto(Long oppgaveId) {
+    public static ReservasjonDataDto lagReservasjonDataDto() {
         return new ReservasjonDataDto(
-            oppgaveId,
             NOW.plusDays(1),
             "Z999999",
             null, null, null,
@@ -129,6 +118,8 @@ public final class TestMigreringData {
             enhetsnummer,
             LocalDate.now().minusDays(30),
             LocalDate.now().plusDays(30),
+            null,
+            null,
             Periodefilter.FAST_PERIODE,
             "VL", NOW.minusDays(10),
             "VL", NOW,
@@ -148,7 +139,8 @@ public final class TestMigreringData {
             List.of(avdeling),
             List.of(saksbehandler),
             List.of(avdelingSb),
-            List.of(gruppe)
+            List.of(gruppe),
+            List.of(new GruppeTilknytningDataDto("Z999999", 5_000_003L))
         );
 
         var kø = lagOppgaveFiltreringDataDto(5_000_010L, ENHET_DRAMMEN);
@@ -161,7 +153,7 @@ public final class TestMigreringData {
     public static BulkDataWrapper lagAktiveOppgaver() {
         var oppgave1 = lagOppgaveDataDto(5_000_100L);
         var oppgave2 = lagOppgaveDataDto(5_000_101L, true,
-            lagReservasjonDataDto(5_000_101L));
+            lagReservasjonDataDto());
         return BulkDataWrapper.aktiveOppgaver(List.of(oppgave1, oppgave2));
     }
 
@@ -174,12 +166,9 @@ public final class TestMigreringData {
     public static BulkDataWrapper lagBehandlinger(BulkDataWrapper bulkData) {
         var behandlinger = bulkData.aktiveOppgaver()
             .stream()
-            .map(o -> new BehandlingDataDto(o.behandlingId().toUUID(), o.saksnummer(), o.aktørId(), Fagsystem.FPSAK, o.fagsakYtelseType(),
-                o.behandlingType(), BehandlingTilstand.OPPRETTET, null, null, NOW.minusDays(5), null, LocalDate.now().plusDays(30),
-                LocalDate.now().plusMonths(3), null, null, o.behandlendeEnhet(), "VL", NOW.minusDays(5), "VL", NOW,
-                Set.of(AndreKriterierType.PAPIRSØKNAD)))
+            .map(o -> lagBehandlingDataDto(o.behandlingId()))
             .toList();
-        return new BulkDataWrapper(behandlinger, bulkData.aktiveOppgaver(), List.of(), null, new KøOppsettDto(List.of(), List.of()));
+        return BulkDataWrapper.leggTilBehandlinger(bulkData, behandlinger);
     }
 }
 

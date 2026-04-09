@@ -6,11 +6,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
-
 import org.junit.jupiter.api.Test;
 
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
+import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.fss.FssExportMapper;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
@@ -74,12 +73,10 @@ class FssExportMapperTest {
 
         var dto = FssExportMapper.mapToOppgaveDataDto(oppgave);
 
-        assertThat(dto.saksnummer().saksnummer()).isEqualTo(oppgave.getSaksnummer().getVerdi());
-        assertThat(dto.behandlingType()).isEqualTo(BehandlingType.FØRSTEGANGSSØKNAD);
-        assertThat(dto.fagsakYtelseType()).isEqualTo(FagsakYtelseType.FORELDREPENGER);
+        assertThat(dto.behandlingId()).isEqualTo(oppgave.getBehandlingId().toUUID());
         assertThat(dto.behandlendeEnhet()).isEqualTo(ENHET);
         assertThat(dto.aktiv()).isTrue();
-        assertThat(dto.system()).isEqualTo(Fagsystem.FPSAK);
+        assertThat(dto.oppgaveAvsluttet()).isNull();
     }
 
     @Test

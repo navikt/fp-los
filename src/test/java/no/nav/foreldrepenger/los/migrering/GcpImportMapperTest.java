@@ -9,15 +9,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.los.JpaExtension;
-import no.nav.foreldrepenger.los.oppgave.Behandling;
-
-import no.nav.foreldrepenger.los.oppgave.Oppgave;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
+import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
@@ -31,16 +27,16 @@ import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportMapper;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
+import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.Periodefilter;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.dto.SaksnummerDto;
-
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(JpaExtension.class)
 class GcpImportMapperTest {
@@ -152,13 +148,9 @@ class GcpImportMapperTest {
     @Test
     void mapOppgave_withNullEgenskaper_shouldReturnEmptySet() {
         var dto = new OppgaveDataDto(
-            43L, new SaksnummerDto("111"), new AktørId("9999999999999"),
-            new BehandlingId(UUID.randomUUID()),
-            BehandlingType.FØRSTEGANGSSØKNAD, FagsakYtelseType.FORELDREPENGER,
-            "4806", LocalDate.now().plusDays(30), NOW.minusDays(5),
-            LocalDate.now().plusMonths(3),
-            true, Fagsystem.FPSAK, null,
-            null, null,
+            43L, UUID.randomUUID(),
+            "4806",
+            true, null,
             "VL", NOW, "VL", NOW,
             null, null
         );
@@ -171,7 +163,6 @@ class GcpImportMapperTest {
     @Test
     void mapReservasjon_shouldSetAllFields() {
         var dto = new ReservasjonDataDto(
-            10L,
             NOW.plusDays(1), "Z999999",
             "Z888888", NOW.minusHours(2), "Flyttet pga fravær",
             "VL", NOW.minusDays(1),
@@ -208,6 +199,7 @@ class GcpImportMapperTest {
             100L, "Testkø", "Beskrivelse",
             KøSortering.BEHANDLINGSFRIST, "4806",
             LocalDate.now().minusDays(10), LocalDate.now().plusDays(10),
+            null, null,
             Periodefilter.FAST_PERIODE,
             "VL", NOW, "VL", NOW,
             List.of(BehandlingType.FØRSTEGANGSSØKNAD),
