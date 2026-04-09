@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.oppgavekø;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -82,12 +83,26 @@ public class OppgaveFiltrering extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public OppgaveFiltrering() {
+    protected OppgaveFiltrering() {
         // Hibernate
+    }
+
+    public OppgaveFiltrering(String navn, KøSortering sortering, Avdeling avdeling) {
+        Objects.requireNonNull(navn, "navn");
+        Objects.requireNonNull(sortering, "sortering");
+        Objects.requireNonNull(avdeling, "avdeling");
+        this.navn = navn;
+        this.sortering = sortering;
+        this.avdeling = avdeling;
     }
 
     public Long getId() {
         return id;
+    }
+
+    // TODO: Fjerne etter migrering
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNavn() {

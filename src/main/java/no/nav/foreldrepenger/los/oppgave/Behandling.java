@@ -106,8 +106,21 @@ public class Behandling extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public Behandling() {
+    protected Behandling() {
         // Hibernate
+    }
+
+    public Behandling(UUID id, Saksnummer saksnummer, AktørId aktørId, String behandlendeEnhet,
+                      Fagsystem kildeSystem, FagsakYtelseType fagsakYtelseType,
+                      BehandlingType behandlingType, BehandlingTilstand behandlingTilstand) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.saksnummer = Objects.requireNonNull(saksnummer, "saksnummer");
+        this.aktørId = Objects.requireNonNull(aktørId, "aktørId");
+        this.behandlendeEnhet = Objects.requireNonNull(behandlendeEnhet, "behandlendeEnhet");
+        this.kildeSystem = Objects.requireNonNull(kildeSystem, "kildeSystem");
+        this.fagsakYtelseType = Objects.requireNonNull(fagsakYtelseType, "fagsakYtelseType");
+        this.behandlingType = Objects.requireNonNull(behandlingType, "behandlingType");
+        this.behandlingTilstand = Objects.requireNonNull(behandlingTilstand, "behandlingTilstand");
     }
 
     public UUID getId() {

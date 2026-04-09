@@ -51,13 +51,15 @@ public class Reservasjon extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public Reservasjon() {
+    protected Reservasjon() {
         // Hibernate
     }
 
-    public Reservasjon(Oppgave oppgave) {
+    public Reservasjon(Oppgave oppgave, String reservertAv) {
         Objects.requireNonNull(oppgave, "oppgave");
+        Objects.requireNonNull(reservertAv, "reservertAv");
         this.oppgave = oppgave;
+        this.reservertAv = reservertAv.toUpperCase();
     }
 
     public Oppgave getOppgave() {

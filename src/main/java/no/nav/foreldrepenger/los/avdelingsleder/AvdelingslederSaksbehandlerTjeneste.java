@@ -109,9 +109,7 @@ public class AvdelingslederSaksbehandlerTjeneste {
     }
 
     public SaksbehandlerGruppe opprettSaksbehandlerGruppe(String avdelingEnhet) {
-        var gruppe = new SaksbehandlerGruppe("Ny saksbehandlergruppe");
-        var avdeling = hentAvdeling(avdelingEnhet);
-        gruppe.setAvdeling(avdeling);
+        var gruppe = new SaksbehandlerGruppe("Ny saksbehandlergruppe", hentAvdeling(avdelingEnhet));
         organisasjonRepository.persistFlush(gruppe);
         return gruppe;
     }

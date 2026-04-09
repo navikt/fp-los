@@ -65,7 +65,7 @@ public class ReservasjonTjeneste {
             r.setBegrunnelse(null);
             r.setFlyttetAv(null);
             return r;
-        })).orElseGet(() -> new Reservasjon(oppgave));
+        })).orElseGet(() -> new Reservasjon(oppgave, BrukerIdent.brukerIdent()));
         if (reservasjon.erAktiv()) {
             LOG.info("Fant aktiv reservasjon for oppgave {} reservasjon {}", oppgave.getId(), reservasjon.getReservertAv());
         } else {
@@ -157,8 +157,7 @@ public class ReservasjonTjeneste {
 
     public static Reservasjon opprettReservasjon(Oppgave oppgave, String saksbehandler, String begrunnelse) {
         var reservertTil = standardReservasjon();
-        var reservasjon = new Reservasjon(oppgave);
-        reservasjon.setReservertAv(saksbehandler);
+        var reservasjon = new Reservasjon(oppgave, saksbehandler);
         reservasjon.setBegrunnelse(begrunnelse);
         reservasjon.setReservertTil(reservertTil);
         reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());

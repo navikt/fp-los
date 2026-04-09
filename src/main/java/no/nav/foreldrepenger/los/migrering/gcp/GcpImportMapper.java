@@ -19,6 +19,7 @@ import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
@@ -50,11 +51,8 @@ public final class GcpImportMapper {
     }
 
     public static SaksbehandlerGruppe mapSaksbehandlerGruppe(SaksbehandlerGruppeDataDto dto, Avdeling avdeling) {
-        var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn());
-        setIdUsingReflection(gruppe, dto.id());
-        if (avdeling != null) {
-            gruppe.setAvdeling(avdeling);
-        }
+        var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn(), avdeling);
+        gruppe.setId(dto.id());
         setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return gruppe;
@@ -131,17 +129,11 @@ public final class GcpImportMapper {
     }
 
     public static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
-        var filtrering = new OppgaveFiltrering();
-        setIdUsingReflection(filtrering, dto.id());
-        filtrering.setNavn(dto.navn());
+        var filtrering = new OppgaveFiltrering(dto.navn(),
+            dto.køSortering() != null ? dto.køSortering() : KøSortering.BEHANDLINGSFRIST,
+            avdeling);
+        filtrering.setId(dto.id());
         filtrering.setBeskrivelse(dto.beskrivelse());
-
-        if (dto.køSortering() != null) {
-            filtrering.setSortering(dto.køSortering());
-        }
-        if (avdeling != null) {
-            filtrering.setAvdeling(avdeling);
-        }
 
         // Skjermet field not available in OppgaveFiltrering entity TODO: fiks denne
         filtrering.setFomDato(dto.fomDato());
@@ -177,17 +169,6 @@ public final class GcpImportMapper {
         setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return filtrering;
-    }
-
-    // Utility methods for setting private fields using reflection
-    public static void setIdUsingReflection(Object entity, Long id) {
-        try {
-            var field = entity.getClass().getDeclaredField("id");
-            field.setAccessible(true);
-            field.set(entity, id);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set id field", e);
-        }
     }
 
     public static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,

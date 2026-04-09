@@ -1,5 +1,7 @@
 package no.nav.foreldrepenger.los.organisasjon;
 
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -39,12 +41,20 @@ public class SaksbehandlerGruppe extends BaseEntitet {
         // Hibernate
     }
 
-    public SaksbehandlerGruppe(String gruppeNavn) {
+    public SaksbehandlerGruppe(String gruppeNavn, Avdeling avdeling) {
+        Objects.requireNonNull(avdeling, "avdeling");
+        Objects.requireNonNull(gruppeNavn, "gruppeNavn");
         this.gruppeNavn = gruppeNavn;
+        this.avdeling = avdeling;
     }
 
     public Long getId() {
         return id;
+    }
+
+    // TODO: Fjerne etter migrering
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Avdeling getAvdeling() {

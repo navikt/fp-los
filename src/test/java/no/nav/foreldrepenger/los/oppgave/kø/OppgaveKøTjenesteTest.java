@@ -145,10 +145,7 @@ class OppgaveKøTjenesteTest {
 
 
     private Long leggeInnEtSettMedAndreKriterierOppgaver() {
-        var oppgaveFiltrering = new OppgaveFiltrering();
-        oppgaveFiltrering.setNavn("OPPRETTET");
-        oppgaveFiltrering.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
+        var oppgaveFiltrering = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
 
@@ -173,10 +170,7 @@ class OppgaveKøTjenesteTest {
     private List<OppgaveFiltrering> leggInnEtSettMedLister(int antallLister) {
         List<OppgaveFiltrering> filtre = new ArrayList<>();
         for (var i = 0; i < antallLister; i++) {
-            var oppgaveFiltrering = new OppgaveFiltrering();
-            oppgaveFiltrering.setNavn("Test " + i);
-            oppgaveFiltrering.setSortering(KøSortering.BEHANDLINGSFRIST);
-            oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
+            var oppgaveFiltrering = new OppgaveFiltrering("Test " + i, KøSortering.BEHANDLINGSFRIST, avdelingDrammen(entityManager));
 
             entityManager.persist(oppgaveFiltrering);
             filtre.add(oppgaveFiltrering);
@@ -187,10 +181,7 @@ class OppgaveKøTjenesteTest {
 
 
     private Long leggeInnEtSettMedOppgaver() {
-        var oppgaveFiltrering = new OppgaveFiltrering();
-        oppgaveFiltrering.setNavn("OPPRETTET");
-        oppgaveFiltrering.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
+        var oppgaveFiltrering = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
 
