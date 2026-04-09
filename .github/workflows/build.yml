@@ -12,7 +12,6 @@ on:
       - 'LICENSE'
       - 'CODEOWNERS'
       - 'docs/**'
-      - '.oracle/**'
       - '.github/*.yml'
 
 jobs:
