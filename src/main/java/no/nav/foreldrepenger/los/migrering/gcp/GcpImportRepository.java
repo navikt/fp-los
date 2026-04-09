@@ -66,6 +66,7 @@ public class GcpImportRepository {
             importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
             lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
             lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
+            // TODO: lagreKøStatistikk()
             importKvittering.kjørtUtenFeil(true);
         } catch (Exception e) {
             LOG.error("MIGRERING (GCP): feilet", e);
