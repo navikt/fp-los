@@ -146,6 +146,12 @@ public final class GcpImportMapper {
         // Skjermet field not available in OppgaveFiltrering entity TODO: fiks denne
         filtrering.setFomDato(dto.fomDato());
         filtrering.setTomDato(dto.tomDato());
+        if (dto.fomDager() != null) {
+            filtrering.setFra(dto.fomDager());
+        }
+        if (dto.tomDager() != null) {
+            filtrering.setTil(dto.tomDager());
+        }
 
         if (dto.periodeFilter() != null) {
             filtrering.setPeriodefilter(dto.periodeFilter());

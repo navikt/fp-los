@@ -12,11 +12,11 @@ import no.nav.vedtak.util.InputValideringRegex;
  * DTO for migrating Saksbehandler entities
  */
 public record SaksbehandlerDataDto(
-    @NotNull @Size(max = 500) @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}") String saksbehandlerIdent,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String ansattVedEnhet,
-    @NotNull @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull @Size(max = 20) @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}") String saksbehandlerIdent,
+    @Size(max = 250) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
+    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String ansattVedEnhet,
+    @NotNull @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
     @NotNull  LocalDateTime opprettetTidspunkt,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
+    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt
 ) {}

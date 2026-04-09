@@ -19,9 +19,12 @@ import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
+import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
 
 /**
  * Eksport fra FSS-los. Beholder PK.
@@ -134,7 +137,31 @@ public class FssEksportRepository {
                 .map(FssExportMapper::mapToSaksbehandlerGruppeDataDto)
                 .toList();
 
-        return new OrgDataDto(avdelinger, saksbehandlere, avdelingSaksbehandlere, saksbehandlerGrupper);
+        var gruppeTilknytninger = entityManager.createQuery("FROM GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class)
+                .getResultList()
+                .stream()
+                .map(FssExportMapper::mapToGruppeTilknytningDataDto)
+                .toList();
+
+        return new OrgDataDto(avdelinger, saksbehandlere, avdelingSaksbehandlere, saksbehandlerGrupper, gruppeTilknytninger);
+    }
+
+    public BulkDataWrapper hentStatistikk(int startPosisjon, int batchSize) {
+        var enhetYtelseBehandling = entityManager.createQuery("FROM StatistikkEnhetYtelseBehandling ORDER BY tidsstempel ASC", StatistikkEnhetYtelseBehandling.class)
+                .setFirstResult(startPosisjon)
+                .setMaxResults(batchSize)
+                .getResultStream()
+                .map(FssExportMapper::mapToStatEnhetYtelseBehandlingDataDto)
+                .toList();
+
+        var oppgaveFilter = entityManager.createQuery("FROM StatistikkOppgaveFilter ORDER BY tidsstempel ASC", StatistikkOppgaveFilter.class)
+                .setFirstResult(startPosisjon)
+                .setMaxResults(batchSize)
+                .getResultStream()
+                .map(FssExportMapper::mapToStatOppgaveFilterDataDto)
+                .toList();
+
+        return BulkDataWrapper.statistikk(enhetYtelseBehandling, oppgaveFilter);
     }
 
     private KøOppsettDto hentOppgaveKøData() {

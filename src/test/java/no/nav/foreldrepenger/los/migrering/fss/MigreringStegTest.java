@@ -14,8 +14,8 @@ class MigreringStegTest {
         assertThat(MigreringSteg.DEL1_ORGANISASJON_OG_KØ.neste()).isEqualTo(MigreringSteg.DEL2_AKTIVE_OPPGAVER);
         assertThat(MigreringSteg.DEL2_AKTIVE_OPPGAVER.neste()).isEqualTo(MigreringSteg.DEL3_INAKTIVE_OPPGAVER);
         assertThat(MigreringSteg.DEL3_INAKTIVE_OPPGAVER.neste()).isEqualTo(MigreringSteg.DEL4_BEHANDLINGER);
-        assertThat(MigreringSteg.DEL4_BEHANDLINGER.neste()).isEqualTo(MigreringSteg.DEL5_FERDIG);
-        assertThat(MigreringSteg.DEL5_FERDIG.neste()).isEqualTo(MigreringSteg.DEL5_FERDIG);
+        assertThat(MigreringSteg.DEL4_BEHANDLINGER.neste()).isEqualTo(MigreringSteg.DEL5_STATISTIKK);
+        assertThat(MigreringSteg.DEL5_STATISTIKK.neste()).isEqualTo(MigreringSteg.DEL6_FERDIG);
     }
 
     @Test
@@ -39,21 +39,21 @@ class MigreringStegTest {
     }
 
     @Test
-    void erFerdig_del5_shouldThrow() {
-        assertThatThrownBy(() -> MigreringSteg.DEL5_FERDIG.erFerdig(0, 1000))
+    void erFerdig_del6_shouldThrow() {
+        assertThatThrownBy(() -> MigreringSteg.DEL6_FERDIG.erFerdig(0, 1000))
             .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    void hent_del5_shouldThrow() {
-        assertThatThrownBy(() -> MigreringSteg.DEL5_FERDIG.hent(null, 0, 1000))
+    void hent_del6_shouldThrow() {
+        assertThatThrownBy(() -> MigreringSteg.DEL6_FERDIG.hent(null, 0, 1000))
             .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void hentetAntall_del5_shouldReturnZero() {
         var bulkData = no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper.behandlinger(java.util.List.of());
-        assertThat(MigreringSteg.DEL5_FERDIG.hentetAntall(bulkData)).isZero();
+        assertThat(MigreringSteg.DEL6_FERDIG.hentetAntall(bulkData)).isZero();
     }
 }
 
