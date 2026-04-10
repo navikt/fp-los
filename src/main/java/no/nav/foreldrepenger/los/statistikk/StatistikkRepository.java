@@ -101,8 +101,8 @@ public class StatistikkRepository {
     public Optional<StatistikkOppgaveFilter> hentSisteStatistikkOppgaveFilter(Long oppgaveFilterId, Set<InnslagType> inkluderTyper) {
         return entityManager.createQuery("""
             SELECT s FROM StatistikkOppgaveFilter s
-            where s.oppgaveFilterId = :oppgaveFilterId AND s.innslagType IN :innslagstyper
-            ORDER BY s.tidsstempel DESC
+            where s.nøkkel.oppgaveFilterId = :oppgaveFilterId AND s.innslagType IN :innslagstyper
+            ORDER BY s.nøkkel.tidsstempel DESC
             """, StatistikkOppgaveFilter.class)
             .setParameter("oppgaveFilterId", oppgaveFilterId)
             .setParameter("innslagstyper", inkluderTyper)
@@ -115,8 +115,8 @@ public class StatistikkRepository {
         var startpunkt = fom.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         return entityManager.createQuery("""
             SELECT s FROM StatistikkOppgaveFilter s
-            WHERE s.oppgaveFilterId = :oppgaveFilterId AND s.tidsstempel >= :tidsstempel and s.innslagType = :innslagtype
-            ORDER BY s.tidsstempel
+            WHERE s.nøkkel.oppgaveFilterId = :oppgaveFilterId AND s.nøkkel.tidsstempel >= :tidsstempel and s.innslagType = :innslagtype
+            ORDER BY s.nøkkel.tidsstempel
             """, StatistikkOppgaveFilter.class)
             .setParameter("tidsstempel", startpunkt)
             .setParameter("oppgaveFilterId", oppgaveFilterId)
@@ -127,7 +127,7 @@ public class StatistikkRepository {
     private void fjernSnapshotStatistikkOppgaveFilterTidligereEnn(Long oppgaveFilterId) {
         entityManager.createQuery("""
             DELETE FROM StatistikkOppgaveFilter s
-            WHERE s.oppgaveFilterId = :oppgaveFilterId AND s.innslagType = :innslagtype
+            WHERE s.nøkkel.oppgaveFilterId = :oppgaveFilterId AND s.innslagType = :innslagtype
             """)
             .setParameter("oppgaveFilterId", oppgaveFilterId)
             .setParameter("innslagtype", InnslagType.SNAPSHOT)
@@ -137,10 +137,10 @@ public class StatistikkRepository {
     public Map<Long, StatistikkOppgaveFilter> hentSisteStatistikkForAlleOppgaveFiltre() {
         var alleStatistikk = entityManager.createQuery("""
         SELECT s FROM StatistikkOppgaveFilter s
-        WHERE (s.oppgaveFilterId, s.tidsstempel) IN (
-            SELECT s2.oppgaveFilterId, MAX(s2.tidsstempel)
+        WHERE (s.nøkkel.oppgaveFilterId, s.nøkkel.tidsstempel) IN (
+            SELECT s2.nøkkel.oppgaveFilterId, MAX(s2.nøkkel.tidsstempel)
             FROM StatistikkOppgaveFilter s2
-            GROUP BY s2.oppgaveFilterId
+            GROUP BY s2.nøkkel.oppgaveFilterId
         )
         """, StatistikkOppgaveFilter.class)
             .getResultList();

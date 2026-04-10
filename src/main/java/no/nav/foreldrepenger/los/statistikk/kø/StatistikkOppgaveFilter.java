@@ -5,27 +5,21 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@IdClass(StatistikkOppgaveFilterType.class)
 @Table(name = "STAT_OPPGAVE_FILTER")
 public class StatistikkOppgaveFilter implements Serializable {
-    @Id
-    @NotNull
-    @Column(name = "OPPGAVE_FILTER_ID", updatable = false, nullable = false)
-    private Long oppgaveFilterId;
 
-    @Id
-    @NotNull
-    @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false)
-    private Long tidsstempel;
+    @EmbeddedId
+    @Valid
+    private StatistikkOppgaveFilterNøkkel nøkkel;
 
     @NotNull
     @Column(name = "STAT_DATO", updatable = false, nullable = false)
@@ -66,8 +60,7 @@ public class StatistikkOppgaveFilter implements Serializable {
                                    Integer antallOpprettet,
                                    Integer antallAvsluttet,
                                    InnslagType innslagType) {
-        this.oppgaveFilterId = oppgaveFilterId;
-        this.tidsstempel = tidsstempel;
+        this.nøkkel = new StatistikkOppgaveFilterNøkkel(oppgaveFilterId, tidsstempel);
         this.statistikkDato = statistikkDato;
         this.antallAktive = antallAktive;
         this.antallTilgjengelige = antallTilgjengelige;
@@ -78,11 +71,11 @@ public class StatistikkOppgaveFilter implements Serializable {
     }
 
     public Long getTidsstempel() {
-        return tidsstempel;
+        return nøkkel.tidsstempel();
     }
 
     public Long getOppgaveFilterId() {
-        return oppgaveFilterId;
+        return nøkkel.oppgaveFilterId();
     }
 
     public LocalDate getStatistikkDato() {
@@ -115,8 +108,8 @@ public class StatistikkOppgaveFilter implements Serializable {
 
     @Override
     public String toString() {
-        return "StatistikkOppgaveFilter{" + "oppgaveFilterId=" + oppgaveFilterId + ", tidsstempel=" + tidsstempel + ", statistikkDato="
-            + statistikkDato + ", antallAktive=" + antallAktive + ", antallTilgjengelige=" + antallTilgjengelige + ", antallVentende="
-            + antallVentende + ", antallOpprettet=" + antallOpprettet + ", antallAvsluttet=" + antallAvsluttet + ", innslagType=" + innslagType + '}';
+        return "StatistikkOppgaveFilter{" + "nøkkel=" + nøkkel + ", statistikkDato=" + statistikkDato + ", antallAktive=" + antallAktive
+            + ", antallTilgjengelige=" + antallTilgjengelige + ", antallVentende=" + antallVentende + ", antallOpprettet=" + antallOpprettet
+            + ", antallAvsluttet=" + antallAvsluttet + ", innslagType=" + innslagType + '}';
     }
 }
