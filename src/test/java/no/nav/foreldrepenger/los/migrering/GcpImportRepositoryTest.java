@@ -2,7 +2,18 @@ package no.nav.foreldrepenger.los.migrering;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+
+import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
+
+import no.nav.foreldrepenger.los.migrering.fss.FssExportMapper;
+import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
+
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,10 +159,57 @@ class GcpImportRepositoryTest {
         assertThat(grupper.getFirst().getGruppeNavn()).isEqualTo("Testgruppe");
     }
 
-
     @Test
     void lagre_stats_oppgavefilter() {
+        var dtoEksisterendeEntitet = new StatOppgaveFilterDataDto(1L,
+            1735689600000L,
+            LocalDate.of(2026, 1, 1),
+            1, 2, 3, 4, 5,
+            InnslagType.REGELMESSIG);
+        var førsteKvittering = repo.lagre(BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoEksisterendeEntitet)));
+        em.flush();
+        em.clear();
 
+        assertThat(førsteKvittering.kjørtUtenFeil()).isTrue();
+        assertThat(førsteKvittering.statistikkOppgaveFilter()).isEqualTo(1);
+
+        var dtoNy = new StatOppgaveFilterDataDto(
+            2L,
+            1235689600000L,
+            LocalDate.of(2026, 2, 2),
+            2, 2, 2, 2, 2,
+            InnslagType.REGELMESSIG
+        );
+        var bulkData = BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoNy, dtoEksisterendeEntitet));
+        assertThat(bulkData.statistikkOppgaveFilter()).hasSize(2);
+
+        var andreKvittering = repo.lagre(bulkData);
+        assertThat(andreKvittering.kjørtUtenFeil()).isTrue();
+        assertThat(andreKvittering.statistikkOppgaveFilter()).isEqualTo(1);
+
+        em.flush();
+        em.clear();
+
+        var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
+        var stat = em.find(StatistikkOppgaveFilter.class, nøkkel);
+
+        assertThat(stat).isNotNull();
+        assertThat(stat.getOppgaveFilterId()).isEqualTo(2L);
+        assertThat(stat.getTidsstempel()).isEqualTo(1235689600000L);
+        assertThat(stat.getStatistikkDato()).isEqualTo(LocalDate.of(2026, 2, 2));
+        assertThat(stat.getAntallAktive()).isEqualTo(2);
+        assertThat(stat.getAntallTilgjengelige()).isEqualTo(2);
+        assertThat(stat.getAntallVentende()).isEqualTo(2);
+        assertThat(stat.getAntallOpprettet()).isEqualTo(2);
+        assertThat(stat.getAntallAvsluttet()).isEqualTo(2);
+        assertThat(stat.getInnslagType()).isEqualTo(InnslagType.REGELMESSIG);
+
+        var second = repo.lagre(bulkData);
+        assertThat(second.kjørtUtenFeil()).isTrue();
+        assertThat(second.statistikkOppgaveFilter()).isZero();
+
+        em.clear();
     }
+
 }
 
