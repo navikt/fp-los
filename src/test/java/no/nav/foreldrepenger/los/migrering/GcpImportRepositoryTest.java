@@ -147,5 +147,11 @@ class GcpImportRepositoryTest {
         assertThat(grupper).isNotEmpty();
         assertThat(grupper.getFirst().getGruppeNavn()).isEqualTo("Testgruppe");
     }
+
+
+    @Test
+    void lagre_stats_oppgavefilter() {
+
+    }
 }
 

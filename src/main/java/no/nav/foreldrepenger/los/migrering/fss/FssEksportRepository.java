@@ -146,7 +146,7 @@ public class FssEksportRepository {
         return new OrgDataDto(avdelinger, saksbehandlere, avdelingSaksbehandlere, saksbehandlerGrupper, gruppeTilknytninger);
     }
 
-    public BulkDataWrapper hentStatistikk(int startPosisjon, int batchSize) {
+    public BulkDataWrapper hentStatistikkEnhetYtelseBehandling(int startPosisjon, int batchSize) {
         var enhetYtelseBehandling = entityManager.createQuery("FROM StatistikkEnhetYtelseBehandling ORDER BY tidsstempel ASC", StatistikkEnhetYtelseBehandling.class)
                 .setFirstResult(startPosisjon)
                 .setMaxResults(batchSize)
@@ -154,14 +154,17 @@ public class FssEksportRepository {
                 .map(FssExportMapper::mapToStatEnhetYtelseBehandlingDataDto)
                 .toList();
 
-        var oppgaveFilter = entityManager.createQuery("FROM StatistikkOppgaveFilter ORDER BY tidsstempel ASC", StatistikkOppgaveFilter.class)
-                .setFirstResult(startPosisjon)
-                .setMaxResults(batchSize)
-                .getResultStream()
-                .map(FssExportMapper::mapToStatOppgaveFilterDataDto)
-                .toList();
+        return BulkDataWrapper.statistikkEnhetYtelseBehandling(enhetYtelseBehandling);
+    }
 
-        return BulkDataWrapper.statistikk(enhetYtelseBehandling, oppgaveFilter);
+    public BulkDataWrapper hentStatistikkOppgaveFilter(int startPosisjon, int batchSize) {
+        var oppgaveFilter = entityManager.createQuery("FROM StatistikkOppgaveFilter ORDER BY tidsstempel ASC", StatistikkOppgaveFilter.class)
+            .setFirstResult(startPosisjon)
+            .setMaxResults(batchSize)
+            .getResultStream()
+            .map(FssExportMapper::mapToStatOppgaveFilterDataDto)
+            .toList();
+        return BulkDataWrapper.statistikkOppgaveFilter(oppgaveFilter);
     }
 
     private KøOppsettDto hentOppgaveKøData() {
