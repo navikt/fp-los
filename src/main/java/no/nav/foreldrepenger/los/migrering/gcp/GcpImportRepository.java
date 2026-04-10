@@ -401,6 +401,7 @@ public class GcpImportRepository {
             }
         }
 
+        entityManager.flush();
         return countEnhetYtelseBehandling;
     }
 
@@ -429,6 +430,7 @@ public class GcpImportRepository {
             }
         }
 
+        entityManager.flush();
         return countOppgaveFilter;
     }
 

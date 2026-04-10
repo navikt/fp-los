@@ -166,12 +166,11 @@ class GcpImportRepositoryTest {
             LocalDate.of(2026, 1, 1),
             1, 2, 3, 4, 5,
             InnslagType.REGELMESSIG);
-        var førsteKvittering = repo.lagre(BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoEksisterendeEntitet)));
-        em.flush();
+        var førsteKvittering1Ny = repo.lagre(BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoEksisterendeEntitet)));
         em.clear();
 
-        assertThat(førsteKvittering.kjørtUtenFeil()).isTrue();
-        assertThat(førsteKvittering.statistikkOppgaveFilter()).isEqualTo(1);
+        assertThat(førsteKvittering1Ny.kjørtUtenFeil()).isTrue();
+        assertThat(førsteKvittering1Ny.statistikkOppgaveFilter()).isEqualTo(1);
 
         var dtoNy = new StatOppgaveFilterDataDto(
             2L,
@@ -180,14 +179,13 @@ class GcpImportRepositoryTest {
             2, 2, 2, 2, 2,
             InnslagType.REGELMESSIG
         );
-        var bulkData = BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoNy, dtoEksisterendeEntitet));
-        assertThat(bulkData.statistikkOppgaveFilter()).hasSize(2);
+        var begge = BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoNy, dtoEksisterendeEntitet));
+        assertThat(begge.statistikkOppgaveFilter()).hasSize(2);
 
-        var andreKvittering = repo.lagre(bulkData);
-        assertThat(andreKvittering.kjørtUtenFeil()).isTrue();
-        assertThat(andreKvittering.statistikkOppgaveFilter()).isEqualTo(1);
+        var andreKvittering1Ny1Gammel = repo.lagre(begge);
+        assertThat(andreKvittering1Ny1Gammel.kjørtUtenFeil()).isTrue();
+        assertThat(andreKvittering1Ny1Gammel.statistikkOppgaveFilter()).isEqualTo(1);
 
-        em.flush();
         em.clear();
 
         var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
@@ -204,11 +202,10 @@ class GcpImportRepositoryTest {
         assertThat(stat.getAntallAvsluttet()).isEqualTo(2);
         assertThat(stat.getInnslagType()).isEqualTo(InnslagType.REGELMESSIG);
 
-        var second = repo.lagre(bulkData);
-        assertThat(second.kjørtUtenFeil()).isTrue();
-        assertThat(second.statistikkOppgaveFilter()).isZero();
-
         em.clear();
+        var tredjeKvittering2Gamle = repo.lagre(begge);
+        assertThat(tredjeKvittering2Gamle.kjørtUtenFeil()).isTrue();
+        assertThat(tredjeKvittering2Gamle.statistikkOppgaveFilter()).isZero();
     }
 
 }
