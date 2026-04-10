@@ -79,8 +79,8 @@ public class StatistikkRepository {
         var startpunkt = fom.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         return entityManager.createQuery("""
             SELECT s FROM StatistikkEnhetYtelseBehandling s
-            WHERE s.behandlendeEnhet = :enhet AND s.tidsstempel >= :tidsstempel
-            ORDER BY s.tidsstempel, s.fagsakYtelseType, s.behandlingType
+            WHERE s.nøkkel.behandlendeEnhet = :enhet AND s.nøkkel.tidsstempel >= :tidsstempel
+            ORDER BY s.nøkkel.tidsstempel, s.nøkkel.fagsakYtelseType, s.nøkkel.behandlingType
             """, StatistikkEnhetYtelseBehandling.class)
             .setParameter("enhet", enhet)
             .setParameter("tidsstempel", startpunkt)
@@ -91,8 +91,8 @@ public class StatistikkRepository {
         var startpunkt = fom.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         return entityManager.createQuery("""
             SELECT s FROM StatistikkEnhetYtelseBehandling s
-            WHERE s.tidsstempel >= :tidsstempel
-            ORDER BY s.tidsstempel, s.fagsakYtelseType, s.behandlingType
+            WHERE s.nøkkel.tidsstempel >= :tidsstempel
+            ORDER BY s.nøkkel.tidsstempel, s.nøkkel.fagsakYtelseType, s.nøkkel.behandlingType
             """, StatistikkEnhetYtelseBehandling.class)
             .setParameter("tidsstempel", startpunkt)
             .getResultList();
