@@ -3,17 +3,7 @@ package no.nav.foreldrepenger.los.migrering;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
-
-import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
-
-import no.nav.foreldrepenger.los.migrering.fss.FssExportMapper;
-import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
-import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
-
-import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRepository;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
@@ -32,6 +23,9 @@ import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 @ExtendWith(JpaExtension.class)
 class GcpImportRepositoryTest {
