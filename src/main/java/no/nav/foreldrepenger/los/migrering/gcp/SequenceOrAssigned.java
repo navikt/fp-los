@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.los.oppgave;
+package no.nav.foreldrepenger.los.migrering.gcp;
 
 import org.hibernate.annotations.IdGeneratorType;
 

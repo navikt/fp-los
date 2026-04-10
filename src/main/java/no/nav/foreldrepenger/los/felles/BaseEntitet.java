@@ -38,7 +38,7 @@ public class BaseEntitet implements Serializable {
     private LocalDateTime endretTidspunkt; // NOSONAR
 
     @Transient
-    private boolean skipAutoAudit;
+    private transient boolean skipAutoAudit = false;
 
     @PrePersist
     protected void onCreate() {

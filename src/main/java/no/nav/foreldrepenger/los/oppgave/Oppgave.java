@@ -28,12 +28,14 @@ import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssignedMarker;
+import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssigned;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 @Entity(name = "Oppgave")
 @Table(name = "OPPGAVE")
-public class Oppgave extends BaseEntitet {
+public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Long> {
 
     @Id
     //@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GLOBAL_PK")
