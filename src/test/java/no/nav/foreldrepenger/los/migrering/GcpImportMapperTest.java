@@ -1,11 +1,13 @@
 package no.nav.foreldrepenger.los.migrering;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,13 +82,12 @@ class GcpImportMapperTest {
     }
 
     @Test
-    void mapSaksbehandlerGruppe_withNullAvdeling_shouldHandleGracefully() {
+    void mapSaksbehandlerGruppe_withNullAvdeling_shouldThrowException() {
         var dto = new SaksbehandlerGruppeDataDto(55L, "Gruppe B", "4806",
             "VL", NOW, "VL", NOW);
 
-        var gruppe = GcpImportMapper.mapSaksbehandlerGruppe(dto, null);
-
-        assertThat(gruppe.getAvdeling()).isNull();
+        assertThatThrownBy(() -> GcpImportMapper.mapSaksbehandlerGruppe(dto, null))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -114,7 +115,7 @@ class GcpImportMapperTest {
             Set.of(AndreKriterierType.PAPIRSØKNAD)
         );
 
-        var behandling = new no.nav.foreldrepenger.los.oppgave.Behandling();
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
         GcpImportMapper.mapBehandling(dto, behandling);
 
         assertThat(behandling.getId()).isEqualTo(id);
@@ -134,8 +135,9 @@ class GcpImportMapperTest {
     void mapOppgave_shouldPreserveAllFields() {
         var dto = TestMigreringData.lagOppgaveDataDto(42L);
 
-        var oppgave = new Oppgave();
-        GcpImportMapper.mapOppgave(dto, new Behandling(), oppgave);
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
+        var oppgave = new Oppgave(behandling, "4806");
+        GcpImportMapper.mapOppgave(dto, behandling, oppgave);
 
         assertThat(oppgave.getId()).isEqualTo(42L);
         //assertThat(oppgave.getSaksnummer().getVerdi()).isEqualTo("123456");
@@ -155,8 +157,9 @@ class GcpImportMapperTest {
             null, null
         );
 
-        var oppgave = new Oppgave();
-        GcpImportMapper.mapOppgave(dto, new Behandling(), oppgave);
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
+        var oppgave = new Oppgave(behandling, "4806");
+        GcpImportMapper.mapOppgave(dto, behandling, oppgave);
         assertThat(oppgave.getOppgaveEgenskaper()).isEmpty();
     }
 
@@ -169,9 +172,10 @@ class GcpImportMapperTest {
             "Z888888", NOW.minusHours(2)
         );
 
-        var oppgave = new Oppgave();
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
+        var oppgave = new Oppgave(behandling, "4806");
 
-        var reservasjon = new Reservasjon();
+        var reservasjon = new Reservasjon(oppgave, "Z999999");
         GcpImportMapper.mapReservasjon(dto, reservasjon, oppgave);
 
         assertThat(reservasjon.getReservertAv()).isEqualTo("Z999999");
@@ -183,7 +187,8 @@ class GcpImportMapperTest {
     void mapOppgaveEgenskap_tilBeslutter_shouldMapSisteSaksbehandler() {
         var dto = new OppgaveEgenskapDataDto(AndreKriterierType.TIL_BESLUTTER, "Z999999");
 
-        var oppgave = new Oppgave();
+        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
+        var oppgave = new Oppgave(behandling, "4806");
         oppgave.leggTilOppgaveEgenskap(dto.andreKriterierType(), dto.sisteSaksbehandlerForTotrinn());
         var egenskap = oppgave.getOppgaveEgenskaper().stream().findFirst().orElseGet(Assertions::fail);
 

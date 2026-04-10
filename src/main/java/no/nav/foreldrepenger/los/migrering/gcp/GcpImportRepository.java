@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
@@ -121,7 +122,7 @@ public class GcpImportRepository {
                     continue;
                 }
                 var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
-                var oppgave = new Oppgave();
+                var oppgave = new Oppgave(behRef, dto.behandlendeEnhet());
                 GcpImportMapper.mapOppgave(dto, behRef, oppgave);
                 entityManager.merge(oppgave);
                 oppgaveCount++;
@@ -145,7 +146,7 @@ public class GcpImportRepository {
                 var oppgave = gcpOppgaveMap.get(dto.id());
                 var nyReservasjon = reservasjon == null;
                 if (nyReservasjon) {
-                   reservasjon = new Reservasjon();
+                   reservasjon = new Reservasjon(oppgave, resDto.reservertAv());
                 }
                 GcpImportMapper.mapReservasjon(resDto, reservasjon, oppgave);
 
@@ -232,10 +233,7 @@ public class GcpImportRepository {
                 }
                 GcpImportMapper.setBaseEntitetFields(existing, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
             } else {
-                var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn());
-                if (avdeling != null) {
-                    gruppe.setAvdeling(avdeling);
-                }
+                var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn(), avdeling);
                 GcpImportMapper.setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
                 entityManager.persist(gruppe);
             }
@@ -281,13 +279,18 @@ public class GcpImportRepository {
                 .collect(Collectors.toMap(Behandling::getId, r -> r));
 
             for (BehandlingDataDto dto : batch) {
-                var behandling = gcpBehandlingMap.getOrDefault(dto.id(), new Behandling());
+                var erNy = !gcpBehandlingMap.containsKey(dto.id());
+                var behandling = erNy
+                    ? new Behandling(dto.id(), new Saksnummer(dto.saksnummer().saksnummer()), dto.aktørId(),
+                        dto.behandlendeEnhet(), dto.kildeSystem(), dto.fagsakYtelseType(),
+                        dto.behandlingType(), dto.behandlingTilstand())
+                    : gcpBehandlingMap.get(dto.id());
                 GcpImportMapper.mapBehandling(dto, behandling);
 
-                if (gcpBehandlingMap.containsKey(dto.id())) {
-                    entityManager.merge(behandling);
-                } else {
+                if (erNy) {
                     entityManager.persist(behandling);
+                } else {
+                    entityManager.merge(behandling);
                 }
 
                 count++;
@@ -307,22 +310,18 @@ public class GcpImportRepository {
         var filtreringByImportId = new HashMap<Long, OppgaveFiltrering>();
 
         for (var dto : køOppsettDto.oppgaveFiltrering()) {
-            var avdeling = dto.avdelingId() != null ? entityManager.getReference(Avdeling.class, dto.avdelingId()) : null;
+            var avdeling = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var filtrering = entityManager.find(OppgaveFiltrering.class, dto.id());
             var erNyFiltrering = filtrering == null;
 
             if (erNyFiltrering) {
-                filtrering = new OppgaveFiltrering();
-            }
-
-            filtrering.setNavn(dto.navn());
-            filtrering.setBeskrivelse(dto.beskrivelse());
-            if (dto.køSortering() != null) {
+                filtrering = new OppgaveFiltrering(dto.navn(), dto.køSortering(), avdeling);
+            } else {
+                filtrering.setNavn(dto.navn());
                 filtrering.setSortering(dto.køSortering());
-            }
-            if (avdeling != null) {
                 filtrering.setAvdeling(avdeling);
             }
+            filtrering.setBeskrivelse(dto.beskrivelse());
             filtrering.setFomDato(dto.fomDato());
             filtrering.setTomDato(dto.tomDato());
             if (dto.fomDager() != null) {

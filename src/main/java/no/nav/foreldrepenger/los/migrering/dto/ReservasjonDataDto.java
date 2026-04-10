@@ -17,8 +17,8 @@ public record ReservasjonDataDto(
     @Size(max = 100) @Pattern(regexp = InputValideringRegex.FRITEKST) String flyttetAv,
     LocalDateTime flyttetTidspunkt,
     @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String begrunnelse,
-    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
-    LocalDateTime opprettetTidspunkt,
+    @NotNull @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull LocalDateTime opprettetTidspunkt,
     @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt
 ) {

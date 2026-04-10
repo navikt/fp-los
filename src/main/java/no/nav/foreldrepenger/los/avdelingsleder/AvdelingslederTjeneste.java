@@ -49,10 +49,7 @@ public class AvdelingslederTjeneste {
 
     public Long lagNyOppgaveFiltrering(String avdelingEnhet) {
         var avdeling = organisasjonRepository.hentAvdelingFraEnhet(avdelingEnhet).orElseThrow();
-        var nyOppgavefiltrering = new OppgaveFiltrering();
-        nyOppgavefiltrering.setNavn("Ny liste");
-        nyOppgavefiltrering.setAvdeling(avdeling);
-        nyOppgavefiltrering.setSortering(KøSortering.BEHANDLINGSFRIST);
+        var nyOppgavefiltrering = new OppgaveFiltrering("Ny liste", KøSortering.BEHANDLINGSFRIST, avdeling);
         var eksluderAndreKriterier = EnumSet.allOf(AndreKriterierType.class).stream()
             .filter(AndreKriterierType::isDefaultEkskludert)
             .collect(Collectors.toSet());

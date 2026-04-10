@@ -59,10 +59,7 @@ class OppgaveTjenesteTest {
 
 
     private Long leggeInnEtSettMedOppgaver() {
-        var oppgaveFiltrering = new OppgaveFiltrering();
-        oppgaveFiltrering.setNavn("OPPRETTET");
-        oppgaveFiltrering.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
+        var oppgaveFiltrering = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(oppgaveFiltrering);
 
@@ -117,10 +114,7 @@ class OppgaveTjenesteTest {
         var tredjeOppgave = opprettOgLargeOppgaveTilSortering(8, 9, 8);
         var fjerdeOppgave = opprettOgLargeOppgaveTilSortering(0, 10, 0);
 
-        var opprettet = new OppgaveFiltrering();
-        opprettet.setNavn("OPPRETTET");
-        opprettet.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        opprettet.setAvdeling(avdelingDrammen(entityManager));
+        var opprettet = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdelingDrammen(entityManager));
         oppgaveRepository.lagre(opprettet);
 
         var oppgaves = oppgaveKøTjeneste.hentOppgaver(opprettet.getId(), 100);
@@ -134,10 +128,7 @@ class OppgaveTjenesteTest {
         var tredjeOppgave = opprettOgLargeOppgaveTilSortering(9, 8, 10);
         var fjerdeOppgave = opprettOgLargeOppgaveTilSortering(10, 0, 9);
 
-        var frist = new OppgaveFiltrering();
-        frist.setNavn("FRIST");
-        frist.setSortering(KøSortering.BEHANDLINGSFRIST);
-        frist.setAvdeling(avdelingDrammen(entityManager));
+        var frist = new OppgaveFiltrering("FRIST", KøSortering.BEHANDLINGSFRIST, avdelingDrammen(entityManager));
 
         oppgaveRepository.lagre(frist);
 
@@ -152,10 +143,7 @@ class OppgaveTjenesteTest {
         var tredjeOppgave = opprettOgLargeOppgaveTilSortering(9, 8, 8);
         var andreOppgave = opprettOgLargeOppgaveTilSortering(0, 10, 9);
 
-        var førsteStønadsdag = new OppgaveFiltrering();
-        førsteStønadsdag.setNavn("STØNADSDAG");
-        førsteStønadsdag.setSortering(KøSortering.FØRSTE_STØNADSDAG);
-        førsteStønadsdag.setAvdeling(avdelingDrammen(entityManager));
+        var førsteStønadsdag = new OppgaveFiltrering("STØNADSDAG", KøSortering.FØRSTE_STØNADSDAG, avdelingDrammen(entityManager));
         oppgaveRepository.lagre(førsteStønadsdag);
 
         var oppgaves = oppgaveKøTjeneste.hentOppgaver(førsteStønadsdag.getId(), 100);

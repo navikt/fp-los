@@ -68,8 +68,15 @@ public class Oppgave extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public Oppgave() {
+    protected Oppgave() {
         // Hibernate
+    }
+
+    public Oppgave(Behandling behandling, String behandlendeEnhet) {
+        Objects.requireNonNull(behandling, "behandling");
+        Objects.requireNonNull(behandlendeEnhet, "behandlendeEnhet");
+        this.behandling = behandling;
+        this.behandlendeEnhet = behandlendeEnhet;
     }
 
     public void leggTilOppgaveEgenskap(AndreKriterierType andreKriterierType, String ansvarligSaksbehandlerForTotrinn) {

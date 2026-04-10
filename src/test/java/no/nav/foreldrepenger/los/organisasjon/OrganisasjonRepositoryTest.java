@@ -79,16 +79,12 @@ class OrganisasjonRepositoryTest {
         repository.tilknyttAvdelingSaksbehandler(avdeling, saksbehandlerUtenNavn);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandlerUtenNavn);
 
-        var gruppe = new SaksbehandlerGruppe("Gruppe1");
-        gruppe.setAvdeling(avdelingNasjonal);
+        var gruppe = new SaksbehandlerGruppe("Gruppe1", avdelingNasjonal);
         entityManager.persist(gruppe);
         repository.tilknyttGruppeSaksbehandler(gruppe, saksbehandlerMedNavn);
         repository.tilknyttGruppeSaksbehandler(gruppe, saksbehandlerUtenNavn);
 
-        var ofilter = new OppgaveFiltrering();
-        ofilter.setNavn("BEHANDLINGSFRIST");
-        ofilter.setSortering(BEHANDLINGSFRIST);
-        ofilter.setAvdeling(avdelingNasjonal);
+        var ofilter = new OppgaveFiltrering("BEHANDLINGSFRIST", BEHANDLINGSFRIST, avdelingNasjonal);
         entityManager.persist(ofilter);
         oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandlerUtenNavn, ofilter);
         oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(saksbehandlerMedNavn, ofilter);
@@ -123,8 +119,7 @@ class OrganisasjonRepositoryTest {
         entityManager.persist(saksbehandler2);
         repository.tilknyttAvdelingSaksbehandler(avdelingNasjonal, saksbehandler2);
 
-        var gruppe = new SaksbehandlerGruppe("Gruppe1");
-        gruppe.setAvdeling(avdelingNasjonal);
+        var gruppe = new SaksbehandlerGruppe("Gruppe1", avdelingNasjonal);
         entityManager.persist(gruppe);
         repository.tilknyttGruppeSaksbehandler(gruppe, saksbehandler1);
         repository.tilknyttGruppeSaksbehandler(gruppe, saksbehandler2);

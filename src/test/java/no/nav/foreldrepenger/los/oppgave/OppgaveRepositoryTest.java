@@ -267,14 +267,8 @@ class OppgaveRepositoryTest {
     @Test
     void hentAlleLister() {
         var avdeling = avdelingDrammen(entityManager);
-        var førsteOppgaveFiltrering = new OppgaveFiltrering();
-        førsteOppgaveFiltrering.setNavn("OPPRETTET");
-        førsteOppgaveFiltrering.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        førsteOppgaveFiltrering.setAvdeling(avdeling);
-        var andreOppgaveFiltrering = new OppgaveFiltrering();
-        andreOppgaveFiltrering.setNavn("BEHANDLINGSFRIST");
-        andreOppgaveFiltrering.setSortering(BEHANDLINGSFRIST);
-        andreOppgaveFiltrering.setAvdeling(avdeling);
+        var førsteOppgaveFiltrering = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdeling);
+        var andreOppgaveFiltrering = new OppgaveFiltrering("BEHANDLINGSFRIST", BEHANDLINGSFRIST, avdeling);
 
         entityManager.persist(førsteOppgaveFiltrering);
         entityManager.persist(andreOppgaveFiltrering);
@@ -672,8 +666,7 @@ class OppgaveRepositoryTest {
         entityManager.persist(oppgave);
         entityManager.flush();
 
-        var reservasjon = new Reservasjon(oppgave);
-        reservasjon.setReservertAv("Z999999");
+        var reservasjon = new Reservasjon(oppgave, "Z999999");
         reservasjon.setReservertTil(LocalDateTime.now().plusHours(2));
         entityManager.persist(reservasjon);
         entityManager.flush();
@@ -873,11 +866,7 @@ class OppgaveRepositoryTest {
     }
 
     private OppgaveFiltrering lagFiltrering(String navn, Avdeling avdeling) {
-        var filtrering = new OppgaveFiltrering();
-        filtrering.setNavn(navn);
-        filtrering.setSortering(KøSortering.BEHANDLINGSFRIST);
-        filtrering.setAvdeling(avdeling);
-        return filtrering;
+        return new OppgaveFiltrering(navn, KøSortering.BEHANDLINGSFRIST, avdeling);
     }
 
     private Saksbehandler lagOgPersisterSaksbehandler(String ident) {

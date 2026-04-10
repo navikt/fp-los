@@ -61,10 +61,7 @@ class AvdelingslederTjenesteTest {
 
     @Test
     void testSlettListe() throws IllegalArgumentException {
-        var liste = new OppgaveFiltrering();
-        liste.setNavn("Test");
-        liste.setAvdeling(avdelingDrammen());
-        liste.setSortering(KøSortering.BEHANDLINGSFRIST);
+        var liste = new OppgaveFiltrering("Test", KøSortering.BEHANDLINGSFRIST, avdelingDrammen());
         persistAndFlush(liste);
         avdelingslederTjeneste.slettOppgaveFiltrering(liste);
         entityManager.flush();
@@ -73,11 +70,8 @@ class AvdelingslederTjenesteTest {
 
     @Test
     void test_samlet() {
-        var liste = new OppgaveFiltrering();
-        liste.setNavn("Test");
+        var liste = new OppgaveFiltrering("Test", KøSortering.BEHANDLINGSFRIST, avdelingDrammen());
         liste.setBeskrivelse("Dette er en beskrivelse.");
-        liste.setAvdeling(avdelingDrammen());
-        liste.setSortering(KøSortering.BEHANDLINGSFRIST);
         persistAndFlush(liste);
 
 
