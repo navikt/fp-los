@@ -5,6 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
+
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +76,8 @@ public class GcpImportRepository {
             importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
             lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
             lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
-            importKvittering.statistikk(lagreStatistikk(bulkData.statistikkEnhetYtelseBehandling(), bulkData.statistikkOppgaveFilter()));
+            importKvittering.statistikkEnhetYtelseBehandling(lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling()));
+            importKvittering.statistikkOppgaveFilter(lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter()));
             importKvittering.kjørtUtenFeil(true);
         } catch (Exception e) {
             LOG.error("MIGRERING (GCP): feilet", e);
@@ -80,8 +85,8 @@ public class GcpImportRepository {
         }
 
         var kvittering = importKvittering.build();
-        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikk", kvittering.kjørtUtenFeil(),
-            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(), kvittering.statistikk());
+        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikkOppgaveFilter, {} statistikkEnhetYtelseBehandling", kvittering.kjørtUtenFeil(),
+            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(), kvittering.statistikkOppgaveFilter(), kvittering.statistikkEnhetYtelseBehandling());
         return kvittering;
     }
 
@@ -375,52 +380,56 @@ public class GcpImportRepository {
         return antallKøer;
     }
 
-    private int lagreStatistikk(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos, List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
-        int count = 0;
+    private int lagreStatEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos) {
+        if (enhetYtelseDtos.isEmpty()) return 0;
+
+        int countEnhetYtelseBehandling = 0;
+        var aktuelleNøkler = enhetYtelseDtos.stream()
+            .map(dto -> new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType()))
+            .collect(Collectors.toCollection(HashSet::new));
+
+        entityManager.createQuery("select s.nøkkel from StatistikkEnhetYtelseBehandling s where s.nøkkel in (:nøkler)",
+            StatistikkEnhetYtelseBehandlingNøkkel.class).setParameter("nøkler", aktuelleNøkler).getResultStream().forEach(aktuelleNøkler::remove);
 
         for (var dto : enhetYtelseDtos) {
-            var existing = entityManager.createQuery(
-                    "FROM StatistikkEnhetYtelseBehandling s WHERE s.behandlendeEnhet = :enhet AND s.tidsstempel = :ts AND s.fagsakYtelseType = :yt AND s.behandlingType = :bt",
-                    StatistikkEnhetYtelseBehandling.class)
-                .setParameter("enhet", dto.behandlendeEnhet())
-                .setParameter("ts", dto.tidsstempel())
-                .setParameter("yt", dto.fagsakYtelseType())
-                .setParameter("bt", dto.behandlingType())
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-            if (existing == null) {
-                var stat = new StatistikkEnhetYtelseBehandling(dto.behandlendeEnhet(), dto.tidsstempel(),
-                    dto.fagsakYtelseType(), dto.behandlingType(), dto.statistikkDato(),
-                    dto.antallAktive(), dto.antallOpprettet(), dto.antallAvsluttet());
+            var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType());
+            if (aktuelleNøkler.contains(nøkkel)) {
+                var stat = new StatistikkEnhetYtelseBehandling(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(),
+                    dto.behandlingType(), dto.statistikkDato(), dto.antallAktive(), dto.antallOpprettet(), dto.antallAvsluttet());
                 entityManager.persist(stat);
-                count++;
+                countEnhetYtelseBehandling++;
             }
         }
 
-        entityManager.flush();
+        return countEnhetYtelseBehandling;
+    }
+
+
+    private int lagreStatOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
+        if (oppgaveFilterDtos.isEmpty()) return 0;
+
+        int countOppgaveFilter = 0;
+        var aktuelleNøkler = oppgaveFilterDtos.stream()
+            .map(dto -> new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel()))
+            .collect(Collectors.toCollection(HashSet::new));
+
+        entityManager.createQuery("select s.nøkkel from StatistikkOppgaveFilter s where s.nøkkel in (:nøkler)", StatistikkOppgaveFilterNøkkel.class)
+            .setParameter("nøkler", aktuelleNøkler)
+            .getResultStream()
+            .forEach(aktuelleNøkler::remove);
 
         for (var dto : oppgaveFilterDtos) {
-            var existing = entityManager.createQuery(
-                    "FROM StatistikkOppgaveFilter s WHERE s.oppgaveFilterId = :fid AND s.tidsstempel = :ts",
-                    StatistikkOppgaveFilter.class)
-                .setParameter("fid", dto.oppgaveFilterId())
-                .setParameter("ts", dto.tidsstempel())
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-            if (existing == null) {
+            var nøkkel = new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel());
+            if (aktuelleNøkler.contains(nøkkel)) {
                 var stat = new StatistikkOppgaveFilter(dto.oppgaveFilterId(), dto.tidsstempel(),
                     dto.statistikkDato(), dto.antallAktive(), dto.antallTilgjengelige(),
                     dto.antallVentende(), dto.antallOpprettet(), dto.antallAvsluttet(), dto.innslagType());
                 entityManager.persist(stat);
-                count++;
+                countOppgaveFilter++;
             }
         }
 
-        entityManager.flush();
-        entityManager.clear();
-        return count;
+        return countOppgaveFilter;
     }
 
 }
