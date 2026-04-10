@@ -5,6 +5,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+
+import no.nav.foreldrepenger.los.oppgave.BehandlingType;
+import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -201,6 +209,39 @@ class GcpImportRepositoryTest {
         assertThat(tredjeKvittering2Gamle.kjørtUtenFeil()).isTrue();
         assertThat(tredjeKvittering2Gamle.statistikkOppgaveFilter()).isZero();
     }
+
+    @Test
+    void lagre_stats_enhetytelsebehandling() {
+        var dto = new StatEnhetYtelseBehandlingDataDto("4867",
+            1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD,
+            LocalDate.of(2026, 1, 1),
+            1, 1, 1);
+
+        var kvittering = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        em.clear();
+
+        assertThat(kvittering.kjørtUtenFeil()).isTrue();
+        assertThat(kvittering.statistikkEnhetYtelseBehandling()).isEqualTo(1);
+
+        var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
+        var stat = em.find(StatistikkEnhetYtelseBehandling.class, nøkkel);
+        assertThat(stat).isNotNull();
+        assertThat(stat).matches(s -> s.getBehandlendeEnhet().equals("4867")
+            && s.getTidsstempel() == 1735689600000L
+            && s.getFagsakYtelseType() == FagsakYtelseType.FORELDREPENGER
+            && s.getBehandlingType() == BehandlingType.FØRSTEGANGSSØKNAD
+            && s.getStatistikkDato().equals(LocalDate.of(2026, 1, 1))
+            && s.getAntallAktive() == 1
+            && s.getAntallOpprettet() == 1
+            && s.getAntallAvsluttet() == 1);
+
+        em.clear();
+
+        var kvitteringRekjøring = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        assertThat(kvitteringRekjøring.kjørtUtenFeil()).isTrue();
+        assertThat(kvitteringRekjøring.statistikkEnhetYtelseBehandling()).isZero();
+    }
+
 
 }
 
