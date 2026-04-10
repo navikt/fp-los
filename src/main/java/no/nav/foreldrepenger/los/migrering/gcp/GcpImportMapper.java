@@ -100,7 +100,6 @@ public final class GcpImportMapper {
                 oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
-        oppgave.setSkipAutoAudit(true);
     }
 
     public static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon, Oppgave oppgaveRef) {
@@ -112,30 +111,20 @@ public final class GcpImportMapper {
         reservasjon.setBegrunnelse(dto.begrunnelse());
         setBaseEntitetFields(reservasjon, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
-        reservasjon.setSkipAutoAudit(true);
     }
 
     public static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
         var filtrering = new OppgaveFiltrering(dto.navn(), dto.køSortering(), avdeling);
         filtrering.setId(dto.id());
         filtrering.setBeskrivelse(dto.beskrivelse());
-
         filtrering.setFomDato(dto.fomDato());
         filtrering.setTomDato(dto.tomDato());
-        if (dto.fomDager() != null) {
-            filtrering.setFra(dto.fomDager());
-        }
-        if (dto.tomDager() != null) {
-            filtrering.setTil(dto.tomDager());
-        }
-
+        filtrering.setFra(dto.fomDager());
+        filtrering.setTil(dto.tomDager());
         filtrering.setPeriodefilter(dto.periodeFilter());
-
-        // Handle embedded collections
         filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
         filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
 
-        // Handle andre kriterier with inkluder/ekskluder separation
         var inkluderKriterier = dto.andreKriterier().stream()
                 .filter(AndreKriterierDataDto::inkluder)
                 .map(AndreKriterierDataDto::andreKriterierType)
@@ -151,18 +140,43 @@ public final class GcpImportMapper {
         setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return filtrering;
+
+        /*
+            filtrering.setId(dto.id());
+            filtrering.setBeskrivelse(dto.beskrivelse());
+            filtrering.setFomDato(dto.fomDato());
+            filtrering.setTomDato(dto.tomDato());
+            filtrering.setFra(dto.fomDager());
+            filtrering.setPeriodefilter(dto.periodeFilter());
+            filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
+            filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
+
+            var inkluder = dto.andreKriterier().stream()
+                .filter(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::inkluder)
+                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
+                .collect(java.util.stream.Collectors.toSet());
+            var ekskluder = dto.andreKriterier().stream()
+                .filter(ak -> !ak.inkluder())
+                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
+                .collect(java.util.stream.Collectors.toSet());
+            filtrering.setAndreKriterierTyper(inkluder, ekskluder);
+
+            GcpImportMapper.setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
+
+         */
     }
 
-    public static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,
+    public static void setBaseEntitetFields(BaseEntitet entitet, String opprettetAv, LocalDateTime opprettetTid,
                                      String endretAv, LocalDateTime endretTid) {
-        entity.setOpprettetAv(opprettetAv);
-        entity.setOpprettetTidspunkt(opprettetTid);
+        entitet.setOpprettetAv(opprettetAv);
+        entitet.setOpprettetTidspunkt(opprettetTid);
         if (endretAv != null) {
-            entity.setEndretAv(endretAv);
+            entitet.setEndretAv(endretAv);
         }
         if (endretTid != null) {
-            entity.setEndretTidspunkt(endretTid);
+            entitet.setEndretTidspunkt(endretTid);
         }
+        entitet.setSkipAutoAudit(true);
     }
 
 }
