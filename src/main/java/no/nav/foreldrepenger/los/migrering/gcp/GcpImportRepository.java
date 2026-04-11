@@ -401,7 +401,6 @@ public class GcpImportRepository {
             }
         }
 
-        entityManager.flush();
         return countEnhetYtelseBehandling;
     }
 

@@ -218,6 +218,7 @@ class GcpImportRepositoryTest {
             1, 1, 1);
 
         var kvittering = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        em.flush();
         em.clear();
 
         assertThat(kvittering.kjørtUtenFeil()).isTrue();
