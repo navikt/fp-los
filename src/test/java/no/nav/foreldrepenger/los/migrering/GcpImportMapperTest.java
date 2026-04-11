@@ -212,8 +212,7 @@ class GcpImportMapperTest {
             List.of(
                 new AndreKriterierDataDto(AndreKriterierType.PAPIRSØKNAD, true),
                 new AndreKriterierDataDto(AndreKriterierType.TIL_BESLUTTER, false)
-            )
-        );
+            ), Set.of());
 
         var filtrering = GcpImportMapper.mapOppgaveFiltrering(dto, avdeling);
 

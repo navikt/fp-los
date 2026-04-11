@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 
@@ -21,7 +23,6 @@ import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
-import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
@@ -73,7 +74,7 @@ public class GcpImportRepository {
         try {
             importKvittering.orgData(lagreOrganisasjonsData(bulkData.organisasjonData()));
 
-            lagreOppgaveKøer(bulkData.køOppsettDto(), importKvittering);
+            lagreOppgaveKøer(bulkData.oppgaveFiltrering(), importKvittering);
 
             importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
 
@@ -313,12 +314,10 @@ public class GcpImportRepository {
     }
 
 
-    private void lagreOppgaveKøer(KøOppsettDto køOppsettDto, GcpImportKvittering.Builder importKvittering) {
-        if (køOppsettDto == null) return;
+    private void lagreOppgaveKøer(@NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltreringDto, GcpImportKvittering.Builder importKvittering) {
+        if (oppgaveFiltreringDto == null) return;
 
-        var fssOppgaveFiltreringId = køOppsettDto.oppgaveFiltrering().stream()
-            .map(OppgaveFiltreringDataDto::id)
-            .collect(Collectors.toSet());
+        var fssOppgaveFiltreringId = oppgaveFiltreringDto.stream().map(OppgaveFiltreringDataDto::id).collect(Collectors.toSet());
 
         var gcpOppgaveFiltrering = entityManager.createQuery("select f.id from OppgaveFiltrering f where f.id in :ids", Long.class)
             .setParameter("ids", fssOppgaveFiltreringId)
@@ -326,7 +325,7 @@ public class GcpImportRepository {
             .collect(Collectors.toSet());
 
         var antallKøer = 0;
-        for (var dto : køOppsettDto.oppgaveFiltrering()) {
+        for (var dto : oppgaveFiltreringDto) {
             if (gcpOppgaveFiltrering.contains(dto.id())) {
                 continue;
             }
@@ -336,7 +335,7 @@ public class GcpImportRepository {
         }
         entityManager.flush();
 
-        var gcpSaksbehandlere = entityManager.createQuery("select sb.saksbehandlerIdent from saksbehandler sb", String.class)
+        var gcpSaksbehandlerIdenter = entityManager.createQuery("select sb.saksbehandlerIdent from saksbehandler sb", String.class)
             .getResultList();
         var gcpFiltreringSaskbehandlerNøkkel = entityManager.createQuery("from FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class)
             .getResultStream()
@@ -344,18 +343,23 @@ public class GcpImportRepository {
             .collect(Collectors.toSet());
 
         var antallFiltreringSaksbehandlerRelasjon = 0;
-        for (var sbDto : køOppsettDto.saksbehandlerKøer()) {
-            if (!gcpSaksbehandlere.contains(sbDto.saksbehandlerIdent())) {
-                LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {}, hopper over lagring av FiltreringSaksbehandlerRelasjon", sbDto.saksbehandlerIdent());
-                continue;
-            };
-            var filtreringRef = entityManager.getReference(OppgaveFiltrering.class, sbDto.oppgaveFiltreringId());
-            var saksbehandlerRef = entityManager.getReference(Saksbehandler.class, sbDto.saksbehandlerIdent());
 
-            var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, filtreringRef);
-            if (!gcpFiltreringSaskbehandlerNøkkel.contains(nøkkel)) {
-                entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
-                antallFiltreringSaksbehandlerRelasjon++;
+        for (var ofDto : oppgaveFiltreringDto) {
+            for (var saksbehandlerIdent : ofDto.saksbehandlerIdenter()) {
+
+                if (!gcpSaksbehandlerIdenter.contains(saksbehandlerIdent)) {
+                    LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {}, hopper over lagring av FiltreringSaksbehandlerRelasjon {}",
+                        saksbehandlerIdent, ofDto.id());
+                    continue;
+                }
+
+                var filtreringRef = entityManager.getReference(OppgaveFiltrering.class, ofDto.id());
+                var saksbehandlerRef = entityManager.getReference(Saksbehandler.class, saksbehandlerIdent);
+                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, filtreringRef);
+                if (!gcpFiltreringSaskbehandlerNøkkel.contains(nøkkel)) { // TODO: dette blir vel feil, her sammenlikner jeg nøkkel med ref med nøkkel med fulle entiteter
+                    entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
+                    antallFiltreringSaksbehandlerRelasjon++;
+                }
             }
         }
         importKvittering
@@ -391,19 +395,19 @@ public class GcpImportRepository {
     private int lagreStatOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
         if (oppgaveFilterDtos.isEmpty()) return 0;
 
-        int countOppgaveFilter = 0;
-        var aktuelleNøkler = oppgaveFilterDtos.stream()
+        var nøklerForLagring = oppgaveFilterDtos.stream()
             .map(dto -> new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel()))
             .collect(Collectors.toCollection(HashSet::new));
 
         entityManager.createQuery("select s.nøkkel from StatistikkOppgaveFilter s where s.nøkkel in (:nøkler)", StatistikkOppgaveFilterNøkkel.class)
-            .setParameter("nøkler", aktuelleNøkler)
-            .getResultStream()
-            .forEach(aktuelleNøkler::remove);
+            .setParameter("nøkler", nøklerForLagring)
+            .getResultStream() // stream av allerede lagrede nøkler
+            .forEach(nøklerForLagring::remove);
 
+        int countOppgaveFilter = 0;
         for (var dto : oppgaveFilterDtos) {
             var nøkkel = new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel());
-            if (aktuelleNøkler.contains(nøkkel)) {
+            if (nøklerForLagring.contains(nøkkel)) {
                 var stat = new StatistikkOppgaveFilter(dto.oppgaveFilterId(), dto.tidsstempel(),
                     dto.statistikkDato(), dto.antallAktive(), dto.antallTilgjengelige(),
                     dto.antallVentende(), dto.antallOpprettet(), dto.antallAvsluttet(), dto.innslagType());

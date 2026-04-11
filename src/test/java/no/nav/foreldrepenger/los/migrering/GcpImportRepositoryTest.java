@@ -13,6 +13,8 @@ import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 
+import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +54,10 @@ class GcpImportRepositoryTest {
         var bulkData = TestMigreringData.lagOrganisasjonOgKøer();
         var kvittering = repo.lagre(bulkData);
 
+        em.flush();
+        assertThat(kvittering.orgData()).isNotZero();
+        assertThat(kvittering.oppgaveKøer()).isNotZero();
+        assertThat(kvittering.filtreringSaksbehandlerRelasjon()).isNotZero();
         assertThat(kvittering.kjørtUtenFeil()).isTrue();
         assertThat(kvittering.orgData()).isPositive();
         assertThat(kvittering.oppgaveKøer()).isPositive();
@@ -61,6 +67,7 @@ class GcpImportRepositoryTest {
         assertThat(DBTestUtil.hentAlle(em, Saksbehandler.class)).isNotEmpty();
         assertThat(DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class)).isNotEmpty();
         assertThat(DBTestUtil.hentAlle(em, OppgaveFiltrering.class)).isNotEmpty();
+        assertThat(em.createQuery("from FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class).getResultList()).isNotEmpty();
     }
 
     @Test

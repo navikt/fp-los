@@ -35,8 +35,8 @@ class BulkDataWrapperSerializationTest {
         assertThat(deserialized.organisasjonData().saksbehandlere()).hasSize(1);
         assertThat(deserialized.organisasjonData().saksbehandlerGrupper()).hasSize(1);
         assertThat(deserialized.organisasjonData().avdelingSaksbehandlere()).hasSize(1);
-        assertThat(deserialized.køOppsettDto().oppgaveFiltrering()).hasSize(1);
-        assertThat(deserialized.køOppsettDto().saksbehandlerKøer()).hasSize(1);
+        assertThat(deserialized.oppgaveFiltrering()).hasSize(1);
+        assertThat(deserialized.oppgaveFiltrering().getFirst().saksbehandlerIdenter()).hasSize(1);
 
         assertThat(deserialized.behandlinger()).isEmpty();
         assertThat(deserialized.aktiveOppgaver()).isEmpty();

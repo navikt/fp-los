@@ -13,9 +13,7 @@ import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-import no.nav.foreldrepenger.los.migrering.dto.FiltreringSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
@@ -111,7 +109,7 @@ public final class TestMigreringData {
         );
     }
 
-    public static OppgaveFiltreringDataDto lagOppgaveFiltreringDataDto(Long id, String enhetsnummer) {
+    public static OppgaveFiltreringDataDto lagOppgaveFiltreringDataDto(Long id, String enhetsnummer, Set<String> saksbehandlerIdenter) {
         return new OppgaveFiltreringDataDto(
             id, "Testkø " + id, "En testkø",
             KøSortering.BEHANDLINGSFRIST,
@@ -125,8 +123,7 @@ public final class TestMigreringData {
             "VL", NOW,
             List.of(BehandlingType.FØRSTEGANGSSØKNAD),
             List.of(FagsakYtelseType.FORELDREPENGER),
-            List.of(new AndreKriterierDataDto(AndreKriterierType.PAPIRSØKNAD, true))
-        );
+            List.of(new AndreKriterierDataDto(AndreKriterierType.PAPIRSØKNAD, true)), saksbehandlerIdenter);
     }
 
     public static BulkDataWrapper lagOrganisasjonOgKøer() {
@@ -143,11 +140,9 @@ public final class TestMigreringData {
             List.of(new GruppeTilknytningDataDto("Z999999", 5_000_003L))
         );
 
-        var kø = lagOppgaveFiltreringDataDto(5_000_010L, ENHET_DRAMMEN);
-        var sbKø = new FiltreringSaksbehandlerDataDto("Z999999", 5_000_010L);
-        var køOppsett = new KøOppsettDto(List.of(kø), List.of(sbKø));
+        var kø = lagOppgaveFiltreringDataDto(5_000_010L, ENHET_DRAMMEN, Set.of("Z999999"));
 
-        return BulkDataWrapper.organisasjonOgKøOppset(orgData, køOppsett);
+        return BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of(kø));
     }
 
     public static BulkDataWrapper lagAktiveOppgaver() {
