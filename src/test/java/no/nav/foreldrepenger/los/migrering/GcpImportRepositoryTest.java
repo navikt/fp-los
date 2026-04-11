@@ -2,7 +2,16 @@ package no.nav.foreldrepenger.los.migrering;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
 import java.util.List;
+
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+
+import no.nav.foreldrepenger.los.oppgave.BehandlingType;
+import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +21,7 @@ import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRepository;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
@@ -21,6 +31,9 @@ import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 @ExtendWith(JpaExtension.class)
 class GcpImportRepositoryTest {
@@ -148,10 +161,88 @@ class GcpImportRepositoryTest {
         assertThat(grupper.getFirst().getGruppeNavn()).isEqualTo("Testgruppe");
     }
 
-
     @Test
     void lagre_stats_oppgavefilter() {
+        var dtoEksisterendeEntitet = new StatOppgaveFilterDataDto(1L,
+            1735689600000L,
+            LocalDate.of(2026, 1, 1),
+            1, 2, 3, 4, 5,
+            InnslagType.REGELMESSIG);
+        var førsteKvittering1Ny = repo.lagre(BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoEksisterendeEntitet)));
+        em.clear();
 
+        assertThat(førsteKvittering1Ny.kjørtUtenFeil()).isTrue();
+        assertThat(førsteKvittering1Ny.statistikkOppgaveFilter()).isEqualTo(1);
+
+        var dtoNy = new StatOppgaveFilterDataDto(
+            2L,
+            1235689600000L,
+            LocalDate.of(2026, 2, 2),
+            2, 2, 2, 2, 2,
+            InnslagType.REGELMESSIG
+        );
+        var begge = BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoNy, dtoEksisterendeEntitet));
+        assertThat(begge.statistikkOppgaveFilter()).hasSize(2);
+
+        var andreKvittering1Ny1Gammel = repo.lagre(begge);
+        assertThat(andreKvittering1Ny1Gammel.kjørtUtenFeil()).isTrue();
+        assertThat(andreKvittering1Ny1Gammel.statistikkOppgaveFilter()).isEqualTo(1);
+
+        em.clear();
+
+        var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
+        var stat = em.find(StatistikkOppgaveFilter.class, nøkkel);
+
+        assertThat(stat).isNotNull();
+        assertThat(stat.getOppgaveFilterId()).isEqualTo(2L);
+        assertThat(stat.getTidsstempel()).isEqualTo(1235689600000L);
+        assertThat(stat.getStatistikkDato()).isEqualTo(LocalDate.of(2026, 2, 2));
+        assertThat(stat.getAntallAktive()).isEqualTo(2);
+        assertThat(stat.getAntallTilgjengelige()).isEqualTo(2);
+        assertThat(stat.getAntallVentende()).isEqualTo(2);
+        assertThat(stat.getAntallOpprettet()).isEqualTo(2);
+        assertThat(stat.getAntallAvsluttet()).isEqualTo(2);
+        assertThat(stat.getInnslagType()).isEqualTo(InnslagType.REGELMESSIG);
+
+        em.clear();
+        var tredjeKvittering2Gamle = repo.lagre(begge);
+        assertThat(tredjeKvittering2Gamle.kjørtUtenFeil()).isTrue();
+        assertThat(tredjeKvittering2Gamle.statistikkOppgaveFilter()).isZero();
     }
+
+    @Test
+    void lagre_stats_enhetytelsebehandling() {
+        var dto = new StatEnhetYtelseBehandlingDataDto("4867",
+            1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD,
+            LocalDate.of(2026, 1, 1),
+            1, 1, 1);
+
+        var kvittering = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        em.flush();
+        em.clear();
+
+        assertThat(kvittering.kjørtUtenFeil()).isTrue();
+        assertThat(kvittering.statistikkEnhetYtelseBehandling()).isEqualTo(1);
+
+        var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
+        var stat = em.find(StatistikkEnhetYtelseBehandling.class, nøkkel);
+        assertThat(stat).isNotNull();
+        assertThat(stat).matches(s -> s.getBehandlendeEnhet().equals("4867")
+            && s.getTidsstempel() == 1735689600000L
+            && s.getFagsakYtelseType() == FagsakYtelseType.FORELDREPENGER
+            && s.getBehandlingType() == BehandlingType.FØRSTEGANGSSØKNAD
+            && s.getStatistikkDato().equals(LocalDate.of(2026, 1, 1))
+            && s.getAntallAktive() == 1
+            && s.getAntallOpprettet() == 1
+            && s.getAntallAvsluttet() == 1);
+
+        em.clear();
+
+        var kvitteringRekjøring = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        assertThat(kvitteringRekjøring.kjørtUtenFeil()).isTrue();
+        assertThat(kvitteringRekjøring.statistikkEnhetYtelseBehandling()).isZero();
+    }
+
+
 }
 

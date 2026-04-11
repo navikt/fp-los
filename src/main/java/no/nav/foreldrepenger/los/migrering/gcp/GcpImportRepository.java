@@ -429,6 +429,7 @@ public class GcpImportRepository {
             }
         }
 
+        entityManager.flush();
         return countOppgaveFilter;
     }
 
