@@ -39,7 +39,11 @@ public record BulkDataWrapper(
         return new BulkDataWrapper(List.of(), List.of(), List.of(), orgData, køOppsettDto, List.of(), List.of());
     }
 
-    public static BulkDataWrapper statistikk(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseBehandling, List<StatOppgaveFilterDataDto> oppgaveFilter) {
-        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), enhetYtelseBehandling, oppgaveFilter);
+    public static BulkDataWrapper statistikkOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilter) {
+        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), List.of(), oppgaveFilter);
+    }
+
+    public static BulkDataWrapper statistikkEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseBehandling) {
+        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), enhetYtelseBehandling, List.of());
     }
 }

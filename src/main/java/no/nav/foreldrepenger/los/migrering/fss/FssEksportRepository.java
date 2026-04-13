@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.migrering.fss;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import org.hibernate.jpa.HibernateHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,7 @@ import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
+import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
@@ -62,6 +64,7 @@ public class FssEksportRepository {
                 WHERE aktiv = true
                 ORDER BY id ASC
             """, Oppgave.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
             .setFirstResult(startPosisjon)
             .setMaxResults(batchSize)
             .getResultStream()
@@ -78,10 +81,13 @@ public class FssEksportRepository {
                 FROM Oppgave o
                 JOIN o.reservasjon r
                 WHERE o.aktiv = false
-                and coalesce(r.endretTidspunkt, r.opprettetTidspunkt) > :fra
+                AND coalesce(r.endretTidspunkt, r.opprettetTidspunkt) > :fra
+                AND o.behandling.behandlingTilstand != :avsluttet
                 ORDER BY r.id ASC
             """, Oppgave.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
             .setParameter("fra", LocalDate.now().minusDays(21).atStartOfDay())
+            .setParameter("avsluttet", BehandlingTilstand.AVSLUTTET)
             .setFirstResult(startPosisjon)
             .setMaxResults(batchSize)
             .getResultStream()
@@ -95,8 +101,11 @@ public class FssEksportRepository {
     BulkDataWrapper hentBehandlinger(int startPosisjon, int batchSize) {
         var behandlinger = entityManager.createQuery("""
                 FROM Behandling
+                WHERE behandlingTilstand != :avsluttet
                 ORDER BY id ASC
             """, Behandling.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
+            .setParameter("avsluttet", BehandlingTilstand.AVSLUTTET)
             .setFirstResult(startPosisjon)
             .setMaxResults(batchSize)
             .getResultList();
@@ -120,24 +129,28 @@ public class FssEksportRepository {
         var avdelinger = organisasjonRepository.hentAktiveAvdelinger().stream().map(FssExportMapper::mapToAvdelingDataDto).toList();
 
         var saksbehandlere = entityManager.createQuery("FROM saksbehandler", Saksbehandler.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToSaksbehandlerDataDto)
                 .toList();
 
         var avdelingSaksbehandlere = entityManager.createQuery("FROM AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToAvdelingSaksbehandlerDataDto)
                 .toList();
 
         var saksbehandlerGrupper = entityManager.createQuery("FROM saksbehandlerGruppe", SaksbehandlerGruppe.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToSaksbehandlerGruppeDataDto)
                 .toList();
 
         var gruppeTilknytninger = entityManager.createQuery("FROM GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToGruppeTilknytningDataDto)
@@ -146,32 +159,40 @@ public class FssEksportRepository {
         return new OrgDataDto(avdelinger, saksbehandlere, avdelingSaksbehandlere, saksbehandlerGrupper, gruppeTilknytninger);
     }
 
-    public BulkDataWrapper hentStatistikk(int startPosisjon, int batchSize) {
+    public BulkDataWrapper hentStatistikkEnhetYtelseBehandling(int startPosisjon, int batchSize) {
         var enhetYtelseBehandling = entityManager.createQuery("FROM StatistikkEnhetYtelseBehandling ORDER BY tidsstempel ASC", StatistikkEnhetYtelseBehandling.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .setFirstResult(startPosisjon)
                 .setMaxResults(batchSize)
                 .getResultStream()
                 .map(FssExportMapper::mapToStatEnhetYtelseBehandlingDataDto)
                 .toList();
 
-        var oppgaveFilter = entityManager.createQuery("FROM StatistikkOppgaveFilter ORDER BY tidsstempel ASC", StatistikkOppgaveFilter.class)
-                .setFirstResult(startPosisjon)
-                .setMaxResults(batchSize)
-                .getResultStream()
-                .map(FssExportMapper::mapToStatOppgaveFilterDataDto)
-                .toList();
+        return BulkDataWrapper.statistikkEnhetYtelseBehandling(enhetYtelseBehandling);
+    }
 
-        return BulkDataWrapper.statistikk(enhetYtelseBehandling, oppgaveFilter);
+    public BulkDataWrapper hentStatistikkOppgaveFilter(int startPosisjon, int batchSize) {
+        var oppgaveFilter = entityManager.createQuery("FROM StatistikkOppgaveFilter WHERE statistikkDato >= :fra ORDER BY tidsstempel ASC", StatistikkOppgaveFilter.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
+            .setParameter("fra", LocalDate.now().minusWeeks(4))
+            .setFirstResult(startPosisjon)
+            .setMaxResults(batchSize)
+            .getResultStream()
+            .map(FssExportMapper::mapToStatOppgaveFilterDataDto)
+            .toList();
+        return BulkDataWrapper.statistikkOppgaveFilter(oppgaveFilter);
     }
 
     private KøOppsettDto hentOppgaveKøData() {
         var oppgaveFiltrering = entityManager.createQuery("FROM OppgaveFiltrering", OppgaveFiltrering.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToOppgaveFiltreringDataDto)
                 .toList();
 
         var saksbehandlerKøer = entityManager.createQuery("FROM FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class)
+                .setHint(HibernateHints.HINT_READ_ONLY, true)
                 .getResultList()
                 .stream()
                 .map(FssExportMapper::mapToFiltreringSaksbehandlerDataDto)

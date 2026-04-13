@@ -75,9 +75,8 @@ class ReservasjonUtleder {
     }
 
     private static Reservasjon nyReservasjon(Oppgave nyOppgave, Reservasjon eksisterendeReservasjon) {
-        var reservasjon = new Reservasjon(nyOppgave);
+        var reservasjon = new Reservasjon(nyOppgave, eksisterendeReservasjon.getReservertAv());
         reservasjon.setReservertTil(eksisterendeReservasjon.getReservertTil());
-        reservasjon.setReservertAv(eksisterendeReservasjon.getReservertAv());
         reservasjon.setFlyttetAv(eksisterendeReservasjon.getFlyttetAv());
         reservasjon.setBegrunnelse(eksisterendeReservasjon.getBegrunnelse());
         reservasjon.setFlyttetTidspunkt(eksisterendeReservasjon.getFlyttetTidspunkt());

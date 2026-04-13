@@ -157,8 +157,7 @@ public class ReservasjonTjeneste {
 
     public static Reservasjon opprettReservasjon(Oppgave oppgave, String saksbehandler, String begrunnelse) {
         var reservertTil = standardReservasjon();
-        var reservasjon = new Reservasjon(oppgave);
-        reservasjon.setReservertAv(saksbehandler);
+        var reservasjon = new Reservasjon(oppgave, saksbehandler);
         reservasjon.setBegrunnelse(begrunnelse);
         reservasjon.setReservertTil(reservertTil);
         reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());

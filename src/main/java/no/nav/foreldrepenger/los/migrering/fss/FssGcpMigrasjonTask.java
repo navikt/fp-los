@@ -81,7 +81,7 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
     private void lagNesteSteg(MigreringSteg currentSteg, int batchSize) {
         var nesteSteg = currentSteg.neste();
         LOG.info("MIGRERING (FSS): steg {} ferdig, neste steg {}", currentSteg, nesteSteg);
-        if (nesteSteg != MigreringSteg.DEL6_FERDIG) {
+        if (nesteSteg != MigreringSteg.DEL7_FERDIG) {
             var t = ProsessTaskData.forProsessTask(FssGcpMigrasjonTask.class);
             t.setProperty(STEG, nesteSteg.name());
             t.setProperty(BATCH_SIZE, String.valueOf(batchSize));
@@ -94,8 +94,9 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
         DEL2_AKTIVE_OPPGAVER,
         DEL3_INAKTIVE_OPPGAVER,
         DEL4_BEHANDLINGER,
-        DEL5_STATISTIKK,
-        DEL6_FERDIG;
+        DEL5_STATISTIKK_OF,
+        DEL6_STATISTIKK_EYB,
+        DEL7_FERDIG;
 
         BulkDataWrapper hent(FssEksportRepository repo, int currentAntall, int batchSize) {
             return switch (this) {
@@ -103,16 +104,17 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
                 case DEL2_AKTIVE_OPPGAVER -> repo.hentAktiveOppgaverOgReservasjoner(currentAntall, batchSize);
                 case DEL3_INAKTIVE_OPPGAVER -> repo.hentInaktiveOppgaverOgReservasjoner(currentAntall, batchSize);
                 case DEL4_BEHANDLINGER -> repo.hentBehandlinger(currentAntall, batchSize);
-                case DEL5_STATISTIKK -> repo.hentStatistikk(currentAntall, batchSize);
-                case DEL6_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt hent() i ferdig tilstand");
+                case DEL5_STATISTIKK_OF -> repo.hentStatistikkOppgaveFilter(currentAntall, batchSize);
+                case DEL6_STATISTIKK_EYB -> repo.hentStatistikkEnhetYtelseBehandling(currentAntall, batchSize);
+                case DEL7_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt hent() i ferdig tilstand");
             };
         }
 
         boolean erFerdig(int hentetAntall, int batchSize) {
             return switch (this) {
                 case DEL1_ORGANISASJON_OG_KØ -> true;
-                case DEL2_AKTIVE_OPPGAVER, DEL3_INAKTIVE_OPPGAVER, DEL4_BEHANDLINGER, DEL5_STATISTIKK -> hentetAntall < batchSize;
-                case DEL6_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt erFerdig() i ferdig tilstand");
+                case DEL2_AKTIVE_OPPGAVER, DEL3_INAKTIVE_OPPGAVER, DEL4_BEHANDLINGER, DEL5_STATISTIKK_OF, DEL6_STATISTIKK_EYB -> hentetAntall < batchSize;
+                case DEL7_FERDIG -> throw new IllegalStateException("MIGRERING (FSS): Kalt erFerdig() i ferdig tilstand");
             };
         }
 
@@ -121,8 +123,9 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
                 case DEL1_ORGANISASJON_OG_KØ -> DEL2_AKTIVE_OPPGAVER;
                 case DEL2_AKTIVE_OPPGAVER -> DEL3_INAKTIVE_OPPGAVER;
                 case DEL3_INAKTIVE_OPPGAVER -> DEL4_BEHANDLINGER;
-                case DEL4_BEHANDLINGER -> DEL5_STATISTIKK;
-                case DEL5_STATISTIKK, DEL6_FERDIG -> DEL6_FERDIG;
+                case DEL4_BEHANDLINGER -> DEL5_STATISTIKK_OF;
+                case DEL5_STATISTIKK_OF -> DEL6_STATISTIKK_EYB;
+                case DEL6_STATISTIKK_EYB, DEL7_FERDIG -> DEL7_FERDIG;
             };
         }
 
@@ -132,8 +135,9 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
                 case DEL2_AKTIVE_OPPGAVER -> bulkData.aktiveOppgaver().size();
                 case DEL3_INAKTIVE_OPPGAVER -> bulkData.inaktiveOppgaver().size();
                 case DEL4_BEHANDLINGER -> bulkData.behandlinger().size();
-                case DEL5_STATISTIKK -> bulkData.statistikkEnhetYtelseBehandling().size() + bulkData.statistikkOppgaveFilter().size();
-                case DEL6_FERDIG -> 0;
+                case DEL5_STATISTIKK_OF -> bulkData.statistikkOppgaveFilter().size();
+                case DEL6_STATISTIKK_EYB -> bulkData.statistikkEnhetYtelseBehandling().size();
+                case DEL7_FERDIG -> 0;
             };
         }
     }

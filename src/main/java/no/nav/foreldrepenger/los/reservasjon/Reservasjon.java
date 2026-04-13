@@ -51,13 +51,20 @@ public class Reservasjon extends BaseEntitet {
     @Column(name = "versjon", nullable = false)
     private long versjon;
 
-    public Reservasjon() {
+    protected Reservasjon() {
         // Hibernate
     }
 
     public Reservasjon(Oppgave oppgave) {
-        Objects.requireNonNull(oppgave, "oppgave");
+        Objects.requireNonNull(oppgave, "oppgave ctor");
         this.oppgave = oppgave;
+    }
+
+    public Reservasjon(Oppgave oppgave, String reservertAv) {
+        Objects.requireNonNull(oppgave, "oppgave ctor-reservertAv");
+        Objects.requireNonNull(reservertAv, "reservertAv");
+        this.oppgave = oppgave;
+        this.reservertAv = reservertAv.toUpperCase();
     }
 
     public Oppgave getOppgave() {
@@ -98,7 +105,8 @@ public class Reservasjon extends BaseEntitet {
     }
 
     public void setReservertAv(String reservertAv) {
-        this.reservertAv = reservertAv != null ? reservertAv.toUpperCase() : null;
+        Objects.requireNonNull(reservertAv, "reservertAv");
+        this.reservertAv = reservertAv.toUpperCase();
     }
 
     public void setFlyttetAv(String flyttetAv) {

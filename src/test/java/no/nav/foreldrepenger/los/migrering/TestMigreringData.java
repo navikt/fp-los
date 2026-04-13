@@ -170,5 +170,6 @@ public final class TestMigreringData {
             .toList();
         return BulkDataWrapper.leggTilBehandlinger(bulkData, behandlinger);
     }
+
 }
 

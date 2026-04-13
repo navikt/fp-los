@@ -17,13 +17,13 @@ import no.nav.vedtak.util.InputValideringRegex;
  * DTO for migrating Oppgave entities with preserved PKs
  */
 public record OppgaveDataDto(
-    @Min(1) @Max(100_000_000) Long id,
+    @NotNull @Min(1) @Max(100_000_000) Long id,
     @NotNull UUID behandlingId,
     @NotNull @Size(max = 10) @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}") String behandlendeEnhet,
     boolean aktiv,
     LocalDateTime oppgaveAvsluttet,
-    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
-    LocalDateTime opprettetTidspunkt,
+    @NotNull @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull LocalDateTime opprettetTidspunkt,
     @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt,
     @Valid ReservasjonDataDto reservasjonDataDto,
