@@ -1,7 +1,11 @@
 package no.nav.foreldrepenger.los.migrering.fss;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 
 import org.hibernate.jpa.HibernateHints;
 import org.slf4j.Logger;
@@ -12,7 +16,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
@@ -27,6 +30,9 @@ import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
+
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Eksport fra FSS-los. Beholder PK.
@@ -183,22 +189,19 @@ public class FssEksportRepository {
         return BulkDataWrapper.statistikkOppgaveFilter(oppgaveFilter);
     }
 
-    private KøOppsettDto hentOppgaveKøData() {
-        var oppgaveFiltrering = entityManager.createQuery("FROM OppgaveFiltrering", OppgaveFiltrering.class)
-                .setHint(HibernateHints.HINT_READ_ONLY, true)
-                .getResultList()
-                .stream()
-                .map(FssExportMapper::mapToOppgaveFiltreringDataDto)
-                .toList();
+    private List<OppgaveFiltreringDataDto> hentOppgaveKøData() {
+        var oppgaveFiltreringSaksbehandleridenter = entityManager.createQuery("FROM FiltreringSaksbehandlerRelasjon",
+                FiltreringSaksbehandlerRelasjon.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
+            .getResultStream()
+            .collect(Collectors.groupingBy(fsr -> fsr.getOppgaveFiltrering().getId(),
+                mapping(fsr -> fsr.getSaksbehandler().getSaksbehandlerIdent(), toSet())));
 
-        var saksbehandlerKøer = entityManager.createQuery("FROM FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class)
-                .setHint(HibernateHints.HINT_READ_ONLY, true)
-                .getResultList()
-                .stream()
-                .map(FssExportMapper::mapToFiltreringSaksbehandlerDataDto)
-                .toList();
-
-        return new KøOppsettDto(oppgaveFiltrering, saksbehandlerKøer);
+        return entityManager.createQuery("FROM OppgaveFiltrering", OppgaveFiltrering.class)
+            .setHint(HibernateHints.HINT_READ_ONLY, true)
+            .getResultStream()
+            .map(of -> FssExportMapper.mapToOppgaveFiltreringDataDto(of, oppgaveFiltreringSaksbehandleridenter))
+            .toList();
     }
 
 }

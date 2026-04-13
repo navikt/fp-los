@@ -15,35 +15,35 @@ public record BulkDataWrapper(
     @NotNull List<@Valid OppgaveDataDto> aktiveOppgaver,
     @NotNull List<@Valid OppgaveDataDto> inaktiveOppgaver,
     @Valid OrgDataDto organisasjonData,
-    @Valid KøOppsettDto køOppsettDto,
+    @NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltrering,
     @NotNull List<@Valid StatEnhetYtelseBehandlingDataDto> statistikkEnhetYtelseBehandling,
     @NotNull List<@Valid StatOppgaveFilterDataDto> statistikkOppgaveFilter
 ) {
     public static BulkDataWrapper behandlinger(List<BehandlingDataDto> behandlinger) {
-        return new BulkDataWrapper(behandlinger, List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), List.of(), List.of());
+        return new BulkDataWrapper(behandlinger, List.of(), List.of(), null, List.of(), List.of(), List.of());
     }
 
     public static BulkDataWrapper leggTilBehandlinger(BulkDataWrapper existing, List<BehandlingDataDto> behandlinger) {
-        return new BulkDataWrapper(behandlinger, existing.aktiveOppgaver(), existing.inaktiveOppgaver(), existing.organisasjonData(), existing.køOppsettDto(), existing.statistikkEnhetYtelseBehandling(), existing.statistikkOppgaveFilter());
+        return new BulkDataWrapper(behandlinger, existing.aktiveOppgaver(), existing.inaktiveOppgaver(), existing.organisasjonData(), existing.oppgaveFiltrering(), existing.statistikkEnhetYtelseBehandling(), existing.statistikkOppgaveFilter());
     }
 
     public static BulkDataWrapper aktiveOppgaver(List<OppgaveDataDto> oppgaver) {
-        return new BulkDataWrapper(List.of(), oppgaver, List.of(), null, new KøOppsettDto(List.of(), List.of()), List.of(), List.of());
+        return new BulkDataWrapper(List.of(), oppgaver, List.of(), null, List.of(), List.of(), List.of());
     }
 
     public static BulkDataWrapper inaktiveOppgaver(List<OppgaveDataDto> inaktiveOppgaver) {
-        return new BulkDataWrapper(List.of(), List.of(), inaktiveOppgaver, null, new KøOppsettDto(List.of(), List.of()), List.of(), List.of());
+        return new BulkDataWrapper(List.of(), List.of(), inaktiveOppgaver, null, List.of(), List.of(), List.of());
     }
 
-    public static BulkDataWrapper organisasjonOgKøOppset(OrgDataDto orgData, KøOppsettDto køOppsettDto) {
-        return new BulkDataWrapper(List.of(), List.of(), List.of(), orgData, køOppsettDto, List.of(), List.of());
+    public static BulkDataWrapper organisasjonOgKøOppset(OrgDataDto orgData, List<OppgaveFiltreringDataDto> oppgaveFiltreringDataDtoer) {
+        return new BulkDataWrapper(List.of(), List.of(), List.of(), orgData, oppgaveFiltreringDataDtoer, List.of(), List.of());
     }
 
     public static BulkDataWrapper statistikkOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilter) {
-        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), List.of(), oppgaveFilter);
+        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, List.of(), List.of(), oppgaveFilter);
     }
 
     public static BulkDataWrapper statistikkEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseBehandling) {
-        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, new KøOppsettDto(List.of(), List.of()), enhetYtelseBehandling, List.of());
+        return new BulkDataWrapper(List.of(), List.of(), List.of(), null, List.of(), enhetYtelseBehandling, List.of());
     }
 }

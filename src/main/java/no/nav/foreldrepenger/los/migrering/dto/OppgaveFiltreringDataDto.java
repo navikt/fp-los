@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.migrering.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -16,13 +17,14 @@ import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Periodefilter;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
+import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.vedtak.util.InputValideringRegex;
 
 /**
  * DTO for migrating OppgaveFiltrering entities with embedded collections
  */
 public record OppgaveFiltreringDataDto(
-    @NotNull @Min(0) @Max(10_000_000) Long id,  // Primary key - must be preserved for potential references
+    @NotNull @Min(0) @Max(10_000_000) Long id,
     @NotNull @Size(max = 100) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
     @Size(max = 1024) @Pattern(regexp = InputValideringRegex.FRITEKST) String beskrivelse,
     @NotNull @ValidKodeverk KøSortering køSortering,
@@ -36,8 +38,7 @@ public record OppgaveFiltreringDataDto(
     @NotNull  LocalDateTime opprettetTidspunkt,
     @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt,
-    // Embedded collections - no need to preserve PKs of collection items
     List<@ValidKodeverk BehandlingType> behandlingTyper,
     List<@ValidKodeverk FagsakYtelseType> fagsakYtelseTyper,
-    List<@Valid AndreKriterierDataDto> andreKriterier
-) {}
+    List<@Valid AndreKriterierDataDto> andreKriterier,
+    Set<@NotNull @Pattern(regexp = Saksbehandler.VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}") String> saksbehandlerIdenter) {}

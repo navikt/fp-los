@@ -1,13 +1,13 @@
 package no.nav.foreldrepenger.los.migrering.fss;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.FiltreringSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
@@ -20,7 +20,6 @@ import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
@@ -161,14 +160,7 @@ public final class FssExportMapper {
         );
     }
 
-    public static FiltreringSaksbehandlerDataDto mapToFiltreringSaksbehandlerDataDto(FiltreringSaksbehandlerRelasjon r) {
-        return new FiltreringSaksbehandlerDataDto(
-                r.getSaksbehandler().getSaksbehandlerIdent(),
-                r.getOppgaveFiltrering().getId()
-        );
-    }
-
-    public static OppgaveFiltreringDataDto mapToOppgaveFiltreringDataDto(OppgaveFiltrering of) {
+    public static OppgaveFiltreringDataDto mapToOppgaveFiltreringDataDto(OppgaveFiltrering of, Map<Long, Set<String>> oppgaveFiltreringIdenter) {
         var behandlingTyper = of.getBehandlingTyper();
         var fagsakYtelseTyper = of.getFagsakYtelseTyper();
 
@@ -179,24 +171,27 @@ public final class FssExportMapper {
                 ))
                 .toList();
 
+        var saksbehandlerIdenter = oppgaveFiltreringIdenter.getOrDefault(of.getId(), Set.of());
+
         return new OppgaveFiltreringDataDto(
-                of.getId(),
-                of.getNavn(),
-                of.getBeskrivelse(),
-                of.getSortering(),
-                of.getAvdeling().getAvdelingEnhet(),
-                of.getFomDato(),
-                of.getTomDato(),
-                of.getFra(),
-                of.getTil(),
-                of.getPeriodefilter(),
-                of.getOpprettetAv(),
-                of.getOpprettetTidspunkt(),
-                of.getEndretAv(),
-                of.getEndretTidspunkt(),
-                behandlingTyper,
-                fagsakYtelseTyper,
-                andreKriterier
+            of.getId(),
+            of.getNavn(),
+            of.getBeskrivelse(),
+            of.getSortering(),
+            of.getAvdeling().getAvdelingEnhet(),
+            of.getFomDato(),
+            of.getTomDato(),
+            of.getFra(),
+            of.getTil(),
+            of.getPeriodefilter(),
+            of.getOpprettetAv(),
+            of.getOpprettetTidspunkt(),
+            of.getEndretAv(),
+            of.getEndretTidspunkt(),
+            behandlingTyper,
+            fagsakYtelseTyper,
+            andreKriterier,
+            saksbehandlerIdenter
         );
     }
 
