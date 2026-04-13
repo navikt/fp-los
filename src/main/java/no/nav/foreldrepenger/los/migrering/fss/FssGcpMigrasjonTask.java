@@ -20,8 +20,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 public class FssGcpMigrasjonTask implements ProsessTaskHandler {
 
     public static final String STEG = "CURRENT_MIGRASJONSTEG";
-    public static final String BATCH_SIZE = "BATCH_SIZE";
-    public static final int DEFAULT_BATCH_SIZE = 1000;
 
     private static final Logger LOG = LoggerFactory.getLogger(FssGcpMigrasjonTask.class);
 
@@ -46,7 +44,7 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
         var currentSteg = Optional.ofNullable(prosessTaskData.getPropertyValue(STEG))
             .map(MigreringSteg::valueOf)
             .orElse(MigreringSteg.DEL1_ORGANISASJON_OG_KØ);
-        int batchSize = Optional.ofNullable(prosessTaskData.getPropertyValue(BATCH_SIZE)).map(Integer::parseInt).orElse(DEFAULT_BATCH_SIZE);
+        int batchSize = 100;
 
         LOG.info("MIGRERING (FSS): steg {} starter", currentSteg);
 
@@ -65,7 +63,7 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
             }
 
             if (currentSteg.erFerdig(antallHentet, batchSize)) {
-                lagNesteSteg(currentSteg, batchSize);
+                lagNesteSteg(currentSteg);
                 break;
             } else {
                 startPosisjon += antallHentet;
@@ -78,13 +76,12 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
             currentSteg, startPosisjon, antallHentet, batchSize, gcpImportKvittering);
     }
 
-    private void lagNesteSteg(MigreringSteg currentSteg, int batchSize) {
+    private void lagNesteSteg(MigreringSteg currentSteg) {
         var nesteSteg = currentSteg.neste();
         LOG.info("MIGRERING (FSS): steg {} ferdig, neste steg {}", currentSteg, nesteSteg);
         if (nesteSteg != MigreringSteg.DEL7_FERDIG) {
             var t = ProsessTaskData.forProsessTask(FssGcpMigrasjonTask.class);
             t.setProperty(STEG, nesteSteg.name());
-            t.setProperty(BATCH_SIZE, String.valueOf(batchSize));
             prosessTaskTjeneste.lagre(t);
         }
     }
