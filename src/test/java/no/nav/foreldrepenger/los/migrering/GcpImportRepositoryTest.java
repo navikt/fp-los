@@ -107,6 +107,7 @@ class GcpImportRepositoryTest {
     void lagre_aktiveOppgaver_shouldPersistOppgaverOgReservasjoner() {
         var bulkData = TestMigreringData.lagBehandlinger(TestMigreringData.lagAktiveOppgaver());
         repo.lagre(bulkData);
+        em.flush();
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
@@ -117,10 +118,11 @@ class GcpImportRepositoryTest {
     void lagre_aktiveOppgaver_shouldBeIdempotent() {
         var bulkData = TestMigreringData.lagBehandlinger(TestMigreringData.lagAktiveOppgaver());
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         repo.lagre(bulkData); // re-run
-
+        em.flush();
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
         assertThat(DBTestUtil.hentAlle(em, Reservasjon.class)).hasSize(1);

@@ -76,74 +76,35 @@ public class GcpImportRepository {
             return;
         }
 
-        int oppgaveCount = 0;
-        int reservasjonCount = 0;
+        var fssOppgaveIds = oppgaver.stream().map(OppgaveDataDto::id).collect(Collectors.toSet());
+        var gcpOppgaveId = entityManager.createQuery("select o.id from Oppgave o where o.id in :ids", Long.class)
+            .setParameter("ids", fssOppgaveIds)
+            .getResultStream()
+            .collect(Collectors.toSet());
+        var oppgaverLagret = new HashMap<Long, Oppgave>();
 
-        for (int start = 0; start < oppgaver.size(); start += BATCH_SIZE) {
-            int end = Math.min(start + BATCH_SIZE, oppgaver.size());
-            List<OppgaveDataDto> batch = oppgaver.subList(start, end);
-
-            var fssOppgaveIds = batch.stream().map(OppgaveDataDto::id).collect(Collectors.toSet());
-            var gcpOppgaveMap = entityManager.createQuery("from Oppgave o where o.id in :ids", Oppgave.class)
-                .setParameter("ids", fssOppgaveIds)
-                .getResultStream()
-                .collect(Collectors.toMap(Oppgave::getId, o -> o));
-
-            for (var dto : batch) {
-                if (!gcpOppgaveMap.containsKey(dto.id())) {
-                    // vi merger + flusher de eksisterende først for effektiv batch
-                    continue;
-                }
-                var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
-                var oppgave = gcpOppgaveMap.get(dto.id());
-                GcpImportMapper.mapOppgave(dto, behRef, oppgave);
-                oppgaveCount++;
+        for (var dto : oppgaver) {
+            if (gcpOppgaveId.contains(dto.id())) {
+                // antar ferdiglagret
+                continue;
             }
+            var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
+            var oppgave = GcpImportMapper.mapOppgave(dto, behRef);
+            entityManager.persist(oppgave);
+            oppgaverLagret.put(oppgave.getId(), oppgave);
+        }
 
-            entityManager.flush();
+        entityManager.flush();
 
-            for (var dto : batch) {
-                if (gcpOppgaveMap.containsKey(dto.id())) {
-                    continue;
-                }
-                var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
-                var oppgave = new Oppgave(behRef, dto.behandlendeEnhet());
-                GcpImportMapper.mapOppgave(dto, behRef, oppgave);
-                entityManager.merge(oppgave);
-                oppgaveCount++;
-                gcpOppgaveMap.put(oppgave.getId(), oppgave);
+        for (var dto : oppgaver) {
+            var resDto = dto.reservasjonDataDto();
+            if (resDto == null || !oppgaverLagret.containsKey(dto.id())) {
+                continue;
             }
-
-            entityManager.flush();
-
-            var gcpReservasjonerMap = entityManager.createQuery("from Reservasjon r where r.oppgave.id in :ids", Reservasjon.class)
-                .setParameter("ids", fssOppgaveIds)
-                .getResultStream()
-                .collect(Collectors.toMap(r -> r.getOppgave().getId(), r -> r));
-
-            for (var dto : batch) {
-                var resDto = dto.reservasjonDataDto();
-                if (resDto == null) {
-                    continue;
-                }
-
-                var reservasjon = gcpReservasjonerMap.get(dto.id());
-                var oppgave = gcpOppgaveMap.get(dto.id());
-                var nyReservasjon = reservasjon == null;
-                if (nyReservasjon) {
-                   reservasjon = new Reservasjon(oppgave, resDto.reservertAv());
-                }
-                GcpImportMapper.mapReservasjon(resDto, reservasjon, oppgave);
-
-                if (nyReservasjon) {
-                    entityManager.persist(reservasjon);
-                }
-
-                reservasjonCount++;
-            }
-
-            entityManager.flush();
-            entityManager.clear();
+            var oppgave = oppgaverLagret.get(dto.id());
+            var reservasjon = new Reservasjon(oppgave, resDto.reservertAv());
+            GcpImportMapper.mapReservasjon(resDto, reservasjon, oppgave);
+            entityManager.persist(reservasjon);
         }
     }
 
@@ -283,9 +244,7 @@ public class GcpImportRepository {
             }
 
             entityManager.flush();
-            entityManager.clear();
         }
-        LOG.info("MIGRERING (GCP): lagret {} behandlinger", count);
     }
 
 

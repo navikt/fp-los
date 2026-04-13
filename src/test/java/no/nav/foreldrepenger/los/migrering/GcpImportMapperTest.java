@@ -136,8 +136,7 @@ class GcpImportMapperTest {
         var dto = TestMigreringData.lagOppgaveDataDto(42L);
 
         var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
-        var oppgave = new Oppgave(behandling, "4806");
-        GcpImportMapper.mapOppgave(dto, behandling, oppgave);
+        var oppgave = GcpImportMapper.mapOppgave(dto, behandling);
 
         assertThat(oppgave.getId()).isEqualTo(42L);
         //assertThat(oppgave.getSaksnummer().getVerdi()).isEqualTo("123456");
@@ -158,8 +157,7 @@ class GcpImportMapperTest {
         );
 
         var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
-        var oppgave = new Oppgave(behandling, "4806");
-        GcpImportMapper.mapOppgave(dto, behandling, oppgave);
+        var oppgave = GcpImportMapper.mapOppgave(dto, behandling);
         assertThat(oppgave.getOppgaveEgenskaper()).isEmpty();
     }
 

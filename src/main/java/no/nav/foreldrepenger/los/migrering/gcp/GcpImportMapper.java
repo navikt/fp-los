@@ -82,9 +82,9 @@ public final class GcpImportMapper {
                             dto.endretAv(), dto.endretTidspunkt());
     }
 
-    public static void mapOppgave(OppgaveDataDto dto, Behandling behRef, Oppgave oppgave) {
+    public static Oppgave mapOppgave(OppgaveDataDto dto, Behandling behandlingRef) {
+        var oppgave = new Oppgave(behandlingRef, dto.behandlendeEnhet());
         oppgave.setId(dto.id());
-        oppgave.setBehandling(behRef);
         oppgave.setBehandlendeEnhet(dto.behandlendeEnhet());
         oppgave.setAktiv(dto.aktiv());
         oppgave.setOppgaveAvsluttet(dto.oppgaveAvsluttet());
@@ -100,6 +100,7 @@ public final class GcpImportMapper {
                 oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
+        return oppgave;
     }
 
     public static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon, Oppgave oppgaveRef) {
