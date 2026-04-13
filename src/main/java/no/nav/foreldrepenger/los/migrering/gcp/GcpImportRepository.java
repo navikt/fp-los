@@ -238,13 +238,15 @@ public class GcpImportRepository {
             return;
         }
 
-        int countEnhetYtelseBehandling = 0;
         var aktuelleNøkler = enhetYtelseDtos.stream()
             .map(dto -> new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType()))
             .collect(Collectors.toCollection(HashSet::new));
 
         entityManager.createQuery("select s.nøkkel from StatistikkEnhetYtelseBehandling s where s.nøkkel in (:nøkler)",
-            StatistikkEnhetYtelseBehandlingNøkkel.class).setParameter("nøkler", aktuelleNøkler).getResultStream().forEach(aktuelleNøkler::remove);
+            StatistikkEnhetYtelseBehandlingNøkkel.class)
+            .setParameter("nøkler", aktuelleNøkler)
+            .getResultStream()
+            .forEach(aktuelleNøkler::remove);
 
         for (var dto : enhetYtelseDtos) {
             var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType());
@@ -252,11 +254,8 @@ public class GcpImportRepository {
                 var stat = new StatistikkEnhetYtelseBehandling(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(),
                     dto.behandlingType(), dto.statistikkDato(), dto.antallAktive(), dto.antallOpprettet(), dto.antallAvsluttet());
                 entityManager.persist(stat);
-                countEnhetYtelseBehandling++;
             }
         }
-
-        LOG.info("MIGRERING (GCP): lagret {} StatistikkEnhetYtelseBehandling-innslag", countEnhetYtelseBehandling);
     }
 
 
@@ -274,7 +273,6 @@ public class GcpImportRepository {
             .getResultStream() // stream av allerede lagrede nøkler
             .forEach(nøklerForLagring::remove);
 
-        int countOppgaveFilter = 0;
         for (var dto : oppgaveFilterDtos) {
             var nøkkel = new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel());
             if (nøklerForLagring.contains(nøkkel)) {
@@ -282,12 +280,8 @@ public class GcpImportRepository {
                     dto.statistikkDato(), dto.antallAktive(), dto.antallTilgjengelige(),
                     dto.antallVentende(), dto.antallOpprettet(), dto.antallAvsluttet(), dto.innslagType());
                 entityManager.persist(stat);
-                countOppgaveFilter++;
             }
         }
-
-        entityManager.flush();
-        LOG.info("MIGRERING (GCP): lagret {} StatistikkOppgaveFilter-innslag", countOppgaveFilter);
     }
 
 }

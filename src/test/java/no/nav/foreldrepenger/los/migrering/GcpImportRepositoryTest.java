@@ -235,6 +235,7 @@ class GcpImportRepositoryTest {
         var bulkData = BulkDataWrapper.statistikkOppgaveFilter(List.of(statOppgaveFilter2, statOppgaveFilter1));
 
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
