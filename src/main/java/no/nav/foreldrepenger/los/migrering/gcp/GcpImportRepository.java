@@ -60,8 +60,6 @@ public class GcpImportRepository {
     }
 
     public void lagre(BulkDataWrapper bulkData) {
-        LOG.info("MIGRERING (GCP): starter lagring");
-
         lagreOrganisasjonsData(bulkData.organisasjonData());
         lagreOppgaveFiltreringer(bulkData.oppgaveFiltrering());
 
@@ -147,8 +145,6 @@ public class GcpImportRepository {
             entityManager.flush();
             entityManager.clear();
         }
-
-        LOG.info("MIGRERING (GCP): lagret {} oppgaver og {} reservasjoner", oppgaveCount, reservasjonCount);
     }
 
     // Lagrer Avdeling, Saksbehandler, AvdelingSaksbehandlerRelasjon, SaksbehandlerGruppe, GruppeTilknytningRelasjon
@@ -304,7 +300,7 @@ public class GcpImportRepository {
             .getResultStream()
             .collect(Collectors.toSet());
 
-        var avdelinger = entityManager.createQuery("from Avdeling", Avdeling.class).getResultStream().collect(Collectors.toMap(Avdeling::getAvdelingEnhet, a -> a));
+        var avdelinger = entityManager.createQuery("from avdeling", Avdeling.class).getResultStream().collect(Collectors.toMap(Avdeling::getAvdelingEnhet, a -> a));
         var lagredeOF = new HashMap<Long, OppgaveFiltrering>();
 
         for (var dto : oppgaveFiltreringDto) {
