@@ -9,7 +9,6 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -53,14 +52,10 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
         // Gjør dette enkelt med én taskkjøring per relaterte entiteter
         while (true) {
             var bulkData = currentSteg.hent(fssEksportRepository, startPosisjon, batchSize);
-            var gcpKvittering = gcpLosKlient.lagreBulkData(bulkData);
+            gcpLosKlient.lagreBulkData(bulkData);
 
             var antallHentet = currentSteg.hentetAntall(bulkData);
-            logg(currentSteg, startPosisjon, antallHentet, batchSize, gcpKvittering);
-
-            if (!gcpKvittering.kjørtUtenFeil()) {
-                throw new RuntimeException("MIGRERING (FSS): GCP-los rapporterer feil ved lagring. Undersøk logger.");
-            }
+            logg(currentSteg, startPosisjon, antallHentet, batchSize);
 
             if (currentSteg.erFerdig(antallHentet, batchSize)) {
                 lagNesteSteg(currentSteg);
@@ -71,9 +66,9 @@ public class FssGcpMigrasjonTask implements ProsessTaskHandler {
         }
     }
 
-    private void logg(MigreringSteg currentSteg, int startPosisjon, int antallHentet, int batchSize, GcpImportKvittering gcpImportKvittering) {
-        LOG.info("MIGRERING (FSS): steg {}, startPosisjon {}, antallHentet {}, batchSize {}, gcpKvittering {}",
-            currentSteg, startPosisjon, antallHentet, batchSize, gcpImportKvittering);
+    private void logg(MigreringSteg currentSteg, int startPosisjon, int antallHentet, int batchSize) {
+        LOG.info("MIGRERING (FSS): steg {}, startPosisjon {}, antallHentet {}, batchSize {}",
+            currentSteg, startPosisjon, antallHentet, batchSize);
     }
 
     private void lagNesteSteg(MigreringSteg currentSteg) {

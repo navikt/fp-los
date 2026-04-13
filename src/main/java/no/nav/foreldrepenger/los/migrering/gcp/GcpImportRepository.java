@@ -18,11 +18,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
@@ -44,7 +42,7 @@ import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
 
 /**
- * Lagrer data fra FSS-instans i GCP-instans. Bevarer PK fra FSS der relevant for idempotent sync.
+ * Lagrer data fra FSS-instans i GCP-instans. Bevarer PK fra FSS der relevant
  */
 @ApplicationScoped
 @Transactional
@@ -64,41 +62,22 @@ public class GcpImportRepository {
         // For CDI
     }
 
-    public GcpImportKvittering lagre(BulkDataWrapper bulkData) {
-        if (Environment.current().isFss()) {
-            throw new RuntimeException("MIGRERING (GCP): forsøkt lagring i FSS!");
-        }
+    public void lagre(BulkDataWrapper bulkData) {
         LOG.info("MIGRERING (GCP): starter lagring");
-        var importKvittering = new GcpImportKvittering.Builder();
 
-        try {
-            importKvittering.orgData(lagreOrganisasjonsData(bulkData.organisasjonData()));
+        lagreOrganisasjonsData(bulkData.organisasjonData());
+        lagreOppgaveFiltreringer(bulkData.oppgaveFiltrering());
 
-            lagreOppgaveKøer(bulkData.oppgaveFiltrering(), importKvittering);
+        lagreBehandlinger(bulkData.behandlinger());
+        lagreOppgaverReservasjoner(bulkData.aktiveOppgaver());
+        lagreOppgaverReservasjoner(bulkData.inaktiveOppgaver());
 
-            importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
-
-            lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
-            lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
-
-            importKvittering.statistikkEnhetYtelseBehandling(lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling()));
-            importKvittering.statistikkOppgaveFilter(lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter()));
-
-            importKvittering.kjørtUtenFeil(true);
-        } catch (Exception e) {
-            LOG.error("MIGRERING (GCP): feilet", e);
-            importKvittering.kjørtUtenFeil(false);
-        }
-
-        var kvittering = importKvittering.build();
-        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikkOppgaveFilter, {} statistikkEnhetYtelseBehandling", kvittering.kjørtUtenFeil(),
-            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(), kvittering.statistikkOppgaveFilter(), kvittering.statistikkEnhetYtelseBehandling());
-        return kvittering;
+        lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling());
+        lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter());
     }
 
-    private void lagreOppgaverReservasjoner(GcpImportKvittering.Builder storedCounts, List<OppgaveDataDto> oppgaver) {
+    private void lagreOppgaverReservasjoner(List<OppgaveDataDto> oppgaver) {
         if (oppgaver.isEmpty()) {
-            storedCounts.oppgaver(0).reservasjoner(0);
             return;
         }
 
@@ -172,11 +151,14 @@ public class GcpImportRepository {
             entityManager.clear();
         }
 
-        storedCounts.oppgaver(oppgaveCount).reservasjoner(reservasjonCount);
+        LOG.info("MIGRERING (GCP): lagret {} oppgaver og {} reservasjoner", oppgaveCount, reservasjonCount);
     }
 
-    private int lagreOrganisasjonsData(OrgDataDto orgData) {
-        if (orgData == null) return 0;
+    // Lagrer Avdeling, Saksbehandler, AvdelingSaksbehandlerRelasjon, SaksbehandlerGruppe, GruppeTilknytningRelasjon
+    private void lagreOrganisasjonsData(OrgDataDto orgData) {
+        if (orgData == null) {
+            return;
+        }
 
         var count = 0;
 
@@ -268,12 +250,12 @@ public class GcpImportRepository {
             }
         }
 
-        return count;
+        LOG.info("MIGRERING (GCP): lagret {} organisasjonsdata-innslag", count);
     }
 
-    private int lagreBehandlinger(List<BehandlingDataDto> behandlinger) {
+    private void lagreBehandlinger(List<BehandlingDataDto> behandlinger) {
         if (behandlinger.isEmpty()) {
-            return 0;
+            return;
         }
 
         int count = 0;
@@ -310,12 +292,14 @@ public class GcpImportRepository {
             entityManager.flush();
             entityManager.clear();
         }
-        return count;
+        LOG.info("MIGRERING (GCP): lagret {} behandlinger", count);
     }
 
 
-    private void lagreOppgaveKøer(@NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltreringDto, GcpImportKvittering.Builder importKvittering) {
-        if (oppgaveFiltreringDto == null) return;
+    private void lagreOppgaveFiltreringer(@NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltreringDto) {
+        if (oppgaveFiltreringDto == null) {
+            return;
+        }
 
         var fssOppgaveFiltreringId = oppgaveFiltreringDto.stream().map(OppgaveFiltreringDataDto::id).collect(Collectors.toSet());
 
@@ -362,13 +346,13 @@ public class GcpImportRepository {
                 }
             }
         }
-        importKvittering
-            .oppgaveKøer(antallKøer)
-            .filtreringSaksbehandlerRelasjon(antallFiltreringSaksbehandlerRelasjon);
+        LOG.info("MIGRERING (GCP): lagret {} oppgavekøer og {} FiltreringSaksbehandlerRelasjon-innslag", antallKøer, antallFiltreringSaksbehandlerRelasjon);
     }
 
-    private int lagreStatEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos) {
-        if (enhetYtelseDtos.isEmpty()) return 0;
+    private void lagreStatEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos) {
+        if (enhetYtelseDtos.isEmpty()) {
+            return;
+        }
 
         int countEnhetYtelseBehandling = 0;
         var aktuelleNøkler = enhetYtelseDtos.stream()
@@ -388,12 +372,14 @@ public class GcpImportRepository {
             }
         }
 
-        return countEnhetYtelseBehandling;
+        LOG.info("MIGRERING (GCP): lagret {} StatistikkEnhetYtelseBehandling-innslag", countEnhetYtelseBehandling);
     }
 
 
-    private int lagreStatOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
-        if (oppgaveFilterDtos.isEmpty()) return 0;
+    private void lagreStatOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
+        if (oppgaveFilterDtos.isEmpty()) {
+            return;
+        }
 
         var nøklerForLagring = oppgaveFilterDtos.stream()
             .map(dto -> new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel()))
@@ -417,7 +403,7 @@ public class GcpImportRepository {
         }
 
         entityManager.flush();
-        return countOppgaveFilter;
+        LOG.info("MIGRERING (GCP): lagret {} StatistikkOppgaveFilter-innslag", countOppgaveFilter);
     }
 
 }
