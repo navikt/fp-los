@@ -1,9 +1,8 @@
 package no.nav.foreldrepenger.los.migrering.dto;
 
-public record GcpImportKvittering(boolean kjørtUtenFeil, int behandlinger, int oppgaver, int reservasjoner, int orgData, int oppgaveKøer,
+public record GcpImportKvittering(int behandlinger, int oppgaver, int reservasjoner, int orgData, int oppgaveKøer,
                                   int statistikkOppgaveFilter, int statistikkEnhetYtelseBehandling, int filtreringSaksbehandlerRelasjon) {
     public static class Builder {
-        private Boolean kjørtUtenFeil;
         private int behandlinger = 0;
         private int oppgaver = 0;
         private int reservasjoner = 0;
@@ -13,10 +12,6 @@ public record GcpImportKvittering(boolean kjørtUtenFeil, int behandlinger, int 
         private int statistikkEnhetYtelseBehandling = 0;
         private int filtreringSaksbehandlerRelasjon = 0;
 
-        public Builder kjørtUtenFeil(boolean kjørtUtenFeil) {
-            this.kjørtUtenFeil = kjørtUtenFeil;
-            return this;
-        }
 
         public Builder behandlinger(int antall) {
             this.behandlinger += antall;
@@ -59,10 +54,7 @@ public record GcpImportKvittering(boolean kjørtUtenFeil, int behandlinger, int 
         }
 
         public GcpImportKvittering build() {
-            if (kjørtUtenFeil == null) {
-                throw new IllegalStateException("Må sette kjørtUtenFeil før bygging av GcpImportKvittering");
-            }
-            return new GcpImportKvittering(kjørtUtenFeil, behandlinger, oppgaver, reservasjoner, orgData, oppgaveKøer, statistikkOppgaveFilter,
+            return new GcpImportKvittering(behandlinger, oppgaver, reservasjoner, orgData, oppgaveKøer, statistikkOppgaveFilter,
                 statistikkEnhetYtelseBehandling, filtreringSaksbehandlerRelasjon);
         }
     }

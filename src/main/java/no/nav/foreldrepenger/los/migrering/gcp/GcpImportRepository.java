@@ -71,28 +71,23 @@ public class GcpImportRepository {
         LOG.info("MIGRERING (GCP): starter lagring");
         var importKvittering = new GcpImportKvittering.Builder();
 
-        try {
-            importKvittering.orgData(lagreOrganisasjonsData(bulkData.organisasjonData()));
+        importKvittering.orgData(lagreOrganisasjonsData(bulkData.organisasjonData()));
 
-            lagreOppgaveKøer(bulkData.oppgaveFiltrering(), importKvittering);
+        lagreOppgaveKøer(bulkData.oppgaveFiltrering(), importKvittering);
 
-            importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
+        importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
 
-            lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
-            lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
+        lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
+        lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
 
-            importKvittering.statistikkEnhetYtelseBehandling(lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling()));
-            importKvittering.statistikkOppgaveFilter(lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter()));
-
-            importKvittering.kjørtUtenFeil(true);
-        } catch (Exception e) {
-            LOG.error("MIGRERING (GCP): feilet", e);
-            importKvittering.kjørtUtenFeil(false);
-        }
+        importKvittering.statistikkEnhetYtelseBehandling(lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling()));
+        importKvittering.statistikkOppgaveFilter(lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter()));
 
         var kvittering = importKvittering.build();
-        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikkOppgaveFilter, {} statistikkEnhetYtelseBehandling", kvittering.kjørtUtenFeil(),
-            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(), kvittering.statistikkOppgaveFilter(), kvittering.statistikkEnhetYtelseBehandling());
+        LOG.info(
+            "MIGRERING (GCP): lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikkOppgaveFilter, {} statistikkEnhetYtelseBehandling",
+            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(),
+            kvittering.statistikkOppgaveFilter(), kvittering.statistikkEnhetYtelseBehandling());
         return kvittering;
     }
 
