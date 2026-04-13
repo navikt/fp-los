@@ -9,7 +9,7 @@
   "ingress": "https://fplos.intern.dev.nav.no",
   "kafkaPool": "nav-dev",
   "minReplica": "1",
-  "maxReplica": "2",
+  "maxReplica": "1",
   "limits": {
     "mem": "800Mi"
   },

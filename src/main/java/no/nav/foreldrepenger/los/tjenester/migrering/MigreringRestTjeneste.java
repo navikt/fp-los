@@ -17,6 +17,7 @@ import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.los.beskyttelsesbehov.Beskyttelsesbehov;
 import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
+import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingHendelseTjeneste;
 import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
 import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.FpsakBehandlingKlient;
 import no.nav.vedtak.hendelser.behandling.Kildesystem;
@@ -34,13 +35,17 @@ import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
 public class MigreringRestTjeneste {
 
     private BehandlingTjeneste behandlingTjeneste;
+    private BehandlingHendelseTjeneste behandlingHendelseTjeneste;
     private FpsakBehandlingKlient fpsakBehandlingKlient;
     private Beskyttelsesbehov beskyttelsesbehov;
 
     @Inject
-    public MigreringRestTjeneste(BehandlingTjeneste behandlingTjeneste, FpsakBehandlingKlient fpsakBehandlingKlient,
+    public MigreringRestTjeneste(BehandlingTjeneste behandlingTjeneste,
+                                 BehandlingHendelseTjeneste behandlingHendelseTjeneste,
+                                 FpsakBehandlingKlient fpsakBehandlingKlient,
                                  Beskyttelsesbehov beskyttelsesbehov) {
         this.behandlingTjeneste = behandlingTjeneste;
+        this.behandlingHendelseTjeneste = behandlingHendelseTjeneste;
         this.fpsakBehandlingKlient = fpsakBehandlingKlient;
         this.beskyttelsesbehov = beskyttelsesbehov;
     }
@@ -49,6 +54,7 @@ public class MigreringRestTjeneste {
         // For Rest-CDI
     }
 
+    // Tidl brukt for at fpsak/tilbake sender over hendelser
     @POST
     @Path("/lagrebehandling")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -61,6 +67,21 @@ public class MigreringRestTjeneste {
         var egenskaper = hentFagsakEgenskaper(dto, fagsystem);
         var beskyttelseKriterier = beskyttelsesbehov.getBeskyttelsesKriterier(new Saksnummer(dto.saksnummer()));
         behandlingTjeneste.mottaBehandlingMigrering(dto, egenskaper, fagsystem, beskyttelseKriterier);
+        return Response.ok().build();
+    }
+
+    // Til bruk ved at LOS-fss sender over Dto etter at den er mottatt og prosessert der. For å teste task i GCP
+    @POST
+    @Path("/lagrehendelse")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "lagrer ned behandlingdto som behandling, rører ikke oppgave", tags = "admin")
+    @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
+    public Response lagreHendelsedata(@TilpassetAbacAttributt(supplierClass = LosBehandlingDtoAbacDataSupplier.class)
+                                          @NotNull @Valid LosBehandlingDto dto) {
+        var fagsystem = Kildesystem.FPSAK.equals(dto.kildesystem()) ? Fagsystem.FPSAK : Fagsystem.FPTILBAKE;
+        var egenskaper = hentFagsakEgenskaper(dto, fagsystem);
+        behandlingHendelseTjeneste.lagreBehandlingOppdaterOppgaver(dto, egenskaper, fagsystem);
         return Response.ok().build();
     }
 
