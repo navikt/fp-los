@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
+import no.nav.foreldrepenger.konfig.Cluster;
 import no.nav.foreldrepenger.konfig.Environment;
 
 import org.slf4j.Logger;
@@ -54,7 +55,8 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
     }
 
     private static boolean skalKjøreIMiljø() {
-        return !Environment.current().isGcp();
+        var aktivtCluster = Environment.current().getCluster();
+        return !(aktivtCluster == Cluster.DEV_GCP || aktivtCluster == Cluster.PROD_GCP);
     }
 
 }
