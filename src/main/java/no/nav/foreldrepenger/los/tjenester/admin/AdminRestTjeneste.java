@@ -43,7 +43,6 @@ import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
 
-import static no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask.BATCH_SIZE;
 import static no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask.STEG;
 
 @Path("/admin")
@@ -230,7 +229,6 @@ public class AdminRestTjeneste {
         if (migrasjonDto.steg() != null) {
             t.setProperty(STEG, migrasjonDto.steg().name());
         }
-        t.setProperty(BATCH_SIZE, String.valueOf(migrasjonDto.batchSize()));
         prosessTaskTjeneste.lagre(t);
         return Response.ok().build();
     }
