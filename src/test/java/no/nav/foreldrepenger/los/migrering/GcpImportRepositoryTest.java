@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.los.migrering;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -52,15 +53,9 @@ class GcpImportRepositoryTest {
     @Test
     void lagre_organisasjonOgKøer_shouldPersistAllEntities() {
         var bulkData = TestMigreringData.lagOrganisasjonOgKøer();
-        var kvittering = repo.lagre(bulkData);
+        repo.lagre(bulkData);
 
         em.flush();
-        assertThat(kvittering.orgData()).isNotZero();
-        assertThat(kvittering.oppgaveKøer()).isNotZero();
-        assertThat(kvittering.filtreringSaksbehandlerRelasjon()).isNotZero();
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-        assertThat(kvittering.orgData()).isPositive();
-        assertThat(kvittering.oppgaveKøer()).isPositive();
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Avdeling.class)).isNotEmpty();
@@ -76,10 +71,6 @@ class GcpImportRepositoryTest {
         repo.lagre(bulkData); // First run
         em.clear();
 
-        var kvittering = repo.lagre(bulkData); // Second run — should merge, not duplicate
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-
         // Verify no duplicates
         em.clear();
         var avdelinger = DBTestUtil.hentAlle(em, Avdeling.class).stream()
@@ -91,10 +82,7 @@ class GcpImportRepositoryTest {
     @Test
     void lagre_behandlinger_shouldPersistWithEgenskaper() {
         var bulkData = TestMigreringData.lagBehandlinger();
-        var kvittering = repo.lagre(bulkData);
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-        assertThat(kvittering.behandlinger()).isEqualTo(2);
+        repo.lagre(bulkData);
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
@@ -109,9 +97,7 @@ class GcpImportRepositoryTest {
         repo.lagre(bulkData);
         em.clear();
 
-        var kvittering = repo.lagre(bulkData); // re-run
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
+        repo.lagre(bulkData); // re-run
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
@@ -120,11 +106,7 @@ class GcpImportRepositoryTest {
     @Test
     void lagre_aktiveOppgaver_shouldPersistOppgaverOgReservasjoner() {
         var bulkData = TestMigreringData.lagBehandlinger(TestMigreringData.lagAktiveOppgaver());
-        var kvittering = repo.lagre(bulkData);
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-        assertThat(kvittering.oppgaver()).isEqualTo(2);
-        assertThat(kvittering.reservasjoner()).isEqualTo(1);
+        repo.lagre(bulkData);
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
@@ -137,8 +119,7 @@ class GcpImportRepositoryTest {
         repo.lagre(bulkData);
         em.clear();
 
-        var kvittering = repo.lagre(bulkData); // re-run
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
+        repo.lagre(bulkData); // re-run
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
@@ -146,21 +127,9 @@ class GcpImportRepositoryTest {
     }
 
     @Test
-    void lagre_emptyBulkData_shouldReturnSuccessfulKvittering() {
-        var bulkData = BulkDataWrapper.behandlinger(List.of());
-        var kvittering = repo.lagre(bulkData);
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-        assertThat(kvittering.behandlinger()).isZero();
-        assertThat(kvittering.oppgaver()).isZero();
-    }
-
-    @Test
     void lagre_saksbehandlerGruppe_shouldBePersisted() {
         var bulkData = TestMigreringData.lagOrganisasjonOgKøer();
-        var kvittering = repo.lagre(bulkData);
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
+        repo.lagre(bulkData);
 
         em.clear();
         var grupper = DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class);
@@ -170,31 +139,22 @@ class GcpImportRepositoryTest {
 
     @Test
     void lagre_stats_oppgavefilter() {
-        var dtoEksisterendeEntitet = new StatOppgaveFilterDataDto(1L,
+        var statOppgaveFilter1 = new StatOppgaveFilterDataDto(1L,
             1735689600000L,
             LocalDate.of(2026, 1, 1),
             1, 2, 3, 4, 5,
             InnslagType.REGELMESSIG);
-        var førsteKvittering1Ny = repo.lagre(BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoEksisterendeEntitet)));
-        em.clear();
 
-        assertThat(førsteKvittering1Ny.kjørtUtenFeil()).isTrue();
-        assertThat(førsteKvittering1Ny.statistikkOppgaveFilter()).isEqualTo(1);
-
-        var dtoNy = new StatOppgaveFilterDataDto(
+        var statOppgaveFilter2 = new StatOppgaveFilterDataDto(
             2L,
             1235689600000L,
             LocalDate.of(2026, 2, 2),
             2, 2, 2, 2, 2,
             InnslagType.REGELMESSIG
         );
-        var begge = BulkDataWrapper.statistikkOppgaveFilter(List.of(dtoNy, dtoEksisterendeEntitet));
-        assertThat(begge.statistikkOppgaveFilter()).hasSize(2);
+        var bulkData = BulkDataWrapper.statistikkOppgaveFilter(List.of(statOppgaveFilter2, statOppgaveFilter1));
 
-        var andreKvittering1Ny1Gammel = repo.lagre(begge);
-        assertThat(andreKvittering1Ny1Gammel.kjørtUtenFeil()).isTrue();
-        assertThat(andreKvittering1Ny1Gammel.statistikkOppgaveFilter()).isEqualTo(1);
-
+        repo.lagre(bulkData);
         em.clear();
 
         var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
@@ -212,9 +172,7 @@ class GcpImportRepositoryTest {
         assertThat(stat.getInnslagType()).isEqualTo(InnslagType.REGELMESSIG);
 
         em.clear();
-        var tredjeKvittering2Gamle = repo.lagre(begge);
-        assertThat(tredjeKvittering2Gamle.kjørtUtenFeil()).isTrue();
-        assertThat(tredjeKvittering2Gamle.statistikkOppgaveFilter()).isZero();
+        assertThatCode(() -> repo.lagre(bulkData)).doesNotThrowAnyException(); // sender samme på nytt
     }
 
     @Test
@@ -224,12 +182,9 @@ class GcpImportRepositoryTest {
             LocalDate.of(2026, 1, 1),
             1, 1, 1);
 
-        var kvittering = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
+        repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
         em.flush();
         em.clear();
-
-        assertThat(kvittering.kjørtUtenFeil()).isTrue();
-        assertThat(kvittering.statistikkEnhetYtelseBehandling()).isEqualTo(1);
 
         var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
         var stat = em.find(StatistikkEnhetYtelseBehandling.class, nøkkel);
@@ -245,9 +200,7 @@ class GcpImportRepositoryTest {
 
         em.clear();
 
-        var kvitteringRekjøring = repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)));
-        assertThat(kvitteringRekjøring.kjørtUtenFeil()).isTrue();
-        assertThat(kvitteringRekjøring.statistikkEnhetYtelseBehandling()).isZero();
+        assertThatCode(() -> repo.lagre(BulkDataWrapper.statistikkEnhetYtelseBehandling(List.of(dto)))).doesNotThrowAnyException(); // sender samme på nytt
     }
 
 

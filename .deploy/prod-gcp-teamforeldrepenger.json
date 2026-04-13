@@ -17,7 +17,7 @@
     "dbTier": "db-custom-1-3840",
     "dbDiskAutoresize": "true",
     "dbHighAvailability": "true",
-    "dbPointInTimeRecovery": "true"
+    "dbPointInTimeRecovery": "false"
   },
   "groups": [
     {

@@ -46,8 +46,8 @@ public class GcpImportRestTjeneste {
     @Operation(description = "Lagrer bulk migreringsdata", tags = "migrering")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = true)
     public Response lagreBulkData(@TilpassetAbacAttributt(supplierClass = GcpMigreringAbacDataSupplier.class) @NotNull @Valid BulkDataWrapper bulkData) {
-        var resultat = gcpImportRepository.lagre(bulkData);
-        return Response.ok(resultat).build();
+        gcpImportRepository.lagre(bulkData);
+        return Response.ok().build();
     }
 
 
