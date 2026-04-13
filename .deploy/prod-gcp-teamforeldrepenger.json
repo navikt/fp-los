@@ -16,8 +16,8 @@
     "dbVersion": "POSTGRES_18",
     "dbTier": "db-custom-1-3840",
     "dbDiskAutoresize": "true",
-    "dbHighAvailability": "false",
-    "dbPointInTimeRecovery": "true"
+    "dbHighAvailability": "true",
+    "dbPointInTimeRecovery": "false"
   },
   "groups": [
     {
