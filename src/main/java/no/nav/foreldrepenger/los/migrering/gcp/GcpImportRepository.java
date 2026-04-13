@@ -1,15 +1,9 @@
 package no.nav.foreldrepenger.los.migrering.gcp;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
-
-import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +16,7 @@ import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
@@ -39,7 +34,9 @@ import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 /**
  * Lagrer data fra FSS-instans i GCP-instans. Bevarer PK fra FSS der relevant
@@ -296,57 +293,42 @@ public class GcpImportRepository {
     }
 
 
-    private void lagreOppgaveFiltreringer(@NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltreringDto) {
+    private void lagreOppgaveFiltreringer(List<OppgaveFiltreringDataDto> oppgaveFiltreringDto) {
         if (oppgaveFiltreringDto == null) {
             return;
         }
 
         var fssOppgaveFiltreringId = oppgaveFiltreringDto.stream().map(OppgaveFiltreringDataDto::id).collect(Collectors.toSet());
-
-        var gcpOppgaveFiltrering = entityManager.createQuery("select f.id from OppgaveFiltrering f where f.id in :ids", Long.class)
+        var gcpOppgaveFiltreringId = entityManager.createQuery("select f.id from OppgaveFiltrering f where f.id in :ids", Long.class)
             .setParameter("ids", fssOppgaveFiltreringId)
             .getResultStream()
             .collect(Collectors.toSet());
 
-        var antallKøer = 0;
+        var avdelinger = entityManager.createQuery("from Avdeling", Avdeling.class).getResultStream().collect(Collectors.toMap(Avdeling::getAvdelingEnhet, a -> a));
+        var lagredeOF = new HashMap<Long, OppgaveFiltrering>();
+
         for (var dto : oppgaveFiltreringDto) {
-            if (gcpOppgaveFiltrering.contains(dto.id())) {
+            if (gcpOppgaveFiltreringId.contains(dto.id())) {
                 continue;
             }
-            var avdeling = entityManager.getReference(Avdeling.class, dto.avdelingId());
-            entityManager.persist(GcpImportMapper.mapOppgaveFiltrering(dto, avdeling));
-            antallKøer++;
+            var avdeling = avdelinger.get(dto.avdelingId());
+            var oppgaveFiltrering = GcpImportMapper.mapOppgaveFiltrering(dto, avdeling);
+            entityManager.persist(oppgaveFiltrering);
+            lagredeOF.put(oppgaveFiltrering.getId(), oppgaveFiltrering);
         }
         entityManager.flush();
 
-        var gcpSaksbehandlerIdenter = entityManager.createQuery("select sb.saksbehandlerIdent from saksbehandler sb", String.class)
-            .getResultList();
-        var gcpFiltreringSaskbehandlerNøkkel = entityManager.createQuery("from FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class)
-            .getResultStream()
-            .map(r -> new FiltreringSaksbehandlerNøkkel(r.getSaksbehandler(), r.getOppgaveFiltrering()))
-            .collect(Collectors.toSet());
-
-        var antallFiltreringSaksbehandlerRelasjon = 0;
-
         for (var ofDto : oppgaveFiltreringDto) {
+            if (lagredeOF.get(ofDto.id()) == null) {
+                continue; // antar relasjoner er lagret fra før
+            }
             for (var saksbehandlerIdent : ofDto.saksbehandlerIdenter()) {
-
-                if (!gcpSaksbehandlerIdenter.contains(saksbehandlerIdent)) {
-                    LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {}, hopper over lagring av FiltreringSaksbehandlerRelasjon {}",
-                        saksbehandlerIdent, ofDto.id());
-                    continue;
-                }
-
-                var filtreringRef = entityManager.getReference(OppgaveFiltrering.class, ofDto.id());
                 var saksbehandlerRef = entityManager.getReference(Saksbehandler.class, saksbehandlerIdent);
-                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, filtreringRef);
-                if (!gcpFiltreringSaskbehandlerNøkkel.contains(nøkkel)) { // TODO: dette blir vel feil, her sammenlikner jeg nøkkel med ref med nøkkel med fulle entiteter
-                    entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
-                    antallFiltreringSaksbehandlerRelasjon++;
-                }
+                var oppgaveFiltrering = lagredeOF.get(ofDto.id());
+                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, oppgaveFiltrering);
+                entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
             }
         }
-        LOG.info("MIGRERING (GCP): lagret {} oppgavekøer og {} FiltreringSaksbehandlerRelasjon-innslag", antallKøer, antallFiltreringSaksbehandlerRelasjon);
     }
 
     private void lagreStatEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos) {
