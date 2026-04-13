@@ -10,12 +10,7 @@ import no.nav.foreldrepenger.los.migrering.fss.FssGcpMigrasjonTask;
 import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.AbacDto;
 
-public record DriftGcpMigrasjonDto(@JsonProperty("batchSize")
-                                   @NotNull
-                                   @Min(1)
-                                   @Max(10000)
-                                   Integer batchSize,
-                                   @JsonProperty("steg")
+public record DriftGcpMigrasjonDto(@JsonProperty("steg")
                                    @Valid
                                    FssGcpMigrasjonTask.MigreringSteg steg) implements AbacDto {
     @Override
