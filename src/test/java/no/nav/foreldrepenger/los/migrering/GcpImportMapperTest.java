@@ -97,7 +97,7 @@ class GcpImportMapperTest {
             id,
             new SaksnummerDto("654321"),
             new AktørId("1234567890123"),
-            Fagsystem.FPSAK,
+            Fagsystem.FPTILBAKE,
             FagsakYtelseType.FORELDREPENGER,
             BehandlingType.FØRSTEGANGSSØKNAD,
             BehandlingTilstand.OPPRETTET,
@@ -115,13 +115,12 @@ class GcpImportMapperTest {
             Set.of(AndreKriterierType.PAPIRSØKNAD)
         );
 
-        var behandling = Behandling.builder(Optional.empty()).dummyBehandling("4806", BehandlingTilstand.OPPRETTET).build();
-        GcpImportMapper.mapBehandling(dto, behandling);
+        var behandling = GcpImportMapper.mapBehandling(dto);
 
         assertThat(behandling.getId()).isEqualTo(id);
         assertThat(behandling.getSaksnummer().getVerdi()).isEqualTo("654321");
         assertThat(behandling.getAktørId().getId()).isEqualTo("1234567890123");
-        assertThat(behandling.getKildeSystem()).isEqualTo(Fagsystem.FPSAK);
+        assertThat(behandling.getKildeSystem()).isEqualTo(Fagsystem.FPTILBAKE);
         assertThat(behandling.getFagsakYtelseType()).isEqualTo(FagsakYtelseType.FORELDREPENGER);
         assertThat(behandling.getBehandlingType()).isEqualTo(BehandlingType.FØRSTEGANGSSØKNAD);
         assertThat(behandling.getBehandlingTilstand()).isEqualTo(BehandlingTilstand.OPPRETTET);

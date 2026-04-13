@@ -83,8 +83,9 @@ class GcpImportRepositoryTest {
     void lagre_behandlinger_shouldPersistWithEgenskaper() {
         var bulkData = TestMigreringData.lagBehandlinger();
         repo.lagre(bulkData);
-
+        em.flush();
         em.clear();
+
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
 
         var egenskaper = em.createQuery("FROM BehandlingEgenskap", BehandlingEgenskap.class).getResultList();
@@ -95,10 +96,11 @@ class GcpImportRepositoryTest {
     void lagre_behandlinger_shouldBeIdempotent() {
         var bulkData = TestMigreringData.lagBehandlinger();
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         repo.lagre(bulkData); // re-run
-
+        em.flush();
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
     }

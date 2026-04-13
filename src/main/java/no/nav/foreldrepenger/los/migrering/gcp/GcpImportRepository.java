@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.migrering.gcp;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
@@ -46,7 +46,6 @@ import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 public class GcpImportRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(GcpImportRepository.class);
-    private static final int BATCH_SIZE = 300;
 
     private EntityManager entityManager;
 
@@ -212,38 +211,18 @@ public class GcpImportRepository {
             return;
         }
 
-        int count = 0;
+        var fssBehandlingUuider = behandlinger.stream().map(BehandlingDataDto::id).collect(Collectors.toSet());
+        var gcpBehandlingMap = entityManager.createQuery("select b.id from Behandling b where b.id in :ids", UUID.class)
+            .setParameter("ids", fssBehandlingUuider)
+            .getResultStream()
+            .collect(Collectors.toSet());
 
-        for (int start = 0; start < behandlinger.size(); start += BATCH_SIZE) {
-            int end = Math.min(start + BATCH_SIZE, behandlinger.size());
-            List<BehandlingDataDto> batch = behandlinger.subList(start, end);
-
-            var batchIds = batch.stream().map(BehandlingDataDto::id).collect(Collectors.toSet());
-
-            var gcpBehandlingMap = entityManager.createQuery("from Behandling b where b.id in :ids", Behandling.class)
-                .setParameter("ids", batchIds)
-                .getResultStream()
-                .collect(Collectors.toMap(Behandling::getId, r -> r));
-
-            for (BehandlingDataDto dto : batch) {
-                var erNy = !gcpBehandlingMap.containsKey(dto.id());
-                var behandling = erNy
-                    ? new Behandling(dto.id(), new Saksnummer(dto.saksnummer().saksnummer()), dto.aktørId(),
-                        dto.behandlendeEnhet(), dto.kildeSystem(), dto.fagsakYtelseType(),
-                        dto.behandlingType(), dto.behandlingTilstand())
-                    : gcpBehandlingMap.get(dto.id());
-                GcpImportMapper.mapBehandling(dto, behandling);
-
-                if (erNy) {
-                    entityManager.persist(behandling);
-                } else {
-                    entityManager.merge(behandling);
-                }
-
-                count++;
+        for (BehandlingDataDto dto : behandlinger) {
+            if (gcpBehandlingMap.contains(dto.id())) {
+                continue;
             }
-
-            entityManager.flush();
+            var behandling = GcpImportMapper.mapBehandling(dto);
+            entityManager.persist(behandling);
         }
     }
 
