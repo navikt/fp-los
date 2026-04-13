@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.los.oppgave;
+package no.nav.foreldrepenger.los.migrering.gcp;
 
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -29,8 +29,9 @@ public class SequenceOrAssignedGenerator extends SequenceStyleGenerator {
 
     @Override
     public Object generate(SharedSessionContractImplementor session, Object entity) {
-        if (entity instanceof Oppgave oppgave && oppgave.getId() != null) {
-            return oppgave.getId(); // beholder den importerte
+        if (entity instanceof SequenceOrAssignedMarker<?> assignedIdEntity && assignedIdEntity.getId() != null) {
+            // vi bruker Id fra FSS
+            return assignedIdEntity.getId();
         }
         return super.generate(session, entity);
     }

@@ -1,12 +1,15 @@
 package no.nav.foreldrepenger.los.migrering.gcp;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
-import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
+
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +19,14 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.KøOppsettDto;
+import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.GcpImportKvittering;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
@@ -28,9 +35,13 @@ import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
+import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningNøkkel;
+import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
 
 /**
  * Lagrer data fra FSS-instans i GCP-instans. Bevarer PK fra FSS der relevant for idempotent sync.
@@ -62,11 +73,17 @@ public class GcpImportRepository {
 
         try {
             importKvittering.orgData(lagreOrganisasjonsData(bulkData.organisasjonData()));
-            importKvittering.oppgaveKøer(lagreOppgaveKøer(bulkData.køOppsettDto()));
+
+            lagreOppgaveKøer(bulkData.oppgaveFiltrering(), importKvittering);
+
             importKvittering.behandlinger(lagreBehandlinger(bulkData.behandlinger()));
+
             lagreOppgaverReservasjoner(importKvittering, bulkData.aktiveOppgaver());
             lagreOppgaverReservasjoner(importKvittering, bulkData.inaktiveOppgaver());
-            // TODO: lagreKøStatistikk()
+
+            importKvittering.statistikkEnhetYtelseBehandling(lagreStatEnhetYtelseBehandling(bulkData.statistikkEnhetYtelseBehandling()));
+            importKvittering.statistikkOppgaveFilter(lagreStatOppgaveFilter(bulkData.statistikkOppgaveFilter()));
+
             importKvittering.kjørtUtenFeil(true);
         } catch (Exception e) {
             LOG.error("MIGRERING (GCP): feilet", e);
@@ -74,8 +91,8 @@ public class GcpImportRepository {
         }
 
         var kvittering = importKvittering.build();
-        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner", kvittering.kjørtUtenFeil(),
-            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner());
+        LOG.info("MIGRERING (GCP): kjørtUtenFeil {}, lagret {} enheter, {} køer, {} behandlinger, {} oppgaver, {} reservasjoner, {} statistikkOppgaveFilter, {} statistikkEnhetYtelseBehandling", kvittering.kjørtUtenFeil(),
+            kvittering.orgData(), kvittering.oppgaveKøer(), kvittering.behandlinger(), kvittering.oppgaver(), kvittering.reservasjoner(), kvittering.statistikkOppgaveFilter(), kvittering.statistikkEnhetYtelseBehandling());
         return kvittering;
     }
 
@@ -103,8 +120,7 @@ public class GcpImportRepository {
                     // vi merger + flusher de eksisterende først for effektiv batch
                     continue;
                 }
-                var behandlingId = dto.behandlingId().toUUID();
-                var behRef = entityManager.getReference(Behandling.class, behandlingId);
+                var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
                 var oppgave = gcpOppgaveMap.get(dto.id());
                 GcpImportMapper.mapOppgave(dto, behRef, oppgave);
                 oppgaveCount++;
@@ -116,8 +132,8 @@ public class GcpImportRepository {
                 if (gcpOppgaveMap.containsKey(dto.id())) {
                     continue;
                 }
-                var behRef = entityManager.getReference(Behandling.class, dto.behandlingId().toUUID());
-                var oppgave = new Oppgave();
+                var behRef = entityManager.getReference(Behandling.class, dto.behandlingId());
+                var oppgave = new Oppgave(behRef, dto.behandlendeEnhet());
                 GcpImportMapper.mapOppgave(dto, behRef, oppgave);
                 entityManager.merge(oppgave);
                 oppgaveCount++;
@@ -137,11 +153,11 @@ public class GcpImportRepository {
                     continue;
                 }
 
-                var reservasjon = gcpReservasjonerMap.get(resDto.oppgaveId());
-                var oppgave = gcpOppgaveMap.get(resDto.oppgaveId());
+                var reservasjon = gcpReservasjonerMap.get(dto.id());
+                var oppgave = gcpOppgaveMap.get(dto.id());
                 var nyReservasjon = reservasjon == null;
                 if (nyReservasjon) {
-                   reservasjon = new Reservasjon();
+                   reservasjon = new Reservasjon(oppgave, resDto.reservertAv());
                 }
                 GcpImportMapper.mapReservasjon(resDto, reservasjon, oppgave);
 
@@ -228,14 +244,28 @@ public class GcpImportRepository {
                 }
                 GcpImportMapper.setBaseEntitetFields(existing, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
             } else {
-                var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn());
-                if (avdeling != null) {
-                    gruppe.setAvdeling(avdeling);
-                }
+                var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn(), avdeling);
                 GcpImportMapper.setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
                 entityManager.persist(gruppe);
             }
             count++;
+        }
+
+        entityManager.flush();
+
+        if (orgData.gruppeTilknytninger() != null) {
+            for (var dto : orgData.gruppeTilknytninger()) {
+                var saksbehandler = entityManager.find(Saksbehandler.class, dto.saksbehandlerId());
+                var gruppe = entityManager.find(SaksbehandlerGruppe.class, dto.gruppeId());
+                if (saksbehandler != null && gruppe != null) {
+                    var nøkkel = new GruppeTilknytningNøkkel(saksbehandler, gruppe);
+                    var existing = entityManager.find(GruppeTilknytningRelasjon.class, nøkkel);
+                    if (existing == null) {
+                        entityManager.persist(new GruppeTilknytningRelasjon(nøkkel));
+                    }
+                    count++;
+                }
+            }
         }
 
         return count;
@@ -260,13 +290,18 @@ public class GcpImportRepository {
                 .collect(Collectors.toMap(Behandling::getId, r -> r));
 
             for (BehandlingDataDto dto : batch) {
-                var behandling = gcpBehandlingMap.getOrDefault(dto.id(), new Behandling());
+                var erNy = !gcpBehandlingMap.containsKey(dto.id());
+                var behandling = erNy
+                    ? new Behandling(dto.id(), new Saksnummer(dto.saksnummer().saksnummer()), dto.aktørId(),
+                        dto.behandlendeEnhet(), dto.kildeSystem(), dto.fagsakYtelseType(),
+                        dto.behandlingType(), dto.behandlingTilstand())
+                    : gcpBehandlingMap.get(dto.id());
                 GcpImportMapper.mapBehandling(dto, behandling);
 
-                if (gcpBehandlingMap.containsKey(dto.id())) {
-                    entityManager.merge(behandling);
-                } else {
+                if (erNy) {
                     entityManager.persist(behandling);
+                } else {
+                    entityManager.merge(behandling);
                 }
 
                 count++;
@@ -279,74 +314,110 @@ public class GcpImportRepository {
     }
 
 
-    private int lagreOppgaveKøer(KøOppsettDto køOppsettDto) {
-        if (køOppsettDto == null) return 0;
+    private void lagreOppgaveKøer(@NotNull List<@Valid OppgaveFiltreringDataDto> oppgaveFiltreringDto, GcpImportKvittering.Builder importKvittering) {
+        if (oppgaveFiltreringDto == null) return;
+
+        var fssOppgaveFiltreringId = oppgaveFiltreringDto.stream().map(OppgaveFiltreringDataDto::id).collect(Collectors.toSet());
+
+        var gcpOppgaveFiltrering = entityManager.createQuery("select f.id from OppgaveFiltrering f where f.id in :ids", Long.class)
+            .setParameter("ids", fssOppgaveFiltreringId)
+            .getResultStream()
+            .collect(Collectors.toSet());
 
         var antallKøer = 0;
-        var filtreringByImportId = new HashMap<Long, OppgaveFiltrering>();
-
-        for (var dto : køOppsettDto.oppgaveFiltrering()) {
-            var avdeling = dto.avdelingId() != null ? entityManager.getReference(Avdeling.class, dto.avdelingId()) : null;
-            var filtrering = entityManager.find(OppgaveFiltrering.class, dto.id());
-            var erNyFiltrering = filtrering == null;
-
-            if (erNyFiltrering) {
-                filtrering = new OppgaveFiltrering();
+        for (var dto : oppgaveFiltreringDto) {
+            if (gcpOppgaveFiltrering.contains(dto.id())) {
+                continue;
             }
-
-            filtrering.setNavn(dto.navn());
-            filtrering.setBeskrivelse(dto.beskrivelse());
-            if (dto.køSortering() != null) {
-                filtrering.setSortering(dto.køSortering());
-            }
-            if (avdeling != null) {
-                filtrering.setAvdeling(avdeling);
-            }
-            filtrering.setFomDato(dto.fomDato());
-            filtrering.setTomDato(dto.tomDato());
-            if (dto.periodeFilter() != null) {
-                filtrering.setPeriodefilter(dto.periodeFilter());
-            }
-
-            filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
-            filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
-            var inkluder = dto.andreKriterier().stream()
-                .filter(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::inkluder)
-                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
-                .collect(java.util.stream.Collectors.toSet());
-            var ekskluder = dto.andreKriterier().stream()
-                .filter(ak -> !ak.inkluder())
-                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
-                .collect(java.util.stream.Collectors.toSet());
-            filtrering.setAndreKriterierTyper(inkluder, ekskluder);
-
-            GcpImportMapper.setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-            if (erNyFiltrering) {
-                entityManager.persist(filtrering);
-            }
-            filtreringByImportId.put(dto.id(), filtrering);
+            var avdeling = entityManager.getReference(Avdeling.class, dto.avdelingId());
+            entityManager.persist(GcpImportMapper.mapOppgaveFiltrering(dto, avdeling));
             antallKøer++;
+        }
+        entityManager.flush();
+
+        var gcpSaksbehandlerIdenter = entityManager.createQuery("select sb.saksbehandlerIdent from saksbehandler sb", String.class)
+            .getResultList();
+        var gcpFiltreringSaskbehandlerNøkkel = entityManager.createQuery("from FiltreringSaksbehandlerRelasjon", FiltreringSaksbehandlerRelasjon.class)
+            .getResultStream()
+            .map(r -> new FiltreringSaksbehandlerNøkkel(r.getSaksbehandler(), r.getOppgaveFiltrering()))
+            .collect(Collectors.toSet());
+
+        var antallFiltreringSaksbehandlerRelasjon = 0;
+
+        for (var ofDto : oppgaveFiltreringDto) {
+            for (var saksbehandlerIdent : ofDto.saksbehandlerIdenter()) {
+
+                if (!gcpSaksbehandlerIdenter.contains(saksbehandlerIdent)) {
+                    LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {}, hopper over lagring av FiltreringSaksbehandlerRelasjon {}",
+                        saksbehandlerIdent, ofDto.id());
+                    continue;
+                }
+
+                var filtreringRef = entityManager.getReference(OppgaveFiltrering.class, ofDto.id());
+                var saksbehandlerRef = entityManager.getReference(Saksbehandler.class, saksbehandlerIdent);
+                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, filtreringRef);
+                if (!gcpFiltreringSaskbehandlerNøkkel.contains(nøkkel)) { // TODO: dette blir vel feil, her sammenlikner jeg nøkkel med ref med nøkkel med fulle entiteter
+                    entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
+                    antallFiltreringSaksbehandlerRelasjon++;
+                }
+            }
+        }
+        importKvittering
+            .oppgaveKøer(antallKøer)
+            .filtreringSaksbehandlerRelasjon(antallFiltreringSaksbehandlerRelasjon);
+    }
+
+    private int lagreStatEnhetYtelseBehandling(List<StatEnhetYtelseBehandlingDataDto> enhetYtelseDtos) {
+        if (enhetYtelseDtos.isEmpty()) return 0;
+
+        int countEnhetYtelseBehandling = 0;
+        var aktuelleNøkler = enhetYtelseDtos.stream()
+            .map(dto -> new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType()))
+            .collect(Collectors.toCollection(HashSet::new));
+
+        entityManager.createQuery("select s.nøkkel from StatistikkEnhetYtelseBehandling s where s.nøkkel in (:nøkler)",
+            StatistikkEnhetYtelseBehandlingNøkkel.class).setParameter("nøkler", aktuelleNøkler).getResultStream().forEach(aktuelleNøkler::remove);
+
+        for (var dto : enhetYtelseDtos) {
+            var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(), dto.behandlingType());
+            if (aktuelleNøkler.contains(nøkkel)) {
+                var stat = new StatistikkEnhetYtelseBehandling(dto.behandlendeEnhet(), dto.tidsstempel(), dto.fagsakYtelseType(),
+                    dto.behandlingType(), dto.statistikkDato(), dto.antallAktive(), dto.antallOpprettet(), dto.antallAvsluttet());
+                entityManager.persist(stat);
+                countEnhetYtelseBehandling++;
+            }
+        }
+
+        return countEnhetYtelseBehandling;
+    }
+
+
+    private int lagreStatOppgaveFilter(List<StatOppgaveFilterDataDto> oppgaveFilterDtos) {
+        if (oppgaveFilterDtos.isEmpty()) return 0;
+
+        var nøklerForLagring = oppgaveFilterDtos.stream()
+            .map(dto -> new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel()))
+            .collect(Collectors.toCollection(HashSet::new));
+
+        entityManager.createQuery("select s.nøkkel from StatistikkOppgaveFilter s where s.nøkkel in (:nøkler)", StatistikkOppgaveFilterNøkkel.class)
+            .setParameter("nøkler", nøklerForLagring)
+            .getResultStream() // stream av allerede lagrede nøkler
+            .forEach(nøklerForLagring::remove);
+
+        int countOppgaveFilter = 0;
+        for (var dto : oppgaveFilterDtos) {
+            var nøkkel = new StatistikkOppgaveFilterNøkkel(dto.oppgaveFilterId(), dto.tidsstempel());
+            if (nøklerForLagring.contains(nøkkel)) {
+                var stat = new StatistikkOppgaveFilter(dto.oppgaveFilterId(), dto.tidsstempel(),
+                    dto.statistikkDato(), dto.antallAktive(), dto.antallTilgjengelige(),
+                    dto.antallVentende(), dto.antallOpprettet(), dto.antallAvsluttet(), dto.innslagType());
+                entityManager.persist(stat);
+                countOppgaveFilter++;
+            }
         }
 
         entityManager.flush();
-
-        for (var sbDto : køOppsettDto.saksbehandlerKøer()) {
-            var saksbehandler = entityManager.find(Saksbehandler.class, sbDto.saksbehandlerId());
-            var filtrering = filtreringByImportId.get(sbDto.oppgaveFiltreringId());
-            if (filtrering == null) {
-                filtrering = entityManager.find(OppgaveFiltrering.class, sbDto.oppgaveFiltreringId());
-            }
-            if (saksbehandler != null && filtrering != null) {
-                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandler, filtrering);
-                var existing = entityManager.find(FiltreringSaksbehandlerRelasjon.class, nøkkel);
-                if (existing == null) {
-                    entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
-                }
-                antallKøer++;
-            }
-        }
-
-        return antallKøer;
+        return countOppgaveFilter;
     }
 
 }

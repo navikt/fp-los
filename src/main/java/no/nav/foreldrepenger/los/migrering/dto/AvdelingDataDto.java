@@ -12,12 +12,12 @@ import no.nav.vedtak.util.InputValideringRegex;
  * DTO for migrating Avdeling entities
  */
 public record AvdelingDataDto(
-    @NotNull @Size(max = 500) @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}") String avdelingEnhet,
-    @NotNull @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
+    @NotNull @Size(max = 10) @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}") String avdelingEnhet,
+    @NotNull @Size(max = 255) @Pattern(regexp = InputValideringRegex.FRITEKST) String navn,
     @NotNull boolean kreverKode6,
     @NotNull boolean aktiv,
-    @NotNull @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
+    @NotNull @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String opprettetAv,
     @NotNull LocalDateTime opprettetTidspunkt,
-    @Size(max = 500) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
+    @Size(max = 20) @Pattern(regexp = InputValideringRegex.FRITEKST) String endretAv,
     LocalDateTime endretTidspunkt
 ) {}

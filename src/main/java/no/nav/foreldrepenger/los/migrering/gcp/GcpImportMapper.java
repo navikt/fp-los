@@ -50,11 +50,8 @@ public final class GcpImportMapper {
     }
 
     public static SaksbehandlerGruppe mapSaksbehandlerGruppe(SaksbehandlerGruppeDataDto dto, Avdeling avdeling) {
-        var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn());
-        setIdUsingReflection(gruppe, dto.id());
-        if (avdeling != null) {
-            gruppe.setAvdeling(avdeling);
-        }
+        var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn(), avdeling);
+        gruppe.setId(dto.id());
         setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return gruppe;
@@ -63,24 +60,12 @@ public final class GcpImportMapper {
     public static void mapBehandling(BehandlingDataDto dto, Behandling behandling) {
         behandling.setId(dto.id()); // Primary key
 
-        if (dto.saksnummer() != null) {
-            behandling.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
-        }
-        if (dto.aktørId() != null) {
-            behandling.setAktørId(dto.aktørId());
-        }
-        if (dto.kildeSystem() != null) {
-            behandling.setFagsystem(dto.kildeSystem());
-        }
-        if (dto.fagsakYtelseType() != null) {
-            behandling.setFagsakYtelseType(dto.fagsakYtelseType());
-        }
-        if (dto.behandlingType() != null) {
-            behandling.setBehandlingType(dto.behandlingType());
-        }
-        if (dto.behandlingTilstand() != null) {
-            behandling.setBehandlingTilstand(dto.behandlingTilstand());
-        }
+        behandling.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
+        behandling.setAktørId(dto.aktørId());
+        behandling.setFagsystem(dto.kildeSystem());
+        behandling.setFagsakYtelseType(dto.fagsakYtelseType());
+        behandling.setBehandlingType(dto.behandlingType());
+        behandling.setBehandlingTilstand(dto.behandlingTilstand());
 
         behandling.setAktiveAksjonspunkt(dto.aktiveAksjonspunkt());
         behandling.setVentefrist(dto.ventefrist());
@@ -115,7 +100,6 @@ public final class GcpImportMapper {
                 oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
-        oppgave.setSkipAutoAudit(true);
     }
 
     public static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon, Oppgave oppgaveRef) {
@@ -127,35 +111,20 @@ public final class GcpImportMapper {
         reservasjon.setBegrunnelse(dto.begrunnelse());
         setBaseEntitetFields(reservasjon, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
-        reservasjon.setSkipAutoAudit(true);
     }
 
     public static OppgaveFiltrering mapOppgaveFiltrering(OppgaveFiltreringDataDto dto, Avdeling avdeling) {
-        var filtrering = new OppgaveFiltrering();
-        setIdUsingReflection(filtrering, dto.id());
-        filtrering.setNavn(dto.navn());
+        var filtrering = new OppgaveFiltrering(dto.navn(), dto.køSortering(), avdeling);
+        filtrering.setId(dto.id());
         filtrering.setBeskrivelse(dto.beskrivelse());
-
-        if (dto.køSortering() != null) {
-            filtrering.setSortering(dto.køSortering());
-        }
-        if (avdeling != null) {
-            filtrering.setAvdeling(avdeling);
-        }
-
-        // Skjermet field not available in OppgaveFiltrering entity TODO: fiks denne
         filtrering.setFomDato(dto.fomDato());
         filtrering.setTomDato(dto.tomDato());
-
-        if (dto.periodeFilter() != null) {
-            filtrering.setPeriodefilter(dto.periodeFilter());
-        }
-
-        // Handle embedded collections
+        filtrering.setFra(dto.fomDager());
+        filtrering.setTil(dto.tomDager());
+        filtrering.setPeriodefilter(dto.periodeFilter());
         filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
         filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
 
-        // Handle andre kriterier with inkluder/ekskluder separation
         var inkluderKriterier = dto.andreKriterier().stream()
                 .filter(AndreKriterierDataDto::inkluder)
                 .map(AndreKriterierDataDto::andreKriterierType)
@@ -171,33 +140,43 @@ public final class GcpImportMapper {
         setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return filtrering;
+
+        /*
+            filtrering.setId(dto.id());
+            filtrering.setBeskrivelse(dto.beskrivelse());
+            filtrering.setFomDato(dto.fomDato());
+            filtrering.setTomDato(dto.tomDato());
+            filtrering.setFra(dto.fomDager());
+            filtrering.setPeriodefilter(dto.periodeFilter());
+            filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
+            filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
+
+            var inkluder = dto.andreKriterier().stream()
+                .filter(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::inkluder)
+                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
+                .collect(java.util.stream.Collectors.toSet());
+            var ekskluder = dto.andreKriterier().stream()
+                .filter(ak -> !ak.inkluder())
+                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
+                .collect(java.util.stream.Collectors.toSet());
+            filtrering.setAndreKriterierTyper(inkluder, ekskluder);
+
+            GcpImportMapper.setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
+
+         */
     }
 
-    // Utility methods for setting private fields using reflection
-    public static void setIdUsingReflection(Object entity, Long id) {
-        try {
-            var field = entity.getClass().getDeclaredField("id");
-            field.setAccessible(true);
-            field.set(entity, id);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set id field", e);
-        }
-    }
-
-    public static void setBaseEntitetFields(BaseEntitet entity, String opprettetAv, LocalDateTime opprettetTid,
+    public static void setBaseEntitetFields(BaseEntitet entitet, String opprettetAv, LocalDateTime opprettetTid,
                                      String endretAv, LocalDateTime endretTid) {
-        if (opprettetAv != null) {
-            entity.setOpprettetAv(opprettetAv);
-        }
-        if (opprettetTid != null) {
-            entity.setOpprettetTidspunkt(opprettetTid);
-        }
+        entitet.setOpprettetAv(opprettetAv);
+        entitet.setOpprettetTidspunkt(opprettetTid);
         if (endretAv != null) {
-            entity.setEndretAv(endretAv);
+            entitet.setEndretAv(endretAv);
         }
         if (endretTid != null) {
-            entity.setEndretTidspunkt(endretTid);
+            entitet.setEndretTidspunkt(endretTid);
         }
+        entitet.setSkipAutoAudit(true);
     }
 
 }

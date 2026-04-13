@@ -183,10 +183,7 @@ class BehandlingKøRepositoryTest {
 
 
     private Long leggeInnEtSettMedOppgaver() {
-        var oppgaveFiltrering = new OppgaveFiltrering();
-        oppgaveFiltrering.setNavn("OPPRETTET");
-        oppgaveFiltrering.setSortering(KøSortering.OPPRETT_BEHANDLING);
-        oppgaveFiltrering.setAvdeling(avdelingDrammen(entityManager));
+        var oppgaveFiltrering = new OppgaveFiltrering("OPPRETTET", KøSortering.OPPRETT_BEHANDLING, avdelingDrammen(entityManager));
         oppgaveRepository.lagre(oppgaveFiltrering);
         oppgaveRepository.lagre(førstegangBehandlingAksjonspunkt);
         oppgaveRepository.lagre(førstegangBehandlingVent);

@@ -35,8 +35,8 @@ class BulkDataWrapperSerializationTest {
         assertThat(deserialized.organisasjonData().saksbehandlere()).hasSize(1);
         assertThat(deserialized.organisasjonData().saksbehandlerGrupper()).hasSize(1);
         assertThat(deserialized.organisasjonData().avdelingSaksbehandlere()).hasSize(1);
-        assertThat(deserialized.køOppsettDto().oppgaveFiltrering()).hasSize(1);
-        assertThat(deserialized.køOppsettDto().saksbehandlerKøer()).hasSize(1);
+        assertThat(deserialized.oppgaveFiltrering()).hasSize(1);
+        assertThat(deserialized.oppgaveFiltrering().getFirst().saksbehandlerIdenter()).hasSize(1);
 
         assertThat(deserialized.behandlinger()).isEmpty();
         assertThat(deserialized.aktiveOppgaver()).isEmpty();
@@ -51,7 +51,7 @@ class BulkDataWrapperSerializationTest {
         var deserialized = MAPPER.readValue(json, BulkDataWrapper.class);
 
         assertThat(deserialized.aktiveOppgaver()).hasSize(2);
-        assertThat(deserialized.aktiveOppgaver().get(0).saksnummer().saksnummer()).isEqualTo("123456");
+        assertThat(deserialized.aktiveOppgaver().get(0).behandlendeEnhet()).isEqualTo("4806");
         assertThat(deserialized.aktiveOppgaver().get(0).oppgaveEgenskaper()).hasSize(1);
 
         // Second oppgave has a reservasjon

@@ -83,10 +83,10 @@ public class SlettUtdaterteTask implements ProsessTaskHandler {
 
     private void slettEldreUtløptStatistikk(LocalDateTime før) {
         var instantms = før.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        entityManager.createQuery("delete from StatistikkEnhetYtelseBehandling where tidsstempel < :instantms")
+        entityManager.createQuery("delete from StatistikkEnhetYtelseBehandling where nøkkel.tidsstempel < :instantms")
             .setParameter("instantms", instantms)
             .executeUpdate();
-        entityManager.createQuery("delete from StatistikkOppgaveFilter where tidsstempel < :instantms")
+        entityManager.createQuery("delete from StatistikkOppgaveFilter where nøkkel.tidsstempel < :instantms")
             .setParameter("instantms", instantms)
             .executeUpdate();
     }

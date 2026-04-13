@@ -4,9 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-
-import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,15 +22,10 @@ import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 class FssExportMapperTest {
 
     private static final String ENHET = "4806";
-    private static final Behandling behandling = new Behandling();
-
-    static {
-        behandling.setId(UUID.randomUUID());
-        behandling.setBehandlingType(BehandlingType.FØRSTEGANGSSØKNAD);
-        behandling.setFagsakYtelseType(FagsakYtelseType.FORELDREPENGER);
-        behandling.setSaksnummer(new Saksnummer("123456"));
-        behandling.setFagsystem(Fagsystem.FPSAK);
-    }
+    private static final Behandling behandling = Behandling.builder(Optional.empty())
+        .dummyBehandling(ENHET, BehandlingTilstand.OPPRETTET)
+        .medKildeSystem(Fagsystem.FPSAK)
+        .build();
 
     @Test
     void mapToBehandlingDataDto_shouldMapAllFieldsAndEgenskaper() {
@@ -74,12 +66,10 @@ class FssExportMapperTest {
 
         var dto = FssExportMapper.mapToOppgaveDataDto(oppgave);
 
-        assertThat(dto.saksnummer().saksnummer()).isEqualTo(oppgave.getSaksnummer().getVerdi());
-        assertThat(dto.behandlingType()).isEqualTo(BehandlingType.FØRSTEGANGSSØKNAD);
-        assertThat(dto.fagsakYtelseType()).isEqualTo(FagsakYtelseType.FORELDREPENGER);
+        assertThat(dto.behandlingId()).isEqualTo(oppgave.getBehandlingId().toUUID());
         assertThat(dto.behandlendeEnhet()).isEqualTo(ENHET);
         assertThat(dto.aktiv()).isTrue();
-        assertThat(dto.system()).isEqualTo(Fagsystem.FPSAK);
+        assertThat(dto.oppgaveAvsluttet()).isNull();
     }
 
     @Test
@@ -128,9 +118,7 @@ class FssExportMapperTest {
 
     @Test
     void mapToSaksbehandlerGruppeDataDto_shouldMapAllFields() {
-        var gruppe = new SaksbehandlerGruppe("Testgruppe");
-        var avdeling = new Avdeling("4806", "NAV Drammen", false);
-        gruppe.setAvdeling(avdeling);
+        var gruppe = new SaksbehandlerGruppe("Testgruppe", new Avdeling("4806", "NAV Drammen", false));
 
         var dto = FssExportMapper.mapToSaksbehandlerGruppeDataDto(gruppe);
 

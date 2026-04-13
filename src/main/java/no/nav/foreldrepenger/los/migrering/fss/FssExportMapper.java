@@ -1,29 +1,34 @@
 package no.nav.foreldrepenger.los.migrering.fss;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BehandlingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.FiltreringSaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveEgenskapDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.OppgaveFiltreringDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.ReservasjonDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
+import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.dto.SaksnummerDto;
 
 /**
@@ -65,20 +70,10 @@ public final class FssExportMapper {
     public static OppgaveDataDto mapToOppgaveDataDto(Oppgave oppgave) {
         return new OppgaveDataDto(
                 oppgave.getId(),
-                oppgave.getSaksnummer() == null ? null : new SaksnummerDto(oppgave.getSaksnummer().getVerdi()),
-                oppgave.getAktørId(),
-                oppgave.getBehandlingId(),
-                oppgave.getBehandlingType(),
-                oppgave.getFagsakYtelseType(),
+                oppgave.getBehandlingId().toUUID(),
                 oppgave.getBehandlendeEnhet(),
-                oppgave.getBehandlingsfrist(),
-                oppgave.getBehandlingOpprettet(),
-                oppgave.getFørsteStønadsdag(),
                 oppgave.getAktiv(),
-                oppgave.getSystem(),
                 oppgave.getOppgaveAvsluttet(),
-                oppgave.getFeilutbetalingBelop(),
-                oppgave.getFeilutbetalingStart(),
                 oppgave.getOpprettetAv(),
                 oppgave.getOpprettetTidspunkt(),
                 oppgave.getEndretAv(),
@@ -109,7 +104,6 @@ public final class FssExportMapper {
             return null;
         }
         return new ReservasjonDataDto(
-                reservasjon.getOppgave().getId(),
                 reservasjon.getReservertTil(),
                 reservasjon.getReservertAv(),
                 reservasjon.getFlyttetAv(),
@@ -166,14 +160,7 @@ public final class FssExportMapper {
         );
     }
 
-    public static FiltreringSaksbehandlerDataDto mapToFiltreringSaksbehandlerDataDto(FiltreringSaksbehandlerRelasjon r) {
-        return new FiltreringSaksbehandlerDataDto(
-                r.getSaksbehandler().getSaksbehandlerIdent(),
-                r.getOppgaveFiltrering().getId()
-        );
-    }
-
-    public static OppgaveFiltreringDataDto mapToOppgaveFiltreringDataDto(OppgaveFiltrering of) {
+    public static OppgaveFiltreringDataDto mapToOppgaveFiltreringDataDto(OppgaveFiltrering of, Map<Long, Set<String>> oppgaveFiltreringIdenter) {
         var behandlingTyper = of.getBehandlingTyper();
         var fagsakYtelseTyper = of.getFagsakYtelseTyper();
 
@@ -184,22 +171,61 @@ public final class FssExportMapper {
                 ))
                 .toList();
 
+        var saksbehandlerIdenter = oppgaveFiltreringIdenter.getOrDefault(of.getId(), Set.of());
+
         return new OppgaveFiltreringDataDto(
-                of.getId(),
-                of.getNavn(),
-                of.getBeskrivelse(),
-                of.getSortering(),
-                of.getAvdeling().getAvdelingEnhet(),
-                of.getFomDato(),
-                of.getTomDato(),
-                of.getPeriodefilter(),
-                of.getOpprettetAv(),
-                of.getOpprettetTidspunkt(),
-                of.getEndretAv(),
-                of.getEndretTidspunkt(),
-                behandlingTyper,
-                fagsakYtelseTyper,
-                andreKriterier
+            of.getId(),
+            of.getNavn(),
+            of.getBeskrivelse(),
+            of.getSortering(),
+            of.getAvdeling().getAvdelingEnhet(),
+            of.getFomDato(),
+            of.getTomDato(),
+            of.getFra(),
+            of.getTil(),
+            of.getPeriodefilter(),
+            of.getOpprettetAv(),
+            of.getOpprettetTidspunkt(),
+            of.getEndretAv(),
+            of.getEndretTidspunkt(),
+            behandlingTyper,
+            fagsakYtelseTyper,
+            andreKriterier,
+            saksbehandlerIdenter
+        );
+    }
+
+    public static GruppeTilknytningDataDto mapToGruppeTilknytningDataDto(GruppeTilknytningRelasjon gt) {
+        return new GruppeTilknytningDataDto(
+                gt.getSaksbehandler().getSaksbehandlerIdent(),
+                gt.getGruppe().getId()
+        );
+    }
+
+    public static StatEnhetYtelseBehandlingDataDto mapToStatEnhetYtelseBehandlingDataDto(StatistikkEnhetYtelseBehandling stat) {
+        return new StatEnhetYtelseBehandlingDataDto(
+                stat.getBehandlendeEnhet(),
+                stat.getTidsstempel(),
+                stat.getFagsakYtelseType(),
+                stat.getBehandlingType(),
+                stat.getStatistikkDato(),
+                stat.getAntallAktive(),
+                stat.getAntallOpprettet(),
+                stat.getAntallAvsluttet()
+        );
+    }
+
+    public static StatOppgaveFilterDataDto mapToStatOppgaveFilterDataDto(StatistikkOppgaveFilter stat) {
+        return new StatOppgaveFilterDataDto(
+                stat.getOppgaveFilterId(),
+                stat.getTidsstempel(),
+                stat.getStatistikkDato(),
+                stat.getAntallAktive(),
+                stat.getAntallTilgjengelige(),
+                stat.getAntallVentende(),
+                stat.getAntallOpprettet(),
+                stat.getAntallAvsluttet(),
+                stat.getInnslagType()
         );
     }
 }

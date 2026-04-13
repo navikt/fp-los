@@ -5,45 +5,21 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
-import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
 @Entity
-@IdClass(EnhetYtelseBehandlingType.class)
 @Table(name = "STAT_ENHET_YTELSE_BEHANDLING")
 public class StatistikkEnhetYtelseBehandling implements Serializable {
 
-    @Id
-    @NotNull
-    @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
-    @Column(name = "BEHANDLENDE_ENHET", updatable = false, nullable = false)
-    private String behandlendeEnhet;
-
-    @Id
-    @NotNull
-    @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false)
-    private Long tidsstempel;
-
-    @Id
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "FAGSAK_YTELSE_TYPE", updatable = false, nullable = false)
-    private FagsakYtelseType fagsakYtelseType;
-
-    @Id
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "BEHANDLING_TYPE", updatable = false, nullable = false)
-    private BehandlingType behandlingType;
+    @EmbeddedId
+    @Valid
+    private StatistikkEnhetYtelseBehandlingNøkkel nøkkel;
 
     @NotNull
     @Column(name = "STAT_DATO", updatable = false, nullable = false)
@@ -73,10 +49,7 @@ public class StatistikkEnhetYtelseBehandling implements Serializable {
                                            Integer antallAktive,
                                            Integer antallOpprettet,
                                            Integer antallAvsluttet) {
-        this.behandlendeEnhet = behandlendeEnhet;
-        this.tidsstempel = tidsstempel;
-        this.fagsakYtelseType = fagsakYtelseType;
-        this.behandlingType = behandlingType;
+        this.nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel(behandlendeEnhet, tidsstempel, fagsakYtelseType, behandlingType);
         this.statistikkDato = statistikkDato;
         this.antallAktive = antallAktive;
         this.antallOpprettet = antallOpprettet;
@@ -84,19 +57,19 @@ public class StatistikkEnhetYtelseBehandling implements Serializable {
     }
 
     public String getBehandlendeEnhet() {
-        return behandlendeEnhet;
+        return nøkkel.behandlendeEnhet();
     }
 
     public Long getTidsstempel() {
-        return tidsstempel;
+        return nøkkel.tidsstempel();
     }
 
     public FagsakYtelseType getFagsakYtelseType() {
-        return fagsakYtelseType;
+        return nøkkel.fagsakYtelseType();
     }
 
     public BehandlingType getBehandlingType() {
-        return behandlingType;
+        return nøkkel.behandlingType();
     }
 
     public LocalDate getStatistikkDato() {
@@ -117,8 +90,7 @@ public class StatistikkEnhetYtelseBehandling implements Serializable {
 
     @Override
     public String toString() {
-        return "StatistikkEnhetYtelseBehandling{" + "behandlendeEnhet='" + behandlendeEnhet + '\'' + ", tidsstempel=" + tidsstempel
-            + ", fagsakYtelseType=" + fagsakYtelseType + ", behandlingType=" + behandlingType + ", statistikkDato=" + statistikkDato
+        return "StatistikkEnhetYtelseBehandling{" + "enhetYtelseBehandlingId=" + nøkkel + ", statistikkDato=" + statistikkDato
             + ", antallAktive=" + antallAktive + ", antallOpprettet=" + antallOpprettet + ", antallAvsluttet=" + antallAvsluttet + '}';
     }
 }
