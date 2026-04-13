@@ -1,5 +1,8 @@
 package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
+import no.nav.foreldrepenger.konfig.Cluster;
+import no.nav.foreldrepenger.konfig.Environment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,9 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
     @Override
     public void start() {
         LOG.info("Starter konsumering av topics={}", kcm.topicNames());
-        kcm.start((t, e) -> LOG.error("{} :: Caught exception in stream, exiting", t, e));
+        if (skalKjøreIMiljø()) {
+            kcm.start((t, e) -> LOG.error("{} :: Caught exception in stream, exiting", t, e));
+        }
     }
 
     @Override
@@ -38,12 +43,20 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
 
     @Override
     public boolean isAlive() {
-        return kcm.allRunning();
+        if (skalKjøreIMiljø()) {
+            return kcm.allRunning();
+        }
+        return true;
     }
 
     @Override
     public boolean isReady() {
         return isAlive();
+    }
+
+    private static boolean skalKjøreIMiljø() {
+        var aktivtCluster = Environment.current().getCluster();
+        return !(aktivtCluster == Cluster.DEV_GCP || aktivtCluster == Cluster.PROD_GCP);
     }
 
 }
