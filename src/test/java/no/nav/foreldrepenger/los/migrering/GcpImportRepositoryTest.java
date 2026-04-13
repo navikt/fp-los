@@ -4,9 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
@@ -139,6 +146,75 @@ class GcpImportRepositoryTest {
         var grupper = DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class);
         assertThat(grupper).isNotEmpty();
         assertThat(grupper.getFirst().getGruppeNavn()).isEqualTo("Testgruppe");
+    }
+
+    @Test
+    void lagre_organisasjon_shouldNotMutateExistingEntities_butPersistNewIds() {
+        var existingAvdeling = new Avdeling("4806", "Eksisterende avdeling", false);
+        existingAvdeling.setErAktiv(true);
+        em.persist(existingAvdeling);
+
+        var existingSaksbehandler = new Saksbehandler("Z999999", "Eksisterende saksbehandler", "4806");
+        em.persist(existingSaksbehandler);
+
+        var existingGruppe = new SaksbehandlerGruppe("Eksisterende gruppe", existingAvdeling);
+        existingGruppe.setId(5_000_003L);
+        em.persist(existingGruppe);
+
+        em.flush();
+        em.clear();
+
+        var now = LocalDateTime.now();
+        var orgData = new OrgDataDto(
+            List.of(
+                new AvdelingDataDto("4806", "Skal ikke overskrive", true, false, "VL", now.minusDays(5), "VL", now),
+                new AvdelingDataDto("4812", "Ny avdeling", false, true, "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new SaksbehandlerDataDto("Z999999", "Skal ikke overskrive", "4812", "VL", now.minusDays(5), "VL", now),
+                new SaksbehandlerDataDto("Z123456", "Ny saksbehandler", "4812", "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new AvdelingSaksbehandlerDataDto("4806", "Z999999"),
+                new AvdelingSaksbehandlerDataDto("4812", "Z123456")
+            ),
+            List.of(
+                new SaksbehandlerGruppeDataDto(5_000_003L, "Skal ikke overskrive", "4806", "VL", now.minusDays(5), "VL", now),
+                new SaksbehandlerGruppeDataDto(5_000_004L, "Ny gruppe", "4812", "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new GruppeTilknytningDataDto("Z999999", 5_000_003L),
+                new GruppeTilknytningDataDto("Z123456", 5_000_004L)
+            )
+        );
+
+        repo.lagre(BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of()));
+        em.flush();
+        em.clear();
+
+        var avdeling = em.find(Avdeling.class, "4806");
+        assertThat(avdeling.getNavn()).isEqualTo("Eksisterende avdeling");
+        assertThat(avdeling.getKreverKode6()).isFalse();
+        assertThat(avdeling.getErAktiv()).isTrue();
+
+        var saksbehandler = em.find(Saksbehandler.class, "Z999999");
+        assertThat(saksbehandler.getNavn()).isEqualTo("Eksisterende saksbehandler");
+        assertThat(saksbehandler.getAnsattVedEnhet()).isEqualTo("4806");
+
+        var gruppe = em.find(SaksbehandlerGruppe.class, 5_000_003L);
+        assertThat(gruppe.getGruppeNavn()).isEqualTo("Eksisterende gruppe");
+
+        var nyAvdeling = em.find(Avdeling.class, "4812");
+        assertThat(nyAvdeling).isNotNull();
+        assertThat(nyAvdeling.getNavn()).isEqualTo("Ny avdeling");
+
+        var nySaksbehandler = em.find(Saksbehandler.class, "Z123456");
+        assertThat(nySaksbehandler).isNotNull();
+        assertThat(nySaksbehandler.getNavn()).isEqualTo("Ny saksbehandler");
+
+        var nyGruppe = em.find(SaksbehandlerGruppe.class, 5_000_004L);
+        assertThat(nyGruppe).isNotNull();
+        assertThat(nyGruppe.getGruppeNavn()).isEqualTo("Ny gruppe");
     }
 
     @Test

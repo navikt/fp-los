@@ -67,6 +67,11 @@ class GcpImportMapperTest {
 
         assertThat(sb.getSaksbehandlerIdent()).isEqualTo("Z999999");
         assertThat(sb.getNavn()).isEqualTo("Test Testesen");
+        assertThat(sb.getAnsattVedEnhet()).isEqualTo("4806");
+        assertThat(sb.getOpprettetAv()).isEqualTo("VL");
+        assertThat(sb.getOpprettetTidspunkt()).isEqualTo(NOW.minusDays(5));
+        assertThat(sb.getEndretAv()).isEqualTo("VL");
+        assertThat(sb.getEndretTidspunkt()).isEqualTo(NOW);
     }
 
     @Test

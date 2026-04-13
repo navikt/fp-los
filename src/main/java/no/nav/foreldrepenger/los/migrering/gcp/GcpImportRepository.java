@@ -113,36 +113,24 @@ public class GcpImportRepository {
             return;
         }
 
-        var count = 0;
-
         for (var dto : orgData.avdelinger()) {
             var existing = entityManager.find(Avdeling.class, dto.avdelingEnhet());
             if (existing != null) {
-                existing.setNavn(dto.navn());
-                existing.setErAktiv(dto.aktiv());
-                existing.setAvdelingEnhet(dto.avdelingEnhet());
-                existing.setKreverKode6(dto.kreverKode6());
-                GcpImportMapper.setBaseEntitetFields(existing, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-            } else {
-                var avdeling = GcpImportMapper.mapAvdeling(dto);
-                entityManager.persist(avdeling);
+                continue;
             }
-            count++;
+            var avdeling = GcpImportMapper.mapAvdeling(dto);
+            entityManager.persist(avdeling);
         }
+        entityManager.flush();
 
         for (var dto : orgData.saksbehandlere()) {
             var existing = entityManager.find(Saksbehandler.class, dto.saksbehandlerIdent());
             if (existing != null) {
-                existing.setNavn(dto.navn());
-                existing.setAnsattVedEnhet(dto.ansattVedEnhet());
-                GcpImportMapper.setBaseEntitetFields(existing, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-            } else {
-                var saksbehandler = GcpImportMapper.mapSaksbehandler(dto);
-                entityManager.persist(saksbehandler);
+                continue;
             }
-            count++;
+            var saksbehandler = GcpImportMapper.mapSaksbehandler(dto);
+            entityManager.persist(saksbehandler);
         }
-
         entityManager.flush();
 
         for (var dto : orgData.avdelingSaksbehandlere()) {
@@ -155,35 +143,16 @@ public class GcpImportRepository {
                 var relationship = new AvdelingSaksbehandlerRelasjon(key);
                 entityManager.persist(relationship);
             }
-            count++;
         }
 
         for (var dto : orgData.saksbehandlerGrupper()) {
-            var avdeling = dto.avdelingId() != null ? entityManager.getReference(Avdeling.class, dto.avdelingId()) : null;
+            var avdelingRef = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var existing = entityManager.find(SaksbehandlerGruppe.class, dto.id());
-            if (existing == null && avdeling != null) {
-                existing = entityManager.createQuery(
-                        "from saksbehandlerGruppe sg where sg.gruppeNavn = :navn and sg.avdeling = :avdeling",
-                        SaksbehandlerGruppe.class)
-                    .setParameter("navn", dto.gruppeNavn())
-                    .setParameter("avdeling", avdeling)
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
-            }
-
             if (existing != null) {
-                existing.setGruppeNavn(dto.gruppeNavn());
-                if (avdeling != null) {
-                    existing.setAvdeling(avdeling);
-                }
-                GcpImportMapper.setBaseEntitetFields(existing, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-            } else {
-                var gruppe = new SaksbehandlerGruppe(dto.gruppeNavn(), avdeling);
-                GcpImportMapper.setBaseEntitetFields(gruppe, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-                entityManager.persist(gruppe);
+                continue;
             }
-            count++;
+            var gruppe = GcpImportMapper.mapSaksbehandlerGruppe(dto, avdelingRef);
+            entityManager.persist(gruppe);
         }
 
         entityManager.flush();
@@ -198,12 +167,11 @@ public class GcpImportRepository {
                     if (existing == null) {
                         entityManager.persist(new GruppeTilknytningRelasjon(nøkkel));
                     }
-                    count++;
+                } else {
+                    LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {} eller gruppe {}", dto.saksbehandlerId(), dto.gruppeId());
                 }
             }
         }
-
-        LOG.info("MIGRERING (GCP): lagret {} organisasjonsdata-innslag", count);
     }
 
     private void lagreBehandlinger(List<BehandlingDataDto> behandlinger) {
