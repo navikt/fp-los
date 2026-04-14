@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRestTjeneste;
+import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
 
 import org.glassfish.jersey.server.ServerProperties;
 
@@ -76,6 +77,7 @@ public class ApiConfig extends Application {
         classes.add(AvdelingReservasjonerRestTjeneste.class);
         classes.add(ReservasjonRestTjeneste.class);
         classes.add(NøkkeltallRestTjeneste.class);
+        classes.add(SaksbehandlerNøkkeltallRestTjeneste.class);
         classes.add(AvdelingslederRestTjeneste.class);
         classes.add(AvdelingslederOppgaveRestTjeneste.class);
         return classes;
