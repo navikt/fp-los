@@ -2,11 +2,19 @@ package no.nav.foreldrepenger.los.migrering;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
 
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
@@ -31,6 +39,8 @@ import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
+import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
+import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
@@ -67,24 +77,85 @@ class GcpImportRepositoryTest {
 
     @Test
     void lagre_organisasjon_shouldBeIdempotent() {
-        var bulkData = TestMigreringData.lagOrganisasjonOgKøer();
-        repo.lagre(bulkData); // First run
+        var now = LocalDateTime.now();
+        var orgData = new OrgDataDto(
+            List.of(new AvdelingDataDto("4806", "NAV Drammen", false, true, "VL", now.minusDays(5), "VL", now)),
+            List.of(new SaksbehandlerDataDto("Z999999", "Saksbehandler Z999999", "4806", "VL", now.minusDays(5), "VL", now)),
+            List.of(new AvdelingSaksbehandlerDataDto("4806", "Z999999")),
+            List.of(new SaksbehandlerGruppeDataDto(5_000_003L, "Testgruppe", "4806", "VL", now.minusDays(5), "VL", now)),
+            List.of(new GruppeTilknytningDataDto("Z999999", 5_000_003L))
+        );
+
+        var bulkData = BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of());
+
+        repo.lagre(bulkData); // first run
+        em.flush();
         em.clear();
 
-        // Verify no duplicates
+        assertThat(DBTestUtil.hentAlle(em, Avdeling.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, Saksbehandler.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class)).hasSize(1);
+        assertThat(em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList()).hasSize(1);
+        assertThat(em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList()).hasSize(1);
+
+        repo.lagre(bulkData); // second run
+        em.flush();
         em.clear();
-        var avdelinger = DBTestUtil.hentAlle(em, Avdeling.class).stream()
-            .filter(a -> "4806".equals(a.getAvdelingEnhet()))
-            .toList();
-        assertThat(avdelinger).hasSize(1);
+
+        assertThat(DBTestUtil.hentAlle(em, Avdeling.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, Saksbehandler.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class)).hasSize(1);
+        assertThat(em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList()).hasSize(1);
+        assertThat(em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList()).hasSize(1);
+    }
+
+    @Test
+    void lagre_organisasjon_shouldPersistAndDeduplicateRelations() {
+        var now = LocalDateTime.now();
+        var orgData = new OrgDataDto(
+            List.of(new AvdelingDataDto("4806", "NAV Drammen", false, true, "VL", now.minusDays(5), "VL", now)),
+            List.of(new SaksbehandlerDataDto("Z999999", "Saksbehandler Z999999", "4806", "VL", now.minusDays(5), "VL", now)),
+            List.of(new AvdelingSaksbehandlerDataDto("4806", "Z999999")),
+            List.of(new SaksbehandlerGruppeDataDto(5_000_003L, "Testgruppe", "4806", "VL", now.minusDays(5), "VL", now)),
+            List.of(new GruppeTilknytningDataDto("Z999999", 5_000_003L))
+        );
+        var bulkData = BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of());
+
+        repo.lagre(bulkData);
+        em.flush();
+        em.clear();
+
+        var avdelingSaksbehandlerRelasjoner = em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList();
+        assertThat(avdelingSaksbehandlerRelasjoner)
+            .extracting(r -> r.getSaksbehandler().getSaksbehandlerIdent(), r -> r.getAvdeling().getAvdelingEnhet())
+            .containsExactly(tuple("Z999999", "4806"));
+
+        var gruppeTilknytninger = em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList();
+        assertThat(gruppeTilknytninger)
+            .extracting(r -> r.getSaksbehandler().getSaksbehandlerIdent(), r -> r.getGruppe().getId())
+            .containsExactly(tuple("Z999999", 5_000_003L));
+
+        repo.lagre(bulkData);
+        em.flush();
+        em.clear();
+
+        assertThat(em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList())
+            .hasSize(1)
+            .extracting(r -> r.getSaksbehandler().getSaksbehandlerIdent(), r -> r.getAvdeling().getAvdelingEnhet())
+            .containsExactly(tuple("Z999999", "4806"));
+        assertThat(em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList())
+            .hasSize(1)
+            .extracting(r -> r.getSaksbehandler().getSaksbehandlerIdent(), r -> r.getGruppe().getId())
+            .containsExactly(tuple("Z999999", 5_000_003L));
     }
 
     @Test
     void lagre_behandlinger_shouldPersistWithEgenskaper() {
         var bulkData = TestMigreringData.lagBehandlinger();
         repo.lagre(bulkData);
-
+        em.flush();
         em.clear();
+
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
 
         var egenskaper = em.createQuery("FROM BehandlingEgenskap", BehandlingEgenskap.class).getResultList();
@@ -95,10 +166,11 @@ class GcpImportRepositoryTest {
     void lagre_behandlinger_shouldBeIdempotent() {
         var bulkData = TestMigreringData.lagBehandlinger();
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         repo.lagre(bulkData); // re-run
-
+        em.flush();
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
     }
@@ -107,6 +179,7 @@ class GcpImportRepositoryTest {
     void lagre_aktiveOppgaver_shouldPersistOppgaverOgReservasjoner() {
         var bulkData = TestMigreringData.lagBehandlinger(TestMigreringData.lagAktiveOppgaver());
         repo.lagre(bulkData);
+        em.flush();
 
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
@@ -117,10 +190,11 @@ class GcpImportRepositoryTest {
     void lagre_aktiveOppgaver_shouldBeIdempotent() {
         var bulkData = TestMigreringData.lagBehandlinger(TestMigreringData.lagAktiveOppgaver());
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         repo.lagre(bulkData); // re-run
-
+        em.flush();
         em.clear();
         assertThat(DBTestUtil.hentAlle(em, Oppgave.class)).hasSize(2);
         assertThat(DBTestUtil.hentAlle(em, Reservasjon.class)).hasSize(1);
@@ -135,6 +209,110 @@ class GcpImportRepositoryTest {
         var grupper = DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class);
         assertThat(grupper).isNotEmpty();
         assertThat(grupper.getFirst().getGruppeNavn()).isEqualTo("Testgruppe");
+    }
+
+    @Test
+    void lagre_organisasjon_shouldNotMutateExistingEntities_butPersistNewIds() {
+        var existingAvdeling = new Avdeling("4806", "Eksisterende avdeling", false);
+        existingAvdeling.setErAktiv(true);
+        em.persist(existingAvdeling);
+
+        var existingSaksbehandler = new Saksbehandler("Z999999", "Eksisterende saksbehandler", "4806");
+        em.persist(existingSaksbehandler);
+
+        var existingGruppe = new SaksbehandlerGruppe("Eksisterende gruppe", existingAvdeling);
+        existingGruppe.setId(5_000_003L);
+        em.persist(existingGruppe);
+
+        em.flush();
+        em.clear();
+
+        var now = LocalDateTime.now();
+        var orgData = new OrgDataDto(
+            List.of(
+                new AvdelingDataDto("4806", "Skal ikke overskrive", true, false, "VL", now.minusDays(5), "VL", now),
+                new AvdelingDataDto("4812", "Ny avdeling", false, true, "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new SaksbehandlerDataDto("Z999999", "Skal ikke overskrive", "4812", "VL", now.minusDays(5), "VL", now),
+                new SaksbehandlerDataDto("Z123456", "Ny saksbehandler", "4812", "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new AvdelingSaksbehandlerDataDto("4806", "Z999999"),
+                new AvdelingSaksbehandlerDataDto("4812", "Z123456")
+            ),
+            List.of(
+                new SaksbehandlerGruppeDataDto(5_000_003L, "Skal ikke overskrive", "4806", "VL", now.minusDays(5), "VL", now),
+                new SaksbehandlerGruppeDataDto(5_000_004L, "Ny gruppe", "4812", "VL", now.minusDays(5), "VL", now)
+            ),
+            List.of(
+                new GruppeTilknytningDataDto("Z999999", 5_000_003L),
+                new GruppeTilknytningDataDto("Z123456", 5_000_004L)
+            )
+        );
+
+        repo.lagre(BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of()));
+        em.flush();
+        em.clear();
+
+        var avdeling = em.find(Avdeling.class, "4806");
+        assertThat(avdeling.getNavn()).isEqualTo("Eksisterende avdeling");
+        assertThat(avdeling.getKreverKode6()).isFalse();
+        assertThat(avdeling.getErAktiv()).isTrue();
+
+        var saksbehandler = em.find(Saksbehandler.class, "Z999999");
+        assertThat(saksbehandler.getNavn()).isEqualTo("Eksisterende saksbehandler");
+        assertThat(saksbehandler.getAnsattVedEnhet()).isEqualTo("4806");
+
+        var gruppe = em.find(SaksbehandlerGruppe.class, 5_000_003L);
+        assertThat(gruppe.getGruppeNavn()).isEqualTo("Eksisterende gruppe");
+
+        var nyAvdeling = em.find(Avdeling.class, "4812");
+        assertThat(nyAvdeling).isNotNull();
+        assertThat(nyAvdeling.getNavn()).isEqualTo("Ny avdeling");
+
+        var nySaksbehandler = em.find(Saksbehandler.class, "Z123456");
+        assertThat(nySaksbehandler).isNotNull();
+        assertThat(nySaksbehandler.getNavn()).isEqualTo("Ny saksbehandler");
+
+        var nyGruppe = em.find(SaksbehandlerGruppe.class, 5_000_004L);
+        assertThat(nyGruppe).isNotNull();
+        assertThat(nyGruppe.getGruppeNavn()).isEqualTo("Ny gruppe");
+    }
+
+    @Test
+    void lagre_organisasjon_shouldIgnoreNullOrgData() {
+        assertThatCode(() -> repo.lagre(BulkDataWrapper.organisasjonOgKøOppset(null, List.of()))).doesNotThrowAnyException();
+        em.flush();
+        em.clear();
+
+        assertThat(DBTestUtil.hentAlle(em, Avdeling.class)).isEmpty();
+        assertThat(DBTestUtil.hentAlle(em, Saksbehandler.class)).isEmpty();
+        assertThat(DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class)).isEmpty();
+        assertThat(em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList()).isEmpty();
+        assertThat(em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList()).isEmpty();
+    }
+
+    @Test
+    void lagre_organisasjon_shouldAllowNullGruppeTilknytninger() {
+        var now = LocalDateTime.now();
+        var orgData = new OrgDataDto(
+            List.of(new AvdelingDataDto("4806", "NAV Drammen", false, true, "VL", now.minusDays(5), "VL", now)),
+            List.of(new SaksbehandlerDataDto("Z999999", "Saksbehandler Z999999", "4806", "VL", now.minusDays(5), "VL", now)),
+            List.of(new AvdelingSaksbehandlerDataDto("4806", "Z999999")),
+            List.of(new SaksbehandlerGruppeDataDto(5_000_003L, "Testgruppe", "4806", "VL", now.minusDays(5), "VL", now)),
+            null
+        );
+
+        assertThatCode(() -> repo.lagre(BulkDataWrapper.organisasjonOgKøOppset(orgData, List.of()))).doesNotThrowAnyException();
+        em.flush();
+        em.clear();
+
+        assertThat(DBTestUtil.hentAlle(em, Avdeling.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, Saksbehandler.class)).hasSize(1);
+        assertThat(DBTestUtil.hentAlle(em, SaksbehandlerGruppe.class)).hasSize(1);
+        assertThat(em.createQuery("from AvdelingSaksbehandlerRelasjon", AvdelingSaksbehandlerRelasjon.class).getResultList()).hasSize(1);
+        assertThat(em.createQuery("from GruppeTilknytningRelasjon", GruppeTilknytningRelasjon.class).getResultList()).isEmpty();
     }
 
     @Test
@@ -155,6 +333,7 @@ class GcpImportRepositoryTest {
         var bulkData = BulkDataWrapper.statistikkOppgaveFilter(List.of(statOppgaveFilter2, statOppgaveFilter1));
 
         repo.lagre(bulkData);
+        em.flush();
         em.clear();
 
         var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);

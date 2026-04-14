@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.los.migrering.gcp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -57,34 +58,35 @@ public final class GcpImportMapper {
         return gruppe;
     }
 
-    public static void mapBehandling(BehandlingDataDto dto, Behandling behandling) {
-        behandling.setId(dto.id()); // Primary key
-
-        behandling.setSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()));
-        behandling.setAktørId(dto.aktørId());
-        behandling.setFagsystem(dto.kildeSystem());
-        behandling.setFagsakYtelseType(dto.fagsakYtelseType());
-        behandling.setBehandlingType(dto.behandlingType());
-        behandling.setBehandlingTilstand(dto.behandlingTilstand());
-
-        behandling.setAktiveAksjonspunkt(dto.aktiveAksjonspunkt());
-        behandling.setVentefrist(dto.ventefrist());
-        behandling.setOpprettet(dto.opprettet());
-        behandling.setAvsluttet(dto.avsluttet());
-        behandling.setBehandlingsfrist(dto.behandlingsfrist());
-        behandling.setFørsteStønadsdag(dto.førsteStønadsdag());
-        behandling.setFeilutbetalingBelop(dto.feilutbetalingBelop());
-        behandling.setFeilutbetalingStart(dto.feilutbetalingStart());
-        behandling.setBehandlendeEnhet(dto.behandlendeEnhet());
-        behandling.setKriterier(dto.egenskaper());
+    public static Behandling mapBehandling(BehandlingDataDto dto) {
+        var behandling = Behandling.builder(Optional.empty())
+            .medId(dto.id())
+            .medSaksnummer(new Saksnummer(dto.saksnummer().saksnummer()))
+            .medAktørId(dto.aktørId())
+            .medBehandlendeEnhet(dto.behandlendeEnhet())
+            .medKildeSystem(dto.kildeSystem())
+            .medFagsakYtelseType(dto.fagsakYtelseType())
+            .medBehandlingType(dto.behandlingType())
+            .medBehandlingTilstand(dto.behandlingTilstand())
+            .medAktiveAksjonspunkt(dto.aktiveAksjonspunkt())
+            .medVentefrist(dto.ventefrist())
+            .medOpprettet(dto.opprettet())
+            .medAvsluttet(dto.avsluttet())
+            .medBehandlingsfrist(dto.behandlingsfrist())
+            .medFørsteStønadsdag(dto.førsteStønadsdag())
+            .medFeilutbetalingBelop(dto.feilutbetalingBelop())
+            .medFeilutbetalingStart(dto.feilutbetalingStart())
+            .medKriterier(dto.egenskaper())
+            .build();
 
         setBaseEntitetFields(behandling, dto.opprettetAv(), dto.opprettetTidspunkt(),
-                            dto.endretAv(), dto.endretTidspunkt());
+            dto.endretAv(), dto.endretTidspunkt());
+        return behandling;
     }
 
-    public static void mapOppgave(OppgaveDataDto dto, Behandling behRef, Oppgave oppgave) {
+    public static Oppgave mapOppgave(OppgaveDataDto dto, Behandling behandlingRef) {
+        var oppgave = new Oppgave(behandlingRef, dto.behandlendeEnhet());
         oppgave.setId(dto.id());
-        oppgave.setBehandling(behRef);
         oppgave.setBehandlendeEnhet(dto.behandlendeEnhet());
         oppgave.setAktiv(dto.aktiv());
         oppgave.setOppgaveAvsluttet(dto.oppgaveAvsluttet());
@@ -100,6 +102,7 @@ public final class GcpImportMapper {
                 oppgave.leggTilOppgaveEgenskap(egenskapDto.andreKriterierType(), egenskapDto.sisteSaksbehandlerForTotrinn());
             }
         }
+        return oppgave;
     }
 
     public static void mapReservasjon(ReservasjonDataDto dto, Reservasjon reservasjon, Oppgave oppgaveRef) {
@@ -140,30 +143,6 @@ public final class GcpImportMapper {
         setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(),
                             dto.endretAv(), dto.endretTidspunkt());
         return filtrering;
-
-        /*
-            filtrering.setId(dto.id());
-            filtrering.setBeskrivelse(dto.beskrivelse());
-            filtrering.setFomDato(dto.fomDato());
-            filtrering.setTomDato(dto.tomDato());
-            filtrering.setFra(dto.fomDager());
-            filtrering.setPeriodefilter(dto.periodeFilter());
-            filtrering.setFiltreringBehandlingTyper(new HashSet<>(dto.behandlingTyper()));
-            filtrering.setFiltreringYtelseTyper(new HashSet<>(dto.fagsakYtelseTyper()));
-
-            var inkluder = dto.andreKriterier().stream()
-                .filter(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::inkluder)
-                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
-                .collect(java.util.stream.Collectors.toSet());
-            var ekskluder = dto.andreKriterier().stream()
-                .filter(ak -> !ak.inkluder())
-                .map(no.nav.foreldrepenger.los.migrering.dto.AndreKriterierDataDto::andreKriterierType)
-                .collect(java.util.stream.Collectors.toSet());
-            filtrering.setAndreKriterierTyper(inkluder, ekskluder);
-
-            GcpImportMapper.setBaseEntitetFields(filtrering, dto.opprettetAv(), dto.opprettetTidspunkt(), dto.endretAv(), dto.endretTidspunkt());
-
-         */
     }
 
     public static void setBaseEntitetFields(BaseEntitet entitet, String opprettetAv, LocalDateTime opprettetTid,
