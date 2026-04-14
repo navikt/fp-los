@@ -180,13 +180,13 @@ public class GcpImportRepository {
         }
 
         var fssBehandlingUuider = behandlinger.stream().map(BehandlingDataDto::id).collect(Collectors.toSet());
-        var gcpBehandlingMap = entityManager.createQuery("select b.id from Behandling b where b.id in :ids", UUID.class)
+        var gcpBehandlingUuider = entityManager.createQuery("select b.id from Behandling b where b.id in :ids", UUID.class)
             .setParameter("ids", fssBehandlingUuider)
             .getResultStream()
             .collect(Collectors.toSet());
 
         for (BehandlingDataDto dto : behandlinger) {
-            if (gcpBehandlingMap.contains(dto.id())) {
+            if (gcpBehandlingUuider.contains(dto.id())) {
                 continue;
             }
             var behandling = GcpImportMapper.mapBehandling(dto);
@@ -196,7 +196,7 @@ public class GcpImportRepository {
 
 
     private void lagreOppgaveFiltreringer(List<OppgaveFiltreringDataDto> oppgaveFiltreringDto) {
-        if (oppgaveFiltreringDto == null) {
+        if (oppgaveFiltreringDto == null || oppgaveFiltreringDto.isEmpty()) {
             return;
         }
 
