@@ -38,10 +38,8 @@ import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
-import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 @ExtendWith(JpaExtension.class)
 class GcpImportRepositoryTest {
@@ -332,7 +330,7 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
+        var nøkkel = new StatistikkOppgaveFilter.StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
         var stat = em.find(StatistikkOppgaveFilter.class, nøkkel);
 
         assertThat(stat).isNotNull();
@@ -361,7 +359,7 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
+        var nøkkel = new StatistikkEnhetYtelseBehandling.StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
         var stat = em.find(StatistikkEnhetYtelseBehandling.class, nøkkel);
         assertThat(stat).isNotNull();
         assertThat(stat).matches(s -> s.getBehandlendeEnhet().equals("4867")
