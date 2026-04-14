@@ -20,7 +20,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +32,6 @@ import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssigned;
 import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssignedMarker;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
-import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 @Entity(name = "Oppgave")
 @Table(name = "OPPGAVE")
@@ -66,9 +64,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     @ManyToOne
     @JoinColumn(name = "BEHANDLING_ID", nullable = false)
     private Behandling behandling;
-
-    @OneToOne(mappedBy = "oppgave")
-    private Reservasjon reservasjon;
 
     @Version
     @Column(name = "versjon", nullable = false)
@@ -173,10 +168,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
         return oppgaveAvsluttet;
     }
 
-    public Reservasjon getReservasjon() {
-        return reservasjon;
-    }
-
     public Set<OppgaveEgenskap> getOppgaveEgenskaper() {
         return Collections.unmodifiableSet(oppgaveEgenskaper);
     }
@@ -192,10 +183,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     public void avsluttOppgave() {
         aktiv = false;
         oppgaveAvsluttet = LocalDateTime.now();
-    }
-
-    public boolean harAktivReservasjon() {
-        return reservasjon != null && reservasjon.erAktiv();
     }
 
     public static Builder builder() {

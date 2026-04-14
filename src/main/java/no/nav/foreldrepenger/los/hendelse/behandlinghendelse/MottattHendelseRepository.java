@@ -2,8 +2,6 @@ package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.jpa.HibernateHints;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -23,10 +21,7 @@ public class MottattHendelseRepository {
     }
 
     public boolean hendelseErNy(String hendelseUid) {
-        var query = entityManager.createQuery("from MottattHendelse where hendelseUid=:hendelse_uid", MottattHendelse.class)
-            .setParameter("hendelse_uid", hendelseUid)
-            .setHint(HibernateHints.HINT_READ_ONLY, "true");
-        return query.getResultList().isEmpty();
+        return entityManager.find(MottattHendelse.class, hendelseUid) == null;
     }
 
     public void registrerMottattHendelse(String hendelseUid) {

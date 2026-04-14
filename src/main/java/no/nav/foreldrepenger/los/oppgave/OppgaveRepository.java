@@ -47,10 +47,7 @@ public class OppgaveRepository {
     }
 
     public Optional<Reservasjon> hentReservasjon(Long oppgaveId) {
-        return entityManager.createQuery("from Reservasjon r WHERE r.oppgave.id = :id ", Reservasjon.class)
-            .setParameter("id", oppgaveId)
-            .getResultStream()
-            .findFirst();
+        return Optional.ofNullable(entityManager.find(Reservasjon.class, oppgaveId));
     }
 
     public List<OppgaveFiltrering> hentAlleOppgaveFiltreReadOnly() {
@@ -66,9 +63,7 @@ public class OppgaveRepository {
     }
 
     public Optional<OppgaveFiltrering> hentOppgaveFilterSett(Long listeId) {
-        var listeTypedQuery = entityManager.createQuery("FROM OppgaveFiltrering l WHERE l.id = :id ", OppgaveFiltrering.class)
-            .setParameter("id", listeId);
-        return listeTypedQuery.getResultStream().findFirst();
+        return Optional.ofNullable(entityManager.find(OppgaveFiltrering.class, listeId));
     }
 
     public Long lagreFiltrering(OppgaveFiltrering oppgaveFiltrering) {

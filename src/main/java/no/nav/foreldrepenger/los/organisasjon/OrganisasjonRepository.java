@@ -1,8 +1,5 @@
 package no.nav.foreldrepenger.los.organisasjon;
 
-import static no.nav.vedtak.felles.jpa.HibernateVerktøy.hentEksaktResultat;
-import static no.nav.vedtak.felles.jpa.HibernateVerktøy.hentUniktResultat;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
 import no.nav.vedtak.felles.jpa.TomtResultatException;
 
@@ -40,11 +36,12 @@ public class OrganisasjonRepository {
     }
 
     public Saksbehandler hentSaksbehandler(String saksbehandlerIdent) {
-        return hentEksaktResultat(hentSaksbehandlerQuery(saksbehandlerIdent));
+        return hentSaksbehandlerHvisEksisterer(saksbehandlerIdent)
+            .orElseThrow(() -> new TomtResultatException("FP-650019", "Fant ikke saksbehandler: " + saksbehandlerIdent));
     }
 
     public Optional<Saksbehandler> hentSaksbehandlerHvisEksisterer(String saksbehandlerIdent) {
-        return hentUniktResultat(hentSaksbehandlerQuery(saksbehandlerIdent));
+        return Optional.ofNullable(entityManager.find(Saksbehandler.class, saksbehandlerIdent.trim().toUpperCase()));
     }
 
     public List<Saksbehandler> hentAlleSaksbehandlere() {
@@ -62,11 +59,6 @@ public class OrganisasjonRepository {
         entityManager.flush();
         LOG.info("Oppdater saksbehandler: Fjernet {} saksbehandlere som ikke lenger finnes {}", antall, identer);
         return antall;
-    }
-
-    private TypedQuery<Saksbehandler> hentSaksbehandlerQuery(String saksbehandlerIdent) {
-        return entityManager.createQuery("FROM saksbehandler s WHERE s.saksbehandlerIdent = :ident", Saksbehandler.class)
-            .setParameter("ident", saksbehandlerIdent.trim().toUpperCase());
     }
 
     public void slettSaksbehandlereUtenKnytninger() {
@@ -115,9 +107,7 @@ public class OrganisasjonRepository {
     }
 
     public Optional<Avdeling> hentAvdelingFraEnhet(String avdelingEnhet) {
-        var query = entityManager.createQuery("FROM avdeling a WHERE a.avdelingEnhet = :avdelingEnhet", Avdeling.class)
-            .setParameter("avdelingEnhet", avdelingEnhet);
-        return hentUniktResultat(query);
+        return Optional.ofNullable(entityManager.find(Avdeling.class, avdelingEnhet));
     }
 
     public List<Avdeling> hentAktiveAvdelinger() {

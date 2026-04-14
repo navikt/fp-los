@@ -84,7 +84,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlagWithEnhet("4402", SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -95,7 +95,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.RETURNERT_FRA_BESLUTTER);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isPresent();
         assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
@@ -109,7 +109,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.PAPIRSØKNAD);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -120,7 +120,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -131,7 +131,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -142,7 +142,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -153,7 +153,7 @@ class ReservasjonUtlederTest {
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }
@@ -165,7 +165,7 @@ class ReservasjonUtlederTest {
         oppgave2.leggTilOppgaveEgenskap(AndreKriterierType.PAPIRSØKNAD, null);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
 
-        var result = ReservasjonUtleder.utledReservasjon(oppgave2, Optional.of(oppgave1), false, oppgaveGrunnlag);
+        var result = ReservasjonUtleder.utledReservasjon(oppgave2, Optional.of(oppgave1), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
     }

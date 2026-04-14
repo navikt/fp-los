@@ -45,7 +45,7 @@ public class OppgaveTjeneste {
                 String.format("Forventet mer enn én aktiv oppgave for behandlingId %s, fant %s", behandlingId, antallAktive));
         }
         oppgaver.stream().filter(Oppgave::getAktiv).min(Comparator.comparing(Oppgave::getOpprettetTidspunkt)).ifPresent(oppgave -> {
-            reservasjonTjeneste.slettReservasjon(oppgave.getReservasjon());
+            oppgaveRepository.hentReservasjon(oppgave.getId()).ifPresent(reservasjonTjeneste::slettReservasjon);
             oppgave.avsluttOppgave();
             oppgaveRepository.lagre(oppgave);
         });

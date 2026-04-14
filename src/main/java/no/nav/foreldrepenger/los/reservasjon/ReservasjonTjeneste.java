@@ -20,7 +20,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
-import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
@@ -36,15 +35,12 @@ public class ReservasjonTjeneste {
 
     private OppgaveRepository oppgaveRepository;
     private ReservasjonRepository reservasjonRepository;
-    private BehandlingTjeneste behandlingTjeneste;
 
     @Inject
     public ReservasjonTjeneste(OppgaveRepository oppgaveRepository,
-                               ReservasjonRepository reservasjonRepository,
-                               BehandlingTjeneste behandlingTjeneste) {
+                               ReservasjonRepository reservasjonRepository) {
         this.oppgaveRepository = oppgaveRepository;
         this.reservasjonRepository = reservasjonRepository;
-        this.behandlingTjeneste = behandlingTjeneste;
     }
 
     public ReservasjonTjeneste() {
