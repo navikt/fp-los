@@ -8,22 +8,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
-
-import no.nav.foreldrepenger.los.oppgave.BehandlingType;
-import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
-
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
-
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,12 +15,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRepository;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
-import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
+import no.nav.foreldrepenger.los.oppgave.BehandlingType;
+import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
@@ -44,6 +37,8 @@ import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
 import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
@@ -156,10 +151,11 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
-
-        var egenskaper = em.createQuery("FROM BehandlingEgenskap", BehandlingEgenskap.class).getResultList();
-        assertThat(egenskaper).hasSize(2); // One per behandling
+        var behandlinger = DBTestUtil.hentAlle(em, Behandling.class);
+        assertThat(behandlinger).hasSize(2);
+        assertThat(behandlinger.stream().mapToInt(b -> b.getKriterier().size()).sum())
+            .as("One egenskap per behandling")
+            .isEqualTo(2);
     }
 
     @Test

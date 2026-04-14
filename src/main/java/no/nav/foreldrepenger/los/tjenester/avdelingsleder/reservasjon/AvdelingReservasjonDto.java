@@ -19,7 +19,7 @@ public record AvdelingReservasjonDto(@NotNull LocalDateTime reservertTilTidspunk
         this(reservasjon.getReservertTil(), reservasjon.getReservertAv(), reservertAvNavn,
             reservasjon.getOppgave().getId(), reservasjon.getOppgave().getSaksnummer().getVerdi(),
             reservasjon.getOppgave().getBehandlingType(), reservasjon.getOppgave().getFagsakYtelseType(),
-            reservasjon.getOppgave().getOppgaveEgenskaper().stream().map(OppgaveEgenskap::getAndreKriterierType).collect(Collectors.toSet()));
+            reservasjon.getOppgave().getOppgaveEgenskaper().stream().map(OppgaveEgenskap::andreKriterierType).collect(Collectors.toSet()));
     }
 
     @Override

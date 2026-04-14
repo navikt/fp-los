@@ -141,16 +141,16 @@ public class Oppgavespørring {
     public static List<AndreKriterierType> ekskluderAndreKriterierTyperFra(OppgaveFiltrering oppgaveFiltrering) {
         return oppgaveFiltrering.getFiltreringAndreKriterierTyper()
             .stream()
-            .filter(not(FiltreringAndreKriterierType::isInkluder))
-            .map(FiltreringAndreKriterierType::getAndreKriterierType)
+            .filter(not(FiltreringAndreKriterierType::inkluder))
+            .map(FiltreringAndreKriterierType::andreKriterierType)
             .toList();
     }
 
     public static List<AndreKriterierType> inkluderAndreKriterierTyperFra(OppgaveFiltrering oppgaveFiltrering) {
         return oppgaveFiltrering.getFiltreringAndreKriterierTyper()
             .stream()
-            .filter(FiltreringAndreKriterierType::isInkluder)
-            .map(FiltreringAndreKriterierType::getAndreKriterierType)
+            .filter(FiltreringAndreKriterierType::inkluder)
+            .map(FiltreringAndreKriterierType::andreKriterierType)
             .toList();
     }
 

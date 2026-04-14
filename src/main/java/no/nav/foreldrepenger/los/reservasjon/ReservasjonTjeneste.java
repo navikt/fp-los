@@ -145,7 +145,7 @@ public class ReservasjonTjeneste {
         return switch (behandlingTilstand) {
             case AKSJONSPUNKT -> {
                 var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper().stream()
-                    .anyMatch(egenskap -> AndreKriterierType.RETURNERT_FRA_BESLUTTER.equals(egenskap.getAndreKriterierType()));
+                    .anyMatch(egenskap -> AndreKriterierType.RETURNERT_FRA_BESLUTTER.equals(egenskap.andreKriterierType()));
                 yield erReturnertFraBeslutter ? OppgaveBehandlingStatus.RETURNERT_FRA_BESLUTTER : OppgaveBehandlingStatus.UNDER_ARBEID;
             }
             case OPPRETTET, INGEN, PAPIRSØKNAD -> OppgaveBehandlingStatus.UNDER_ARBEID;

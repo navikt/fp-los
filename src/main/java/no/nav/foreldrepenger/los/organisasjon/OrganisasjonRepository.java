@@ -109,7 +109,7 @@ public class OrganisasjonRepository {
             return;
         }
         entityManager.createQuery("DELETE FROM Reservasjon where oppgave.id in (select id from Oppgave where behandlendeEnhet = :enhetr)").setParameter("enhetr", avdelingEnhet).executeUpdate();
-        entityManager.createQuery("DELETE FROM OppgaveEgenskap where oppgave.id in (select id from Oppgave where behandlendeEnhet = :enhete)").setParameter("enhete", avdelingEnhet).executeUpdate();
+        entityManager.createNativeQuery("DELETE FROM oppgave_egenskap WHERE oppgave_id IN (SELECT id FROM oppgave WHERE behandlende_enhet = :enhete)").setParameter("enhete", avdelingEnhet).executeUpdate();
         entityManager.createQuery("DELETE FROM Oppgave where behandlendeEnhet = :enhet").setParameter("enhet", avdelingEnhet).executeUpdate();
         entityManager.flush();
     }
@@ -204,9 +204,9 @@ public class OrganisasjonRepository {
     }
 
     public void tilknyttAvdelingSaksbehandler(Avdeling avdeling, Saksbehandler saksbehandler) {
-        var nøkkel = new AvdelingSaksbehandlerNøkkel(saksbehandler, avdeling);
+        var nøkkel = new AvdelingSaksbehandlerRelasjon.AvdelingSaksbehandlerNøkkel(saksbehandler, avdeling);
         if (entityManager.find(AvdelingSaksbehandlerRelasjon.class, nøkkel) == null) {
-            var knytning = new AvdelingSaksbehandlerRelasjon(nøkkel);
+            var knytning = new AvdelingSaksbehandlerRelasjon(saksbehandler, avdeling);
             entityManager.persist(knytning);
         }
     }
@@ -238,9 +238,9 @@ public class OrganisasjonRepository {
     }
 
     public void tilknyttGruppeSaksbehandler(SaksbehandlerGruppe gruppe, Saksbehandler saksbehandler) {
-        var nøkkel = new GruppeTilknytningNøkkel(saksbehandler, gruppe);
+        var nøkkel = new GruppeTilknytningRelasjon.GruppeTilknytningNøkkel(saksbehandler, gruppe);
         if (entityManager.find(GruppeTilknytningRelasjon.class, nøkkel) == null) {
-            var knytning = new GruppeTilknytningRelasjon(nøkkel);
+            var knytning = new GruppeTilknytningRelasjon(saksbehandler, gruppe);
             entityManager.persist(knytning);
         }
     }

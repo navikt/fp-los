@@ -1,7 +1,5 @@
 package no.nav.foreldrepenger.los.organisasjon;
 
-import org.hibernate.annotations.NaturalId;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,10 +18,9 @@ public class Avdeling extends BaseEntitet {
     public static final String VALID_AVDELING_ID = "^\\d{4}$";
 
     @Id
-    @NaturalId
     @NotNull
     @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
-    @Column(name = "AVDELING_ENHET", unique = true, nullable = false)
+    @Column(name = "AVDELING_ENHET", nullable = false)
     private String avdelingEnhet;
 
     @NotNull

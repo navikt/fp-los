@@ -18,7 +18,6 @@ import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
@@ -165,9 +164,9 @@ public class OppgaveRepository {
     }
 
     public void tilknyttSaksbehandlerOppgaveFiltrering(Saksbehandler saksbehandler, OppgaveFiltrering oppgaveFiltrering) {
-        var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandler, oppgaveFiltrering);
+        var nøkkel = new FiltreringSaksbehandlerRelasjon.FiltreringSaksbehandlerNøkkel(saksbehandler, oppgaveFiltrering);
         if (entityManager.find(FiltreringSaksbehandlerRelasjon.class, nøkkel) == null) {
-            var knytning = new FiltreringSaksbehandlerRelasjon(nøkkel);
+            var knytning = new FiltreringSaksbehandlerRelasjon(saksbehandler, oppgaveFiltrering);
             entityManager.persist(knytning);
         }
     }

@@ -5,7 +5,6 @@ import java.sql.Types;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.NaturalId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +18,6 @@ import jakarta.validation.constraints.NotNull;
 public class MottattHendelse implements Serializable {
 
     @Id
-    @NaturalId
     @NotNull
     @JdbcTypeCode(Types.VARCHAR)
     @Column(name = "hendelse_uid")

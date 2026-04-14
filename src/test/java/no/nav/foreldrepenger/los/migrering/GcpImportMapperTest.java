@@ -267,8 +267,8 @@ class GcpImportMapperTest {
         oppgave.leggTilOppgaveEgenskap(dto.andreKriterierType(), dto.sisteSaksbehandlerForTotrinn());
         var egenskap = oppgave.getOppgaveEgenskaper().stream().findFirst().orElseGet(Assertions::fail);
 
-        assertThat(egenskap.getAndreKriterierType()).isEqualTo(AndreKriterierType.TIL_BESLUTTER);
-        assertThat(egenskap.getSisteSaksbehandlerForTotrinn()).isEqualTo("Z999999");
+        assertThat(egenskap.andreKriterierType()).isEqualTo(AndreKriterierType.TIL_BESLUTTER);
+        assertThat(egenskap.sisteSaksbehandlerForTotrinn()).isEqualTo("Z999999");
     }
 
 

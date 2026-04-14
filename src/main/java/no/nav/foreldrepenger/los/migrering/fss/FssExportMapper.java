@@ -94,8 +94,8 @@ public final class FssExportMapper {
 
     public static OppgaveEgenskapDataDto mapToOppgaveEgenskapDataDto(OppgaveEgenskap egenskap) {
         return new OppgaveEgenskapDataDto(
-                egenskap.getAndreKriterierType(),
-                egenskap.getSisteSaksbehandlerForTotrinn()
+                egenskap.andreKriterierType(),
+                egenskap.sisteSaksbehandlerForTotrinn()
         );
     }
 
@@ -166,8 +166,8 @@ public final class FssExportMapper {
 
         var andreKriterier = of.getFiltreringAndreKriterierTyper().stream()
                 .map(ak -> new AndreKriterierDataDto(
-                        ak.getAndreKriterierType(),
-                        ak.isInkluder()
+                        ak.andreKriterierType(),
+                        ak.inkluder()
                 ))
                 .toList();
 

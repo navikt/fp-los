@@ -22,13 +22,10 @@ import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
-import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
-import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningNøkkel;
 import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
@@ -135,12 +132,11 @@ public class GcpImportRepository {
         for (var dto : orgData.avdelingSaksbehandlere()) {
             var avdeling = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var saksbehandler = entityManager.getReference(Saksbehandler.class, dto.saksbehandlerId());
-            var key = new AvdelingSaksbehandlerNøkkel(saksbehandler, avdeling);
+            var key = new AvdelingSaksbehandlerRelasjon.AvdelingSaksbehandlerNøkkel(dto.saksbehandlerId(), dto.avdelingId());
 
             var existing = entityManager.find(AvdelingSaksbehandlerRelasjon.class, key);
             if (existing == null) {
-                var relationship = new AvdelingSaksbehandlerRelasjon(key);
-                entityManager.persist(relationship);
+                entityManager.persist(new AvdelingSaksbehandlerRelasjon(saksbehandler, avdeling));
             }
         }
 
@@ -161,10 +157,10 @@ public class GcpImportRepository {
                 var saksbehandler = entityManager.find(Saksbehandler.class, dto.saksbehandlerId());
                 var gruppe = entityManager.find(SaksbehandlerGruppe.class, dto.gruppeId());
                 if (saksbehandler != null && gruppe != null) {
-                    var nøkkel = new GruppeTilknytningNøkkel(saksbehandler, gruppe);
+                    var nøkkel = new GruppeTilknytningRelasjon.GruppeTilknytningNøkkel(dto.saksbehandlerId(), dto.gruppeId());
                     var existing = entityManager.find(GruppeTilknytningRelasjon.class, nøkkel);
                     if (existing == null) {
-                        entityManager.persist(new GruppeTilknytningRelasjon(nøkkel));
+                        entityManager.persist(new GruppeTilknytningRelasjon(saksbehandler, gruppe));
                     }
                 } else {
                     LOG.warn("MIGRERING (GCP): fant ikke saksbehandler {} eller gruppe {}", dto.saksbehandlerId(), dto.gruppeId());
@@ -227,8 +223,8 @@ public class GcpImportRepository {
             for (var saksbehandlerIdent : ofDto.saksbehandlerIdenter()) {
                 var saksbehandlerRef = entityManager.getReference(Saksbehandler.class, saksbehandlerIdent);
                 var oppgaveFiltrering = lagredeOF.get(ofDto.id());
-                var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandlerRef, oppgaveFiltrering);
-                entityManager.persist(new FiltreringSaksbehandlerRelasjon(nøkkel));
+                var nøkkel = new FiltreringSaksbehandlerRelasjon.FiltreringSaksbehandlerNøkkel(saksbehandlerIdent, ofDto.id());
+                entityManager.persist(new FiltreringSaksbehandlerRelasjon(saksbehandlerRef, oppgaveFiltrering));
             }
         }
     }

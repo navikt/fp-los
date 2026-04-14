@@ -26,10 +26,8 @@ import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.Periodefilter;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
-import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerNøkkel;
-import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
-import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningNøkkel;
+import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
@@ -255,7 +253,7 @@ class FssExportMapperTest {
     void mapToAvdelingSaksbehandlerDataDto_shouldMapAllFields() {
         var avdeling = new Avdeling("4806", "NAV Drammen", false);
         var saksbehandler = new Saksbehandler("Z123456", "Test Testesen", "4806");
-        var relasjon = new AvdelingSaksbehandlerRelasjon(new AvdelingSaksbehandlerNøkkel(saksbehandler, avdeling));
+        var relasjon = new AvdelingSaksbehandlerRelasjon(saksbehandler, avdeling);
 
         var dto = FssExportMapper.mapToAvdelingSaksbehandlerDataDto(relasjon);
 
@@ -316,7 +314,7 @@ class FssExportMapperTest {
         var saksbehandler = new Saksbehandler("Z123456", "Test Testesen", "4806");
         var gruppe = new SaksbehandlerGruppe("Gruppe A", new Avdeling("4806", "NAV Drammen", false));
         gruppe.setId(77L);
-        var relasjon = new GruppeTilknytningRelasjon(new GruppeTilknytningNøkkel(saksbehandler, gruppe));
+        var relasjon = new GruppeTilknytningRelasjon(saksbehandler, gruppe);
 
         var dto = FssExportMapper.mapToGruppeTilknytningDataDto(relasjon);
 

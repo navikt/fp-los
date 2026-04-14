@@ -9,19 +9,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.hibernate.annotations.NaturalId;
-
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +35,6 @@ import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 public class Behandling extends BaseEntitet {
 
     @Id
-    @NaturalId
     @NotNull
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -78,8 +75,14 @@ public class Behandling extends BaseEntitet {
     @Column(name = "AKTIVE_AKSJONSPUNKT")
     private String aktiveAksjonspunkt;
 
-    @OneToMany(mappedBy = "behandling", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<BehandlingEgenskap> behandlingEgenskaper = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "BEHANDLING_EGENSKAP",
+        joinColumns = @JoinColumn(name = "BEHANDLING_ID")
+    )
+    @Column(name = "ANDRE_KRITERIER_TYPE")
+    @Enumerated(EnumType.STRING)
+    private Set<AndreKriterierType> behandlingEgenskaper = new HashSet<>();
 
     @Column(name = "VENTEFRIST")
     private LocalDateTime ventefrist;
@@ -160,7 +163,7 @@ public class Behandling extends BaseEntitet {
     }
 
     public Set<AndreKriterierType> getKriterier() {
-        return behandlingEgenskaper.stream().map(BehandlingEgenskap::getAndreKriterierType).collect(Collectors.toSet());
+        return new HashSet<>(behandlingEgenskaper);
     }
 
     public LocalDateTime getVentefrist() {
@@ -235,13 +238,13 @@ public class Behandling extends BaseEntitet {
 
     public void setKriterier(Set<AndreKriterierType> kriterier) {
         this.behandlingEgenskaper.clear();
-        this.behandlingEgenskaper.addAll(kriterier.stream().map(k -> new BehandlingEgenskap(this, k)).toList());
+        this.behandlingEgenskaper.addAll(kriterier);
     }
 
     public void leggTilKriterie(AndreKriterierType kriterie) {
         Objects.requireNonNull(kriterie, "kriterie");
-        if (this.behandlingEgenskaper.stream().map(BehandlingEgenskap::getAndreKriterierType).noneMatch(kriterie::equals)) {
-            behandlingEgenskaper.add(new BehandlingEgenskap(this, kriterie));
+        if (!this.behandlingEgenskaper.contains(kriterie)) {
+            behandlingEgenskaper.add(kriterie);
         }
     }
 
@@ -377,7 +380,7 @@ public class Behandling extends BaseEntitet {
 
         public Builder medKriterier(Set<AndreKriterierType> kriterier) {
             behandlingKladd.behandlingEgenskaper.clear();
-            behandlingKladd.behandlingEgenskaper.addAll(kriterier.stream().map(k -> new BehandlingEgenskap(behandlingKladd, k)).toList());
+            behandlingKladd.behandlingEgenskaper.addAll(kriterier);
             return this;
         }
 
