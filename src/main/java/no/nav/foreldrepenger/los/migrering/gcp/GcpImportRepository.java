@@ -121,7 +121,6 @@ public class GcpImportRepository {
             var avdeling = GcpImportMapper.mapAvdeling(dto);
             entityManager.persist(avdeling);
         }
-        entityManager.flush();
 
         for (var dto : orgData.saksbehandlere()) {
             var existing = entityManager.find(Saksbehandler.class, dto.saksbehandlerIdent());
@@ -146,11 +145,11 @@ public class GcpImportRepository {
         }
 
         for (var dto : orgData.saksbehandlerGrupper()) {
-            var avdelingRef = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var existing = entityManager.find(SaksbehandlerGruppe.class, dto.id());
             if (existing != null) {
                 continue;
             }
+            var avdelingRef = entityManager.getReference(Avdeling.class, dto.avdelingId());
             var gruppe = GcpImportMapper.mapSaksbehandlerGruppe(dto, avdelingRef);
             entityManager.persist(gruppe);
         }
@@ -172,6 +171,7 @@ public class GcpImportRepository {
                 }
             }
         }
+        entityManager.flush();
     }
 
     private void lagreBehandlinger(List<BehandlingDataDto> behandlinger) {
