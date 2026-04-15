@@ -18,7 +18,6 @@ import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerNøkkel;
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
@@ -48,10 +47,7 @@ public class OppgaveRepository {
     }
 
     public Optional<Reservasjon> hentReservasjon(Long oppgaveId) {
-        return entityManager.createQuery("from Reservasjon r WHERE r.oppgave.id = :id ", Reservasjon.class)
-            .setParameter("id", oppgaveId)
-            .getResultStream()
-            .findFirst();
+        return Optional.ofNullable(entityManager.find(Reservasjon.class, oppgaveId));
     }
 
     public List<OppgaveFiltrering> hentAlleOppgaveFiltreReadOnly() {
@@ -67,9 +63,7 @@ public class OppgaveRepository {
     }
 
     public Optional<OppgaveFiltrering> hentOppgaveFilterSett(Long listeId) {
-        var listeTypedQuery = entityManager.createQuery("FROM OppgaveFiltrering l WHERE l.id = :id ", OppgaveFiltrering.class)
-            .setParameter("id", listeId);
-        return listeTypedQuery.getResultStream().findFirst();
+        return Optional.ofNullable(entityManager.find(OppgaveFiltrering.class, listeId));
     }
 
     public Long lagreFiltrering(OppgaveFiltrering oppgaveFiltrering) {
@@ -165,9 +159,9 @@ public class OppgaveRepository {
     }
 
     public void tilknyttSaksbehandlerOppgaveFiltrering(Saksbehandler saksbehandler, OppgaveFiltrering oppgaveFiltrering) {
-        var nøkkel = new FiltreringSaksbehandlerNøkkel(saksbehandler, oppgaveFiltrering);
+        var nøkkel = new FiltreringSaksbehandlerRelasjon.FiltreringSaksbehandlerNøkkel(saksbehandler, oppgaveFiltrering);
         if (entityManager.find(FiltreringSaksbehandlerRelasjon.class, nøkkel) == null) {
-            var knytning = new FiltreringSaksbehandlerRelasjon(nøkkel);
+            var knytning = new FiltreringSaksbehandlerRelasjon(saksbehandler, oppgaveFiltrering);
             entityManager.persist(knytning);
         }
     }

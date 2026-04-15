@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,13 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "STAT_OPPGAVE_FILTER")
 public class StatistikkOppgaveFilter implements Serializable {
+
+    @Embeddable
+    public static record StatistikkOppgaveFilterNøkkel(
+        @NotNull @Column(name = "OPPGAVE_FILTER_ID", updatable = false, nullable = false) Long oppgaveFilterId,
+        @NotNull @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false) Long tidsstempel)
+        implements Serializable {
+    }
 
     @EmbeddedId
     @Valid
@@ -112,4 +120,5 @@ public class StatistikkOppgaveFilter implements Serializable {
             + ", antallTilgjengelige=" + antallTilgjengelige + ", antallVentende=" + antallVentende + ", antallOpprettet=" + antallOpprettet
             + ", antallAvsluttet=" + antallAvsluttet + ", innslagType=" + innslagType + '}';
     }
+
 }

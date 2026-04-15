@@ -10,15 +10,16 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
+import org.hibernate.annotations.BatchSize;
+
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -28,10 +29,9 @@ import no.nav.foreldrepenger.los.domene.typer.Fagsystem;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
-import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssignedMarker;
 import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssigned;
+import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssignedMarker;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
-import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 
 @Entity(name = "Oppgave")
 @Table(name = "OPPGAVE")
@@ -48,7 +48,9 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     @Column(name = "BEHANDLENDE_ENHET", nullable = false)
     private String behandlendeEnhet;
 
-    @OneToMany(mappedBy = "oppgave", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @BatchSize(size = 100)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "OPPGAVE_EGENSKAP", joinColumns = @JoinColumn(name = "OPPGAVE_ID"))
     private Set<OppgaveEgenskap> oppgaveEgenskaper = new HashSet<>();
 
     @NotNull
@@ -62,9 +64,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     @ManyToOne
     @JoinColumn(name = "BEHANDLING_ID", nullable = false)
     private Behandling behandling;
-
-    @OneToOne(mappedBy = "oppgave")
-    private Reservasjon reservasjon;
 
     @Version
     @Column(name = "versjon", nullable = false)
@@ -84,20 +83,23 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     public void leggTilOppgaveEgenskap(AndreKriterierType andreKriterierType, String ansvarligSaksbehandlerForTotrinn) {
         Objects.requireNonNull(andreKriterierType, "andreKriterierType");
         var eksisterendeEgenskap = oppgaveEgenskaper.stream()
-            .filter(oe -> andreKriterierType.equals(oe.getAndreKriterierType()))
+            .filter(oe -> andreKriterierType.equals(oe.andreKriterierType()))
             .findFirst()
             .orElse(null);
 
         if (andreKriterierType.erTilBeslutter()) {
             Objects.requireNonNull(ansvarligSaksbehandlerForTotrinn, "ansvarligSaksbehandlerForTotrinn");
             if (eksisterendeEgenskap != null) {
-                eksisterendeEgenskap.setSisteSaksbehandlerForTotrinn(ansvarligSaksbehandlerForTotrinn);
-                return;
+                if (Objects.equals(ansvarligSaksbehandlerForTotrinn.trim().toUpperCase(), eksisterendeEgenskap.sisteSaksbehandlerForTotrinn())) {
+                    return; // ingen endring
+                } else {
+                    oppgaveEgenskaper.remove(eksisterendeEgenskap);
+                }
             }
-            oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType, ansvarligSaksbehandlerForTotrinn));
+            oppgaveEgenskaper.add(new OppgaveEgenskap(andreKriterierType, ansvarligSaksbehandlerForTotrinn));
         } else {
             if (eksisterendeEgenskap == null) {
-                oppgaveEgenskaper.add(new OppgaveEgenskap(this, andreKriterierType));
+                oppgaveEgenskaper.add(new OppgaveEgenskap(andreKriterierType, null));
             }
         }
     }
@@ -107,7 +109,7 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
             || oppgaveEgenskapTyper.isEmpty()
             ? EnumSet.noneOf(AndreKriterierType.class)
             : EnumSet.copyOf(oppgaveEgenskapTyper);
-        oppgaveEgenskaper.removeIf(oe -> !typerSomSkalBeholdes.contains(oe.getAndreKriterierType()));
+        oppgaveEgenskaper.removeIf(oe -> !typerSomSkalBeholdes.contains(oe.andreKriterierType()));
     }
 
     public Long getId() {
@@ -166,10 +168,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
         return oppgaveAvsluttet;
     }
 
-    public Reservasjon getReservasjon() {
-        return reservasjon;
-    }
-
     public Set<OppgaveEgenskap> getOppgaveEgenskaper() {
         return Collections.unmodifiableSet(oppgaveEgenskaper);
     }
@@ -187,10 +185,6 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
         oppgaveAvsluttet = LocalDateTime.now();
     }
 
-    public boolean harAktivReservasjon() {
-        return reservasjon != null && reservasjon.erAktiv();
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -201,7 +195,7 @@ public class Oppgave extends BaseEntitet implements SequenceOrAssignedMarker<Lon
     }
 
     public boolean harKriterie(AndreKriterierType kriterie) {
-        return oppgaveEgenskaper.stream().anyMatch(egenskap -> egenskap.getAndreKriterierType() == kriterie);
+        return oppgaveEgenskaper.stream().anyMatch(egenskap -> egenskap.andreKriterierType() == kriterie);
     }
 
     public void setId(Long id) {

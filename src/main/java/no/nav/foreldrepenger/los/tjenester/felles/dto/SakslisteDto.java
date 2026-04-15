@@ -38,13 +38,13 @@ public record SakslisteDto(@NotNull Long sakslisteId,
 
         static AndreKriterieDto fra(List<FiltreringAndreKriterierType> filtreringAndreKriterierTyper) {
             var inkluder = filtreringAndreKriterierTyper.stream()
-                .filter(FiltreringAndreKriterierType::isInkluder)
-                .map(FiltreringAndreKriterierType::getAndreKriterierType)
+                .filter(FiltreringAndreKriterierType::inkluder)
+                .map(FiltreringAndreKriterierType::andreKriterierType)
                 .collect(java.util.stream.Collectors.toSet());
 
             var ekskluder = filtreringAndreKriterierTyper.stream()
-                .filter(fakt -> !fakt.isInkluder())
-                .map(FiltreringAndreKriterierType::getAndreKriterierType)
+                .filter(fakt -> !fakt.inkluder())
+                .map(FiltreringAndreKriterierType::andreKriterierType)
                 .collect(java.util.stream.Collectors.toSet());
 
             return new AndreKriterieDto(inkluder, ekskluder);

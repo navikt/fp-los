@@ -5,6 +5,7 @@ import java.util.Optional;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.organisasjon.OrganisasjonRepository;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
@@ -14,10 +15,12 @@ public class ReservasjonStatusDtoTjeneste {
 
     private static final String SYSTEMBRUKER = "SRVFPLOS";
     private OrganisasjonRepository organisasjonRepository;
+    private OppgaveRepository oppgaveRepository;
 
     @Inject
-    public ReservasjonStatusDtoTjeneste(OrganisasjonRepository organisasjonRepository) {
+    public ReservasjonStatusDtoTjeneste(OrganisasjonRepository organisasjonRepository, OppgaveRepository oppgaveRepository) {
         this.organisasjonRepository = organisasjonRepository;
+        this.oppgaveRepository = oppgaveRepository;
     }
 
     ReservasjonStatusDtoTjeneste() {
@@ -25,8 +28,8 @@ public class ReservasjonStatusDtoTjeneste {
     }
 
     ReservasjonStatusDto lagStatusFor(Oppgave oppgave) {
-        if (oppgave.harAktivReservasjon()) {
-            var reservasjon = oppgave.getReservasjon();
+        var reservasjon = oppgaveRepository.hentReservasjon(oppgave.getId()).filter(Reservasjon::erAktiv).orElse(null);
+        if (reservasjon != null) {
             if (SYSTEMBRUKER.equalsIgnoreCase(reservasjon.getFlyttetAv())) {
                 return systembrukerSpesialTilfelle(reservasjon);
             }

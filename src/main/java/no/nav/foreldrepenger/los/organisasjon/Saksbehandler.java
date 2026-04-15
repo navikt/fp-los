@@ -3,8 +3,6 @@ package no.nav.foreldrepenger.los.organisasjon;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.hibernate.annotations.NaturalId;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -21,10 +19,9 @@ public class Saksbehandler extends BaseEntitet {
     public static final String VALID_SAKSBEHANDLER_IDENT = "^[A-Z]{1}\\d{6}$";
 
     @Id
-    @NaturalId
     @NotNull
     @Pattern(regexp = VALID_SAKSBEHANDLER_IDENT, message = "Ugyldig ident ${validatedValue}")
-    @Column(name = "SAKSBEHANDLER_IDENT", nullable = false, unique = true)
+    @Column(name = "SAKSBEHANDLER_IDENT", nullable = false)
     private String saksbehandlerIdent;
 
     @Column(name = "NAVN")

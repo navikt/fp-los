@@ -17,7 +17,13 @@ class ReservasjonUtleder {
     }
 
     static Optional<Reservasjon> utledReservasjon(Oppgave nyOppgave, Optional<Oppgave> eksisterendeOppgaveOpt,
-                                           boolean reservasjonskandidat, OppgaveGrunnlag oppgaveGrunnlag) {
+                                                  boolean reservasjonskandidat, OppgaveGrunnlag oppgaveGrunnlag) {
+        return utledReservasjon(nyOppgave, eksisterendeOppgaveOpt, Optional.empty(), reservasjonskandidat, oppgaveGrunnlag);
+    }
+
+    static Optional<Reservasjon> utledReservasjon(Oppgave nyOppgave, Optional<Oppgave> eksisterendeOppgaveOpt,
+                                                  Optional<Reservasjon> eksisterendeReservasjonOpt,
+                                                  boolean reservasjonskandidat, OppgaveGrunnlag oppgaveGrunnlag) {
         if (eksisterendeOppgaveOpt.isPresent()) {
             var eksisterendeOppgave = eksisterendeOppgaveOpt.get();
             if (harEndretEnhet(oppgaveGrunnlag, eksisterendeOppgave)) {
@@ -27,15 +33,15 @@ class ReservasjonUtleder {
                 return Optional.of(ReservasjonTjeneste.opprettReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent(),
                     ReservasjonKonstanter.RETUR_FRA_BESLUTTER));
             }
-            if (eksisterendeOppgave.harAktivReservasjon()) {
+            if (eksisterendeReservasjonOpt.filter(Reservasjon::erAktiv).isPresent()) {
                 if (eksisterendeOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD) && !nyOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD)) {
                     return Optional.empty();
                 }
                 if (nyOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER)) {
                     return eksisterendeOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER) ? Optional.of(
-                        nyReservasjon(nyOppgave, eksisterendeOppgave.getReservasjon())) : Optional.empty();
+                        nyReservasjon(nyOppgave, eksisterendeReservasjonOpt.orElse(null))) : Optional.empty();
                 }
-                return Optional.of(nyReservasjon(nyOppgave, eksisterendeOppgave.getReservasjon()));
+                return Optional.of(nyReservasjon(nyOppgave, eksisterendeReservasjonOpt.orElseThrow()));
             }
             return Optional.empty();
         }

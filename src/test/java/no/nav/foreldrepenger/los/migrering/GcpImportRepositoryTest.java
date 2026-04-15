@@ -8,22 +8,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
-import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
-
-import no.nav.foreldrepenger.los.oppgave.BehandlingType;
-import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
-
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
-import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandlingNøkkel;
-
-import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,12 +15,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.DBTestUtil;
 import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.AvdelingSaksbehandlerDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.BulkDataWrapper;
+import no.nav.foreldrepenger.los.migrering.dto.GruppeTilknytningDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.OrgDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.SaksbehandlerGruppeDataDto;
+import no.nav.foreldrepenger.los.migrering.dto.StatEnhetYtelseBehandlingDataDto;
 import no.nav.foreldrepenger.los.migrering.dto.StatOppgaveFilterDataDto;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRepository;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
-import no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap;
+import no.nav.foreldrepenger.los.oppgave.BehandlingType;
+import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 import no.nav.foreldrepenger.los.organisasjon.AvdelingSaksbehandlerRelasjon;
@@ -44,9 +37,9 @@ import no.nav.foreldrepenger.los.organisasjon.GruppeTilknytningRelasjon;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.organisasjon.SaksbehandlerGruppe;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.foreldrepenger.los.statistikk.StatistikkEnhetYtelseBehandling;
 import no.nav.foreldrepenger.los.statistikk.kø.InnslagType;
 import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilter;
-import no.nav.foreldrepenger.los.statistikk.kø.StatistikkOppgaveFilterNøkkel;
 
 @ExtendWith(JpaExtension.class)
 class GcpImportRepositoryTest {
@@ -156,10 +149,11 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        assertThat(DBTestUtil.hentAlle(em, Behandling.class)).hasSize(2);
-
-        var egenskaper = em.createQuery("FROM BehandlingEgenskap", BehandlingEgenskap.class).getResultList();
-        assertThat(egenskaper).hasSize(2); // One per behandling
+        var behandlinger = DBTestUtil.hentAlle(em, Behandling.class);
+        assertThat(behandlinger).hasSize(2);
+        assertThat(behandlinger.stream().mapToInt(b -> b.getKriterier().size()).sum())
+            .as("One egenskap per behandling")
+            .isEqualTo(2);
     }
 
     @Test
@@ -336,7 +330,7 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        var nøkkel = new StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
+        var nøkkel = new StatistikkOppgaveFilter.StatistikkOppgaveFilterNøkkel(2L, 1235689600000L);
         var stat = em.find(StatistikkOppgaveFilter.class, nøkkel);
 
         assertThat(stat).isNotNull();
@@ -365,7 +359,7 @@ class GcpImportRepositoryTest {
         em.flush();
         em.clear();
 
-        var nøkkel = new StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
+        var nøkkel = new StatistikkEnhetYtelseBehandling.StatistikkEnhetYtelseBehandlingNøkkel("4867", 1735689600000L, FagsakYtelseType.FORELDREPENGER, BehandlingType.FØRSTEGANGSSØKNAD);
         var stat = em.find(StatistikkEnhetYtelseBehandling.class, nøkkel);
         assertThat(stat).isNotNull();
         assertThat(stat).matches(s -> s.getBehandlendeEnhet().equals("4867")

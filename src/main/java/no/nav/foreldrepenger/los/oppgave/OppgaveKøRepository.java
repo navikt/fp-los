@@ -173,17 +173,17 @@ public class OppgaveKøRepository {
             parameters.put("inkluderAktKoder", inkluderAkt);
             parameters.put("inkluderAktAntall", inkluderAkt.size());
             sb.append(" AND :inkluderAktAntall = (")
-                .append("   SELECT COUNT(oe.andreKriterierType) ")
-                .append("   FROM OppgaveEgenskap oe ")
-                .append("   WHERE oe.oppgave = o ")
+                .append("   SELECT COUNT(oe) ")
+                .append("   FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
+                .append("   WHERE o2 = o ")
                 .append("     AND oe.andreKriterierType IN (:inkluderAktKoder)")
                 .append(" ) ");
         }
         if (!ekskluderAkt.isEmpty()) {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
             sb.append("AND NOT EXISTS ( ")
-                .append("SELECT 1 FROM OppgaveEgenskap oe ")
-                .append("WHERE oe.oppgave = o AND oe.andreKriterierType IN (:ekskluderAktKoder)")
+                .append("SELECT 1 FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
+                .append("WHERE o2 = o AND oe.andreKriterierType IN (:ekskluderAktKoder)")
                 .append(") ");
         }
 
@@ -224,8 +224,8 @@ public class OppgaveKøRepository {
         parameters.put("uid", BrukerIdent.brukerIdent().toUpperCase());
         return """
             AND NOT EXISTS (
-                select oetilbesl.oppgave from OppgaveEgenskap oetilbesl
-                where oetilbesl.oppgave = o
+                select 1 from Oppgave o2 join o2.oppgaveEgenskaper oetilbesl
+                where o2 = o
                     AND oetilbesl.andreKriterierType = :tilbeslutter
                     AND oetilbesl.sisteSaksbehandlerForTotrinn = :uid
             )""";

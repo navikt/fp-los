@@ -100,15 +100,13 @@ public class BehandlingHendelseTjeneste {
             oppgave2.getFeilutbetalingStart()) && oppgave1.getOppgaveEgenskaper().size() == oppgave2.getOppgaveEgenskaper().size()
             && oppgave1.getOppgaveEgenskaper()
             .stream()
-            .allMatch(e1 -> oppgave2.getOppgaveEgenskaper().stream().anyMatch(e2 -> e2.getAndreKriterierType().equals(e1.getAndreKriterierType())));
+            .allMatch(e1 -> oppgave2.getOppgaveEgenskaper().stream().anyMatch(e2 -> e2.andreKriterierType().equals(e1.andreKriterierType())));
     }
 
     private void avsluttOppgave(Oppgave o, UUID behandlingId) {
         LOG.info("Avslutter eksisterende oppgave {} for behandling {}", o.getId(), behandlingId);
+        oppgaveRepository.hentReservasjon(o.getId()).filter(Reservasjon::erAktiv).ifPresent(this::avsluttReservasjon);
         o.avsluttOppgave();
-        if (o.harAktivReservasjon()) {
-            avsluttReservasjon(o.getReservasjon());
-        }
     }
 
     private void avsluttReservasjon(Reservasjon reservasjon) {
@@ -120,7 +118,8 @@ public class BehandlingHendelseTjeneste {
                                     Optional<Oppgave> eksisterendeOppgave,
                                     boolean reservasjonskandidat,
                                     OppgaveGrunnlag oppgaveGrunnlag) {
-        var reservasjon = ReservasjonUtleder.utledReservasjon(oppgave, eksisterendeOppgave, reservasjonskandidat, oppgaveGrunnlag);
+        var eksisterendeReservasjon = eksisterendeOppgave.map(Oppgave::getId).flatMap(oppgaveRepository::hentReservasjon);
+        var reservasjon = ReservasjonUtleder.utledReservasjon(oppgave, eksisterendeOppgave, eksisterendeReservasjon, reservasjonskandidat, oppgaveGrunnlag);
         reservasjon.ifPresent(r -> {
             LOG.info("Opprettet reservasjon for oppgave {}", oppgave.getId());
             reservasjonRepository.lagre(r);

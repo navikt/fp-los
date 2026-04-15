@@ -3,13 +3,12 @@ package no.nav.foreldrepenger.los.reservasjon;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import org.hibernate.annotations.NaturalId;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -24,10 +23,12 @@ import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 public class Reservasjon extends BaseEntitet {
 
     @Id
-    @NaturalId
+    private Long id; // Idiomatisk JPA. Matches the PK type of Oppgave. Populeres av MapsId under
+
+    @MapsId
     @NotNull
-    @OneToOne(optional = false, cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "oppgave_id", updatable = false, insertable = false, unique = true)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "oppgave_id")
     private Oppgave oppgave;
 
     @Column(name = "RESERVERT_TIL")

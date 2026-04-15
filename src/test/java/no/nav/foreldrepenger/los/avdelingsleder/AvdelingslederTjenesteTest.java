@@ -101,12 +101,12 @@ class AvdelingslederTjenesteTest {
         assertThat(oppgaveFiltrering.get().getFagsakYtelseTyper()).containsExactlyInAnyOrderElementsOf(saksliste.fagsakYtelseTyper());
         assertThat(oppgaveFiltrering.get().getFiltreringAndreKriterierTyper()).hasSize(saksliste.andreKriterie().inkluder().size() + saksliste.andreKriterie().ekskluder().size());
         assertThat(oppgaveFiltrering.get().getFiltreringAndreKriterierTyper())
-            .filteredOn(FiltreringAndreKriterierType::isInkluder)
-            .extracting(FiltreringAndreKriterierType::getAndreKriterierType)
+            .filteredOn(FiltreringAndreKriterierType::inkluder)
+            .extracting(FiltreringAndreKriterierType::andreKriterierType)
             .containsExactlyInAnyOrderElementsOf(saksliste.andreKriterie().inkluder());
         assertThat(oppgaveFiltrering.get().getFiltreringAndreKriterierTyper())
-            .filteredOn(filtreringAndreKriterierType -> !filtreringAndreKriterierType.isInkluder())
-            .extracting(FiltreringAndreKriterierType::getAndreKriterierType)
+            .filteredOn(filtreringAndreKriterierType -> !filtreringAndreKriterierType.inkluder())
+            .extracting(FiltreringAndreKriterierType::andreKriterierType)
             .containsExactlyInAnyOrderElementsOf(saksliste.andreKriterie().ekskluder());
     }
 

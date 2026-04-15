@@ -6,25 +6,26 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
+import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssigned;
 import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssignedMarker;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Periodefilter;
-import no.nav.foreldrepenger.los.migrering.gcp.SequenceOrAssigned;
 import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
 
@@ -49,13 +50,29 @@ public class OppgaveFiltrering extends BaseEntitet implements SequenceOrAssigned
     @Enumerated(EnumType.STRING)
     private KøSortering sortering;
 
-    @OneToMany(mappedBy = "oppgaveFiltrering", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<FiltreringBehandlingType> filtreringBehandlingTyper = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "FILTRERING_BEHANDLING_TYPE",
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+    )
+    @Column(name = "BEHANDLING_TYPE")
+    @Enumerated(EnumType.STRING)
+    private Set<BehandlingType> filtreringBehandlingTyper = new HashSet<>();
 
-    @OneToMany(mappedBy = "oppgaveFiltrering", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<FiltreringYtelseType> filtreringYtelseTyper = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "FILTRERING_YTELSE_TYPE",
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+    )
+    @Column(name = "FAGSAK_YTELSE_TYPE")
+    @Enumerated(EnumType.STRING)
+    private Set<FagsakYtelseType> filtreringYtelseTyper = new HashSet<>();
 
-    @OneToMany(mappedBy = "oppgaveFiltrering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "FILTRERING_ANDRE_KRITERIER",
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+    )
     private Set<FiltreringAndreKriterierType> andreKriterierTyper = new HashSet<>();
 
     @NotNull
@@ -119,19 +136,15 @@ public class OppgaveFiltrering extends BaseEntitet implements SequenceOrAssigned
     }
 
     public List<BehandlingType> getBehandlingTyper() {
-        return filtreringBehandlingTyper.stream().map(FiltreringBehandlingType::getBehandlingType).toList();
+        return filtreringBehandlingTyper.stream().toList();
     }
 
     public List<FagsakYtelseType> getFagsakYtelseTyper() {
-        return filtreringYtelseTyper.stream().map(FiltreringYtelseType::getFagsakYtelseType).toList();
+        return filtreringYtelseTyper.stream().toList();
     }
 
     public List<FiltreringAndreKriterierType> getFiltreringAndreKriterierTyper() {
         return andreKriterierTyper.stream().toList();
-    }
-
-    public Set<FiltreringAndreKriterierType> getSet() {
-        return andreKriterierTyper;
     }
 
     public Avdeling getAvdeling() {
@@ -176,25 +189,21 @@ public class OppgaveFiltrering extends BaseEntitet implements SequenceOrAssigned
 
     public void setFiltreringBehandlingTyper(Set<BehandlingType> behandlingTyper) {
         this.filtreringBehandlingTyper.clear();
-        behandlingTyper.stream()
-            .map(type -> new FiltreringBehandlingType(this, type))
-            .forEach(f -> this.filtreringBehandlingTyper.add(f));
+        this.filtreringBehandlingTyper.addAll(behandlingTyper);
     }
 
     public void setFiltreringYtelseTyper(Set<FagsakYtelseType> fagsakYtelseTyper) {
         this.filtreringYtelseTyper.clear();
-        fagsakYtelseTyper.stream()
-            .map(type -> new FiltreringYtelseType(this, type))
-            .forEach(f -> this.filtreringYtelseTyper.add(f));
+        this.filtreringYtelseTyper.addAll(fagsakYtelseTyper);
     }
 
     public void setAndreKriterierTyper(Set<AndreKriterierType> inkluder, Set<AndreKriterierType> ekskluder) {
         this.andreKriterierTyper.clear();
         inkluder.stream()
-            .map(type -> new FiltreringAndreKriterierType(this, type, true))
+            .map(type -> new FiltreringAndreKriterierType(type, true))
             .forEach(a -> this.andreKriterierTyper.add(a));
         ekskluder.stream()
-            .map(type -> new FiltreringAndreKriterierType(this, type, false))
+            .map(type -> new FiltreringAndreKriterierType(type, false))
             .forEach(a -> this.andreKriterierTyper.add(a));
     }
 

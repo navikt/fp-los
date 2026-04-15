@@ -20,7 +20,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
-import no.nav.foreldrepenger.los.hendelse.behandlinghendelse.BehandlingTjeneste;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
@@ -36,15 +35,12 @@ public class ReservasjonTjeneste {
 
     private OppgaveRepository oppgaveRepository;
     private ReservasjonRepository reservasjonRepository;
-    private BehandlingTjeneste behandlingTjeneste;
 
     @Inject
     public ReservasjonTjeneste(OppgaveRepository oppgaveRepository,
-                               ReservasjonRepository reservasjonRepository,
-                               BehandlingTjeneste behandlingTjeneste) {
+                               ReservasjonRepository reservasjonRepository) {
         this.oppgaveRepository = oppgaveRepository;
         this.reservasjonRepository = reservasjonRepository;
-        this.behandlingTjeneste = behandlingTjeneste;
     }
 
     public ReservasjonTjeneste() {
@@ -145,7 +141,7 @@ public class ReservasjonTjeneste {
         return switch (behandlingTilstand) {
             case AKSJONSPUNKT -> {
                 var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper().stream()
-                    .anyMatch(egenskap -> AndreKriterierType.RETURNERT_FRA_BESLUTTER.equals(egenskap.getAndreKriterierType()));
+                    .anyMatch(egenskap -> AndreKriterierType.RETURNERT_FRA_BESLUTTER.equals(egenskap.andreKriterierType()));
                 yield erReturnertFraBeslutter ? OppgaveBehandlingStatus.RETURNERT_FRA_BESLUTTER : OppgaveBehandlingStatus.UNDER_ARBEID;
             }
             case OPPRETTET, INGEN, PAPIRSØKNAD -> OppgaveBehandlingStatus.UNDER_ARBEID;

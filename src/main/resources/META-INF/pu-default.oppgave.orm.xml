@@ -7,14 +7,9 @@
 
     <sequence-generator name="SEQ_GLOBAL_PK" allocation-size="50" sequence-name="SEQ_GLOBAL_PK"/>
     <entity class="no.nav.foreldrepenger.los.oppgave.Oppgave"/>
-    <entity class="no.nav.foreldrepenger.los.oppgave.OppgaveEgenskap"/>
     <entity class="no.nav.foreldrepenger.los.oppgave.Behandling"/>
-    <entity class="no.nav.foreldrepenger.los.oppgave.BehandlingEgenskap"/>
     <entity class="no.nav.foreldrepenger.los.reservasjon.Reservasjon"/>
     <entity class="no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering"/>
-    <entity class="no.nav.foreldrepenger.los.oppgavekø.FiltreringBehandlingType"/>
-    <entity class="no.nav.foreldrepenger.los.oppgavekø.FiltreringYtelseType"/>
-    <entity class="no.nav.foreldrepenger.los.oppgavekø.FiltreringAndreKriterierType"/>
     <entity class="no.nav.foreldrepenger.los.organisasjon.Avdeling"/>
     <entity class="no.nav.foreldrepenger.los.organisasjon.Saksbehandler"/>
     <entity class="no.nav.foreldrepenger.los.hendelse.behandlinghendelse.MottattHendelse" />

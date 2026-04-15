@@ -77,17 +77,17 @@ public class BehandlingKøRepository {
             parameters.put("inkluderAktKoder", inkluderAkt);
             parameters.put("inkluderAktAntall", inkluderAkt.size());
             sb.append(" AND :inkluderAktAntall = (")
-                .append("   SELECT COUNT(be.andreKriterierType) ")
-                .append("   FROM BehandlingEgenskap be ")
-                .append("   WHERE be.behandling.id = b.id ")
-                .append("     AND be.andreKriterierType IN (:inkluderAktKoder)")
+                .append("   SELECT COUNT(akt) ")
+                .append("   FROM Behandling b2 JOIN b2.behandlingEgenskaper akt ")
+                .append("   WHERE b2.id = b.id ")
+                .append("     AND akt IN (:inkluderAktKoder)")
                 .append(" ) ");
         }
         if (!ekskluderAkt.isEmpty()) {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
             sb.append("AND NOT EXISTS ( ")
-                .append("SELECT 1 FROM BehandlingEgenskap be ")
-                .append("WHERE be.behandling.id = b.id AND be.andreKriterierType IN (:ekskluderAktKoder)")
+                .append("SELECT akt FROM Behandling b2 JOIN b2.behandlingEgenskaper akt ")
+                .append("WHERE b2.id = b.id AND akt IN (:ekskluderAktKoder)")
                 .append(") ");
         }
 

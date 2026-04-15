@@ -5,17 +5,45 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+import no.nav.foreldrepenger.los.organisasjon.Avdeling;
 
 @Entity
 @Table(name = "STAT_ENHET_YTELSE_BEHANDLING")
 public class StatistikkEnhetYtelseBehandling implements Serializable {
+
+    @Embeddable
+    public static record StatistikkEnhetYtelseBehandlingNøkkel(
+        @NotNull
+        @Pattern(regexp = Avdeling.VALID_AVDELING_ID, message = "Ugyldig enhetsnummer ${validatedValue}")
+        @Column(name = "BEHANDLENDE_ENHET", updatable = false, nullable = false)
+        String behandlendeEnhet,
+
+        @NotNull
+        @Column(name = "TIDSSTEMPEL", updatable = false, nullable = false)
+        Long tidsstempel,
+
+        @NotNull
+        @Enumerated(EnumType.STRING)
+        @Column(name = "FAGSAK_YTELSE_TYPE", updatable = false, nullable = false)
+        FagsakYtelseType fagsakYtelseType,
+
+        @NotNull
+        @Enumerated(EnumType.STRING)
+        @Column(name = "BEHANDLING_TYPE", updatable = false, nullable = false)
+        BehandlingType behandlingType)
+        implements Serializable {
+    }
 
     @EmbeddedId
     @Valid
