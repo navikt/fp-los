@@ -65,7 +65,7 @@ spec:
         autoBackupHour: 2
         maintenance:
           day: 1
-          hour: 4
+          hour: 2
   azure:
     application:
       enabled: true
