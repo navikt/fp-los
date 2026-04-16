@@ -10,6 +10,8 @@ import java.util.Set;
 import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
 
+import no.nav.vedtak.server.rest.GeneralRestExceptionMapper;
+
 import org.glassfish.jersey.server.ServerProperties;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
@@ -39,6 +41,7 @@ public class ApiConfig extends Application {
     public static final String API_URI = "/api";
 
     public ApiConfig() {
+        GeneralRestExceptionMapper.setBrukerRettetApplikasjon(true);
         if (!ER_PROD) {
             registerOpenApi();
         }
