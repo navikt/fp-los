@@ -23,7 +23,6 @@ public enum AndreKriterierType implements Kodeverdi {
 
     VURDER_SYKDOM("VURDER_SYKDOM", "Vurder sykdom", false, of(FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
     PLEIEPENGER("PLEIEPENGER", "Pleiepenger", false, of(FORELDREPENGER), of(REVURDERING)),
-    BARE_FAR_RETT("BARE_FAR_RETT", "Bare far har rett", false, of(FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
     MOR_UKJENT_UTLAND("MOR_UKJENT_UTLAND", "Gruppe 2", true, of(FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
     UTSATT_START("UTSATT_START", "Utsatt start", false, of(FORELDREPENGER), of(REVURDERING)),
     PRAKSIS_UTSETTELSE("PRAKSIS_UTSETTELSE", "Praksis utsettelse", false, of(FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
@@ -35,10 +34,12 @@ public enum AndreKriterierType implements Kodeverdi {
     VURDER_FARESIGNALER("VURDER_FARESIGNALER", "Vurder faresignaler", false, alleYtelseTyper(), of(FØRSTEGANGSSØKNAD)),
     VURDER_EØS_OPPTJENING("VURDER_EØS_OPPTJENING", "Vurder behov for SED", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(FØRSTEGANGSSØKNAD)),
     ARBEID_INNTEKT("ARBEID_INNTEKT", "Arbeid og inntekt", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
-    NÆRING("NÆRING", "Selvstendig næringsdrivende", false, of(FORELDREPENGER, SVANGERSKAPSPENGER)),
     REVURDERING_INNTEKTSMELDING("REVURDERING_INNTEKTSMELDING", "Revurdering inntektsmelding", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(REVURDERING)),
     TERMINBEKREFTELSE("TERMINBEKREFTELSE", "Terminbekreftelse", false, of(ENGANGSTØNAD, FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
     NYTT_VEDTAK("NYTT_VEDTAK", "Ny stønadsperiode", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
+
+    BARE_FAR_RETT("BARE_FAR_RETT", "Bare far har rett", false, of(FORELDREPENGER)),
+    NÆRING("NÆRING", "Selvstendig næringsdrivende", false, of(FORELDREPENGER, SVANGERSKAPSPENGER)),
 
     KLAGE_PÅ_TILBAKEBETALING("KLAGE_PÅ_TILBAKEBETALING", "Klage på tilbakebetaling", false, alleYtelseTyper(), of(KLAGE)),
     VURDER_FORMKRAV("VURDER_FORMKRAV", "Vurder formkrav", false, alleYtelseTyper(), of(KLAGE)),
