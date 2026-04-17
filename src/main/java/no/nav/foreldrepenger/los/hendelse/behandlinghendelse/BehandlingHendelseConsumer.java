@@ -30,10 +30,8 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
     @Override
     public void start() {
         LOG.info("Starter konsumering av topics={}", kcm.topicNames());
-        if (skalKjøreIMiljø()) {
-            kcm.start((t, e) -> LOG.error("{} :: Caught exception in stream, exiting", t, e));
-        }
-    }
+        kcm.start((t, e) -> LOG.error("{} :: Caught exception in stream, exiting", t, e));
+            }
 
     @Override
     public void stop() {
@@ -43,20 +41,12 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
 
     @Override
     public boolean isAlive() {
-        if (skalKjøreIMiljø()) {
-            return kcm.allRunning();
-        }
-        return true;
+        return kcm.allRunning();
     }
 
     @Override
     public boolean isReady() {
         return isAlive();
-    }
-
-    private static boolean skalKjøreIMiljø() {
-        var aktivtCluster = Environment.current().getCluster();
-        return !(aktivtCluster == Cluster.DEV_GCP || aktivtCluster == Cluster.PROD_GCP);
     }
 
 }
