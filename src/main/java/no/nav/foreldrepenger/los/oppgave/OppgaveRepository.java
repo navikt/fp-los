@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import no.nav.foreldrepenger.los.domene.typer.BehandlingId;
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.felles.BaseEntitet;
@@ -22,6 +23,7 @@ import no.nav.foreldrepenger.los.oppgavekø.FiltreringSaksbehandlerRelasjon;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveFiltrering;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
+import no.nav.vedtak.felles.jpa.TomtResultatException;
 
 @ApplicationScoped
 public class OppgaveRepository {
@@ -91,7 +93,13 @@ public class OppgaveRepository {
     }
 
     public Oppgave hentOppgave(Long oppgaveId) {
-        return entityManager.createQuery("FROM Oppgave o where o.id = :id", Oppgave.class).setParameter("id", oppgaveId).getSingleResult();
+        return Optional.ofNullable(entityManager.find(Oppgave.class, oppgaveId))
+            .orElseThrow(() -> new TomtResultatException("FP-164609", "Fant ingen oppgave for id " + oppgaveId));
+    }
+
+    public Oppgave hentSkrivelåstOppgave(Long oppgaveId) {
+        return Optional.ofNullable(entityManager.find(Oppgave.class, oppgaveId, LockModeType.PESSIMISTIC_WRITE))
+            .orElseThrow(() -> new TomtResultatException("FP-164609", "Fant ingen oppgave for id " + oppgaveId));
     }
 
     public List<Oppgave> hentOppgaverReadOnly(List<Long> oppgaveIder) {

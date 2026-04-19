@@ -72,7 +72,7 @@ public class ReservasjonRestTjeneste {
     @Operation(description = "Reserver oppgave", tags = "Saksbehandler")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public ReservasjonStatusDto reserverOppgave(@NotNull @Parameter(description = "id til oppgaven") @Valid OppgaveIdDto oppgaveId) {
-        var oppgave = oppgaveTjeneste.hentOppgave(oppgaveId.getVerdi());
+        var oppgave = oppgaveTjeneste.hentSkrivelåstOppgave(oppgaveId.getVerdi());
         var reservasjon = reservasjonTjeneste.reserverOppgave(oppgave);
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }

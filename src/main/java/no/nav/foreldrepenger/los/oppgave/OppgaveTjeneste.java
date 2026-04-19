@@ -37,6 +37,10 @@ public class OppgaveTjeneste {
         return oppgaveRepository.hentOppgave(oppgaveId);
     }
 
+    public Oppgave hentSkrivelåstOppgave(Long oppgaveId) {
+        return oppgaveRepository.hentSkrivelåstOppgave(oppgaveId);
+    }
+
     public void adminAvsluttMultiOppgaveAvsluttTilknyttetReservasjon(BehandlingId behandlingId) {
         var oppgaver = oppgaveRepository.hentOppgaver(behandlingId);
         var antallAktive = oppgaver.stream().filter(Oppgave::getAktiv).count();
