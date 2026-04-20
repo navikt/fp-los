@@ -11,7 +11,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -49,19 +48,16 @@ public class AdminRestTjeneste {
     private OppgaveTjeneste oppgaveTjeneste;
     private OrganisasjonRepository organisasjonRepository;
     private ProsessTaskTjeneste prosessTaskTjeneste;
-    private EntityManager entityManager;
 
     @Inject
     public AdminRestTjeneste(SynkroniseringHendelseTaskOppretterTjeneste synkroniseringHendelseTaskOppretterTjeneste,
                              OppgaveTjeneste oppgaveTjeneste,
                              OrganisasjonRepository organisasjonRepository,
-                             ProsessTaskTjeneste prosessTaskTjeneste,
-                             EntityManager entityManager) {
+                             ProsessTaskTjeneste prosessTaskTjeneste) {
         this.synkroniseringHendelseTaskOppretterTjeneste = synkroniseringHendelseTaskOppretterTjeneste;
         this.oppgaveTjeneste = oppgaveTjeneste;
         this.organisasjonRepository = organisasjonRepository;
         this.prosessTaskTjeneste = prosessTaskTjeneste;
-        this.entityManager = entityManager;
     }
 
     public AdminRestTjeneste() {
@@ -208,40 +204,6 @@ public class AdminRestTjeneste {
     public Response fjerneSaksbehandlereSluttet() {
         var slettet = organisasjonRepository.fjernSaksbehandlereSomHarSluttet();
         return Response.ok(slettet).build();
-    }
-
-
-    @POST
-    @Path("/migrering-empty-database")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Tømmer hele databasen i FK-kompatibel rekkefølge.", tags = "admin")
-    @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = false)
-    public Response emptyDatabase() {
-        // TODO: Slett etter test av migrering
-        // Leaf tables first, root tables last — respects all foreign key constraints
-        List.of(
-            "reservasjon",
-            "oppgave_egenskap",
-            "oppgave",
-            "behandling_egenskap",
-            "behandling",
-            "filtrering_saksbehandler",
-            "filtrering_andre_kriterier",
-            "filtrering_behandling_type",
-            "filtrering_ytelse_type",
-            "oppgave_filtrering",
-            "gruppe_tilknytning",
-            "avdeling_saksbehandler",
-            "saksbehandler_gruppe",
-            "saksbehandler",
-            "avdeling",
-            "stat_enhet_ytelse_behandling",
-            "stat_oppgave_filter",
-            "mottatt_hendelse",
-            "PROSESS_TASK"
-        ).forEach(tabell -> entityManager.createNativeQuery("DELETE FROM " + tabell).executeUpdate());
-        return Response.ok().build();
     }
 
 }

@@ -9,7 +9,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import no.nav.vedtak.sikkerhet.kontekst.Kontekst;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
@@ -37,9 +36,6 @@ public class BaseEntitet implements Serializable {
     @Column(name = "endret_tid")
     private LocalDateTime endretTidspunkt; // NOSONAR
 
-    @Transient
-    private transient boolean skipAutoAudit = false;
-
     @PrePersist
     protected void onCreate() {
         if (this.opprettetAv == null) {
@@ -52,14 +48,8 @@ public class BaseEntitet implements Serializable {
 
     @PreUpdate
     protected void onUpdate() {
-        if (!skipAutoAudit) {
-            endretAv = finnBrukernavn();
-            endretTidspunkt = LocalDateTime.now();
-        }
-    }
-
-    public void setSkipAutoAudit(boolean skipAutoAudit) {
-        this.skipAutoAudit = skipAutoAudit;
+        endretAv = finnBrukernavn();
+        endretTidspunkt = LocalDateTime.now();
     }
 
     public String getOpprettetAv() {
@@ -80,18 +70,6 @@ public class BaseEntitet implements Serializable {
 
     public void setEndretTidspunkt(LocalDateTime endretTidspunkt) {
         this.endretTidspunkt = endretTidspunkt;
-    }
-
-    public void setOpprettetAv(String opprettetAv) {
-        this.opprettetAv = opprettetAv;
-    }
-
-    public void setOpprettetTidspunkt(LocalDateTime opprettetTidspunkt) {
-        this.opprettetTidspunkt = opprettetTidspunkt;
-    }
-
-    public void setEndretAv(String endretAv) {
-        this.endretAv = endretAv;
     }
 
     protected static String finnBrukernavn() {

@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
 
 import no.nav.vedtak.server.rest.GeneralRestExceptionMapper;
@@ -25,7 +24,7 @@ import no.nav.foreldrepenger.los.tjenester.avdelingsleder.reservasjon.AvdelingRe
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksbehandler.AvdelingslederSaksbehandlerRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.AvdelingslederSakslisteRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.kodeverk.KodeverkRestTjeneste;
-import no.nav.foreldrepenger.los.tjenester.migrering.MigreringRestTjeneste;
+import no.nav.foreldrepenger.los.tjenester.populer.PopulerOppgaverRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.reservasjon.ReservasjonRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.OppgaveRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste.SaksbehandlerSakslisteRestTjeneste;
@@ -58,8 +57,7 @@ public class ApiConfig extends Application {
         Set<Class<?>> classes = new HashSet<>(getAllClasses());
 
         // Klasser som ikke typegenereres
-        classes.add(MigreringRestTjeneste.class);
-        classes.add(GcpImportRestTjeneste.class);
+        classes.add(PopulerOppgaverRestTjeneste.class);
 
         classes.add(FpRestJackson2Feature.class);
 
