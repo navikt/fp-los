@@ -24,7 +24,7 @@ import no.nav.foreldrepenger.los.tjenester.avdelingsleder.reservasjon.AvdelingRe
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksbehandler.AvdelingslederSaksbehandlerRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.AvdelingslederSakslisteRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.kodeverk.KodeverkRestTjeneste;
-import no.nav.foreldrepenger.los.tjenester.migrering.MigreringRestTjeneste;
+import no.nav.foreldrepenger.los.tjenester.populer.PopulerOppgaverRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.reservasjon.ReservasjonRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.OppgaveRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste.SaksbehandlerSakslisteRestTjeneste;
@@ -57,7 +57,7 @@ public class ApiConfig extends Application {
         Set<Class<?>> classes = new HashSet<>(getAllClasses());
 
         // Klasser som ikke typegenereres
-        classes.add(MigreringRestTjeneste.class);
+        classes.add(PopulerOppgaverRestTjeneste.class);
 
         classes.add(FpRestJackson2Feature.class);
 
