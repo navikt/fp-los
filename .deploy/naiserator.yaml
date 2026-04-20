@@ -80,8 +80,6 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: fplos
-          cluster: {{environment}}-fss
         - application: fp-frontend
         - application: fp-avdelingsleder
         - application: fp-swagger
