@@ -136,13 +136,13 @@ public class StatistikkRepository {
 
     public Map<Long, StatistikkOppgaveFilter> hentSisteStatistikkForAlleOppgaveFiltre() {
         var alleStatistikk = entityManager.createQuery("""
-            SELECT s FROM StatistikkOppgaveFilter s
-            WHERE s.nøkkel.tidsstempel = (
-                SELECT MAX(s2.nøkkel.tidsstempel)
-                FROM StatistikkOppgaveFilter s2
-                WHERE s2.nøkkel.oppgaveFilterId = s.nøkkel.oppgaveFilterId
-            )
-            """, StatistikkOppgaveFilter.class)
+        SELECT s FROM StatistikkOppgaveFilter s
+        WHERE (s.nøkkel.oppgaveFilterId, s.nøkkel.tidsstempel) IN (
+            SELECT s2.nøkkel.oppgaveFilterId, MAX(s2.nøkkel.tidsstempel)
+            FROM StatistikkOppgaveFilter s2
+            GROUP BY s2.nøkkel.oppgaveFilterId
+        )
+        """, StatistikkOppgaveFilter.class)
             .getResultList();
 
         return alleStatistikk.stream()
