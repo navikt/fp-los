@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import no.nav.foreldrepenger.los.migrering.gcp.GcpImportRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
 
 import no.nav.vedtak.server.rest.GeneralRestExceptionMapper;
@@ -59,7 +58,6 @@ public class ApiConfig extends Application {
 
         // Klasser som ikke typegenereres
         classes.add(MigreringRestTjeneste.class);
-        classes.add(GcpImportRestTjeneste.class);
 
         classes.add(FpRestJackson2Feature.class);
 
