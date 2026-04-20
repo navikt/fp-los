@@ -27,13 +27,11 @@ public class SaksbehandlerSakslisteRestTjeneste {
 
     private OppgaveKøTjeneste oppgaveKøTjeneste;
     private StatistikkRepository statistikkRepository;
-    private SaksbehandlerDtoTjeneste saksbehandlerDtoTjeneste;
 
     @Inject
-    public SaksbehandlerSakslisteRestTjeneste(OppgaveKøTjeneste oppgaveKøTjeneste, StatistikkRepository statistikkRepository, SaksbehandlerDtoTjeneste saksbehandlerDtoTjeneste) {
+    public SaksbehandlerSakslisteRestTjeneste(OppgaveKøTjeneste oppgaveKøTjeneste, StatistikkRepository statistikkRepository) {
         this.oppgaveKøTjeneste = oppgaveKøTjeneste;
         this.statistikkRepository = statistikkRepository;
-        this.saksbehandlerDtoTjeneste = saksbehandlerDtoTjeneste;
     }
 
     public SaksbehandlerSakslisteRestTjeneste() {

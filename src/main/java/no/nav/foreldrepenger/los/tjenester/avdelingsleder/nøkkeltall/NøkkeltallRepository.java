@@ -45,9 +45,9 @@ public class NøkkeltallRepository {
     public List<OppgaverForAvdeling> hentAlleOppgaverForAvdeling(String avdelingEnhet) {
         return entityManager.createNativeQuery("""
                 Select b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, CASE WHEN oe.ANDRE_KRITERIER_TYPE IS NOT NULL THEN true ELSE false END AS BESLUTTER_JN, Count(*) AS ANTALL
-                FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
+                FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id
                 LEFT JOIN OPPGAVE_EGENSKAP oe ON oe.OPPGAVE_ID = o.ID AND oe.ANDRE_KRITERIER_TYPE = :tilBeslutter
-                WHERE a.AVDELING_ENHET =:avdelingEnhet AND o.AKTIV
+                WHERE o.BEHANDLENDE_ENHET = :avdelingEnhet AND o.AKTIV
                 GROUP BY b.FAGSAK_YTELSE_TYPE, b.BEHANDLING_TYPE, oe.ANDRE_KRITERIER_TYPE
                 ORDER BY 1,2,3 desc
                 """)
@@ -75,8 +75,8 @@ public class NøkkeltallRepository {
                            when indre.fstonad > current_date + 126 then (current_date + 126)
                            else indre.fstonad end as DATO, YTELSE, Count(1) AS ANTALL from (
                   select b.FORSTE_STONADSDAG::date as fstonad, b.FAGSAK_YTELSE_TYPE as YTELSE
-                  FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id INNER JOIN avdeling a ON a.AVDELING_ENHET = o.BEHANDLENDE_ENHET
-                  WHERE a.AVDELING_ENHET = :avdelingEnhet AND o.AKTIV AND b.FORSTE_STONADSDAG IS NOT NULL and b.behandling_type = :behandlingType
+                  FROM OPPGAVE o JOIN behandling b on o.behandling_id = b.id
+                  WHERE o.BEHANDLENDE_ENHET = :avdelingEnhet AND o.AKTIV AND b.FORSTE_STONADSDAG IS NOT NULL and b.behandling_type = :behandlingType
                ) indre GROUP BY indre.fstonad::date, YTELSE
             ) ytre
             group by date_trunc('month', ytre.DATO)::date, YTELSE
