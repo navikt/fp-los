@@ -5,8 +5,10 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hibernate.jpa.HibernateHints;
 import org.slf4j.Logger;
@@ -191,6 +193,19 @@ public class OppgaveRepository {
     public List<OppgaveFiltrering> oppgaveFiltreringerForSaksbehandler(Saksbehandler saksbehandler) {
         return entityManager.createQuery("select oppgaveFiltrering from FiltreringSaksbehandlerRelasjon where saksbehandler = :saksbehandler",
             OppgaveFiltrering.class).setParameter("saksbehandler", saksbehandler).getResultList();
+    }
+
+    public Map<Long, List<Saksbehandler>> saksbehandlereForOppgaveFiltreringer(Collection<OppgaveFiltrering> oppgaveFiltreringer) {
+        if (oppgaveFiltreringer == null || oppgaveFiltreringer.isEmpty()) {
+            return Map.of();
+        }
+        return entityManager.createQuery("from FiltreringSaksbehandlerRelasjon where oppgaveFiltrering in :filtreringer",
+                FiltreringSaksbehandlerRelasjon.class)
+            .setParameter("filtreringer", oppgaveFiltreringer)
+            .getResultList()
+            .stream()
+            .collect(Collectors.groupingBy(rel -> rel.getOppgaveFiltrering().getId(),
+                Collectors.mapping(FiltreringSaksbehandlerRelasjon::getSaksbehandler, Collectors.toList())));
     }
 
     public List<Saksbehandler> saksbehandlereForOppgaveFiltrering(OppgaveFiltrering oppgaveFiltrering) {

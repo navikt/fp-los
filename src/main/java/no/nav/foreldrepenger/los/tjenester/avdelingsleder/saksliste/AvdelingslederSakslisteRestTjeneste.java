@@ -1,8 +1,10 @@
 package no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -68,10 +70,12 @@ public class AvdelingslederSakslisteRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.OPPGAVESTYRING_AVDELINGENHET, sporingslogg = false)
     public List<SakslisteDto> hentAvdelingensSakslister(@NotNull @QueryParam("avdelingEnhet") @Valid AvdelingEnhetDto avdelingEnhet) {
         var filtersett = avdelingslederTjeneste.hentOppgaveFiltreringer(avdelingEnhet.getAvdelingEnhet());
-        var statistikkMap = statistikkRepository.hentSisteStatistikkForAlleOppgaveFiltre();
+        var filterIds = filtersett.stream().map(of -> of.getId()).collect(Collectors.toSet());
+        var statistikkMap = statistikkRepository.hentSisteStatistikkForOppgaveFiltre(filterIds);
+        var saksbehandlerMap = avdelingslederTjeneste.saksbehandlereForOppgaveLister(filtersett);
         return filtersett.stream()
             .map(of -> new SakslisteDto(of,
-                avdelingslederTjeneste.saksbehandlereForOppgaveListe(of).stream().map(SaksbehandlerDtoTjeneste::saksbehandlerDto).toList(),
+                saksbehandlerMap.getOrDefault(of.getId(), Collections.emptyList()).stream().map(SaksbehandlerDtoTjeneste::saksbehandlerDto).toList(),
                 Optional.ofNullable(statistikkMap.get(of.getId())).map(NøkkeltallRestTjeneste::tilDto).orElse(null)))
             .toList();
     }

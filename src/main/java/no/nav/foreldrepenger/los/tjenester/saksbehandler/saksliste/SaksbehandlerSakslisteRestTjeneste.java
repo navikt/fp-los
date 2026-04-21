@@ -1,7 +1,9 @@
 package no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,9 +46,11 @@ public class SaksbehandlerSakslisteRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public List<SakslisteDto> hentSakslister() {
         var filtre = oppgaveKøTjeneste.hentOppgaveFiltreringerForPåloggetBruker();
-        var statistikkMap = statistikkRepository.hentSisteStatistikkForAlleOppgaveFiltre();
+        var filterIds = filtre.stream().map(of -> of.getId()).collect(Collectors.toSet());
+        var statistikkMap = statistikkRepository.hentSisteStatistikkForOppgaveFiltre(filterIds);
+        var saksbehandlerMap = oppgaveKøTjeneste.hentSaksbehandlereForOppgaveFiltreringer(filtre);
         return filtre.stream().map(of -> new SakslisteDto(of,
-            oppgaveKøTjeneste.hentSaksbehandlereForOppgaveFiltrering(of).stream().map(SaksbehandlerDtoTjeneste::saksbehandlerDto).toList(),
+            saksbehandlerMap.getOrDefault(of.getId(), Collections.emptyList()).stream().map(SaksbehandlerDtoTjeneste::saksbehandlerDto).toList(),
             Optional.ofNullable(statistikkMap.get(of.getId())).map(NøkkeltallRestTjeneste::tilDto).orElse(null))).toList();
     }
 }

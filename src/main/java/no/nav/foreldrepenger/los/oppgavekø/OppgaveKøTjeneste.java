@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.los.oppgavekø;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -45,8 +46,8 @@ public class OppgaveKøTjeneste {
         return hentAlleOppgaveFiltrering(BrukerIdent.brukerIdent());
     }
 
-    public List<Saksbehandler> hentSaksbehandlereForOppgaveFiltrering(OppgaveFiltrering oppgaveFiltrering) {
-        return oppgaveRepository.saksbehandlereForOppgaveFiltrering(oppgaveFiltrering);
+    public Map<Long, List<Saksbehandler>> hentSaksbehandlereForOppgaveFiltreringer(List<OppgaveFiltrering> filtreringer) {
+        return oppgaveRepository.saksbehandlereForOppgaveFiltreringer(filtreringer);
     }
 
     public Integer hentAntallOppgaver(Long behandlingsKø, Filtreringstype filtreringstype) {
