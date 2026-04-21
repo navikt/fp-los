@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.domene.typer.aktør.Fødselsnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.Person;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
@@ -69,8 +71,12 @@ class OppgaveDtoTjenesteTest {
             return oppgaver.stream().map(Oppgave::getSaksnummer).collect(Collectors.toSet());
         });
 
-        when(personTjeneste.hentPerson(any(), any(), any()))
-            .thenReturn(Optional.of(new Person(new Fødselsnummer("1233456789"), "Navn Navnesen")));
+        when(personTjeneste.hentPersoner(any()))
+            .thenAnswer(i -> {
+                @SuppressWarnings("unchecked")
+                var olid = ((List<Oppgave>) i.getArgument(0)).getFirst().getId();
+                return Map.of(olid, new Person(AktørId.dummy(), new Fødselsnummer("1233456789"), "Navn Navnesen"));
+            });
 
         var bb = Behandling.builder(Optional.empty())
             .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.BESLUTTER)

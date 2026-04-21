@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +16,6 @@ import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveTjeneste;
 import no.nav.foreldrepenger.los.oppgavekø.OppgaveKøTjeneste;
-import no.nav.foreldrepenger.los.persontjeneste.IkkeTilgangPåPersonException;
 import no.nav.foreldrepenger.los.persontjeneste.PersonTjeneste;
 import no.nav.foreldrepenger.los.reservasjon.OppgaveBehandlingStatusWrapper;
 import no.nav.foreldrepenger.los.reservasjon.ReservasjonTjeneste;
@@ -163,32 +161,24 @@ public class OppgaveDtoTjeneste {
 
     private List<OppgaveDto> lagDtoMedTilgangskontroll(List<Oppgave> oppgaver) {
         var saksnummerMedTilgang = filterKlient.tilgangFilterSaker(oppgaver);
-        return oppgaver.stream()
+        var tilgjengelig = oppgaver.stream()
             .filter(oppgave -> saksnummerMedTilgang.contains(oppgave.getSaksnummer()))
-            .map(this::lagDto)
-            .flatMap(Optional::stream)
             .toList();
+        return lagDto(tilgjengelig);
     }
 
-    private Optional<OppgaveDto> lagDto(Oppgave oppgave) {
+    private List<OppgaveDto> lagDto(List<Oppgave> oppgaver) {
         try {
-            var person = personTjeneste.hentPerson(oppgave.getFagsakYtelseType(), oppgave.getAktørId(), oppgave.getSaksnummer())
-                .orElseThrow(() -> new LagOppgaveDtoFeil("Finner ikke person tilknyttet oppgaveId " + oppgave.getId()));
-            var oppgaveStatus = reservasjonStatusDtoTjeneste.lagStatusFor(oppgave);
-            return Optional.of(new OppgaveDto(oppgave, person, oppgaveStatus));
-        } catch (IkkeTilgangPåPersonException e) {
-            LOG.warn("Kunne ikke lage OppgaveDto for oppgaveId {}, oppslag PDL feiler på grunn av manglende tilgang", oppgave.getId(), e);
-        } catch (LagOppgaveDtoFeil e) {
-            LOG.warn("Kunne ikke lage OppgaveDto for oppgaveId {}, hopper over", oppgave.getId(), e);
+            var oppgaverPerson = personTjeneste.hentPersoner(oppgaver);
+            return oppgaver.stream()
+                .filter(oppgave -> oppgaverPerson.containsKey(oppgave.getId()))
+                .map(o -> new OppgaveDto(o, oppgaverPerson.get(o.getId()), reservasjonStatusDtoTjeneste.lagStatusFor(o)))
+                .toList();
         } catch (Exception e) {
-            LOG.warn("Kunne ikke lage OppgaveDto for oppgaveId {}, annen feil", oppgave.getId(), e);
+            var oppgaveIds = oppgaver.stream().map(Oppgave::getId).toList();
+            LOG.warn("Kunne ikke lage OppgaveDto for oppgaver {}, annen feil", oppgaveIds, e);
         }
-        return Optional.empty();
+        return List.of();
     }
 
-    public static final class LagOppgaveDtoFeil extends RuntimeException {
-        public LagOppgaveDtoFeil(String message) {
-            super(message);
-        }
-    }
 }
