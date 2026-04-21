@@ -865,6 +865,32 @@ class OppgaveRepositoryTest {
         assertThat(result).containsExactlyInAnyOrder(sb1, sb2);
     }
 
+    @Test
+    void saksbehandlereForOppgaveFiltreringer_gruppererPerFilterOgUtelaterFilterUtenRelasjoner() {
+        var avdeling = avdelingDrammen(entityManager);
+        var sb1 = lagOgPersisterSaksbehandler("Z111111");
+        var sb2 = lagOgPersisterSaksbehandler("Z222222");
+        var sb3 = lagOgPersisterSaksbehandler("Z333333");
+        var filtrering1 = lagFiltrering("Kø1", avdeling);
+        var filtrering2 = lagFiltrering("Kø2", avdeling);
+        var filtreringUtenSaksbehandlere = lagFiltrering("Kø3", avdeling);
+        entityManager.persist(filtrering1);
+        entityManager.persist(filtrering2);
+        entityManager.persist(filtreringUtenSaksbehandlere);
+        entityManager.flush();
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb1, filtrering1);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb2, filtrering1);
+        oppgaveRepository.tilknyttSaksbehandlerOppgaveFiltrering(sb3, filtrering2);
+        entityManager.flush();
+
+        var result = oppgaveRepository.saksbehandlereForOppgaveFiltreringer(List.of(filtrering1, filtrering2, filtreringUtenSaksbehandlere));
+
+        assertThat(result).containsOnlyKeys(filtrering1.getId(), filtrering2.getId());
+        assertThat(result.get(filtrering1.getId())).containsExactlyInAnyOrder(sb1, sb2);
+        assertThat(result.get(filtrering2.getId())).containsExactly(sb3);
+        assertThat(result).doesNotContainKey(filtreringUtenSaksbehandlere.getId());
+    }
+
     private OppgaveFiltrering lagFiltrering(String navn, Avdeling avdeling) {
         return new OppgaveFiltrering(navn, KøSortering.BEHANDLINGSFRIST, avdeling);
     }

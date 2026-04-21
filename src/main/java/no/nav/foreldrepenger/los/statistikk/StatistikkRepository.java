@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -134,21 +135,23 @@ public class StatistikkRepository {
             .executeUpdate();
     }
 
-    public Map<Long, StatistikkOppgaveFilter> hentSisteStatistikkForAlleOppgaveFiltre() {
-        var alleStatistikk = entityManager.createQuery("""
-        SELECT s FROM StatistikkOppgaveFilter s
-        WHERE (s.nøkkel.oppgaveFilterId, s.nøkkel.tidsstempel) IN (
-            SELECT s2.nøkkel.oppgaveFilterId, MAX(s2.nøkkel.tidsstempel)
-            FROM StatistikkOppgaveFilter s2
-            GROUP BY s2.nøkkel.oppgaveFilterId
-        )
-        """, StatistikkOppgaveFilter.class)
-            .getResultList();
+    public Map<Long, StatistikkOppgaveFilter> hentSisteStatistikkForOppgaveFiltre(Set<Long> oppgaveFilterIder) {
+        if (oppgaveFilterIder == null || oppgaveFilterIder.isEmpty()) {
+            return Map.of();
+        }
+        var statistikk = entityManager.createQuery("""
+            SELECT s FROM StatistikkOppgaveFilter s
+            WHERE s.nøkkel.oppgaveFilterId IN :filterIder
+            AND (s.nøkkel.oppgaveFilterId, s.nøkkel.tidsstempel) IN (
+                SELECT s2.nøkkel.oppgaveFilterId, MAX(s2.nøkkel.tidsstempel)
+                FROM StatistikkOppgaveFilter s2
+                WHERE s2.nøkkel.oppgaveFilterId IN :filterIder
+                GROUP BY s2.nøkkel.oppgaveFilterId
+            )
+            """, StatistikkOppgaveFilter.class).setParameter("filterIder", oppgaveFilterIder).getResultList();
 
-        return alleStatistikk.stream()
-            .collect(java.util.stream.Collectors.toMap(
-                StatistikkOppgaveFilter::getOppgaveFilterId,
-                s -> s
-            ));
+        return statistikk.stream().collect(Collectors.toMap(StatistikkOppgaveFilter::getOppgaveFilterId, s -> s));
     }
+
+
 }

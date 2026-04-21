@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.los.avdelingsleder;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,8 +80,8 @@ public class AvdelingslederTjeneste {
         oppgaveRepository.flette(oppgavefilter);
     }
 
-    public List<Saksbehandler> saksbehandlereForOppgaveListe(OppgaveFiltrering oppgaveFiltrering) {
-        return oppgaveRepository.saksbehandlereForOppgaveFiltrering(oppgaveFiltrering);
+    public Map<Long, List<Saksbehandler>> saksbehandlereForOppgaveLister(List<OppgaveFiltrering> oppgaveFiltreringer) {
+        return oppgaveRepository.saksbehandlereForOppgaveFiltreringer(oppgaveFiltreringer);
     }
 
     public void leggSaksbehandlerTilListe(Long oppgaveFiltreringId, String saksbehandlerIdent) {
