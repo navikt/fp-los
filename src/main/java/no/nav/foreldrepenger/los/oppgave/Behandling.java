@@ -379,7 +379,7 @@ public class Behandling extends BaseEntitet {
         }
 
         public Builder medKriterier(Set<AndreKriterierType> kriterier) {
-            if (!behandlingKladd.behandlingEgenskaper.containsAll(kriterier)) {  // avoids delete+reinsert if identical
+            if (behandlingKladd.behandlingEgenskaper.size() != kriterier.size() || !behandlingKladd.behandlingEgenskaper.containsAll(kriterier)) {  // avoids delete+reinsert if identical
                 behandlingKladd.behandlingEgenskaper.clear();
                 behandlingKladd.behandlingEgenskaper.addAll(kriterier);
             }
