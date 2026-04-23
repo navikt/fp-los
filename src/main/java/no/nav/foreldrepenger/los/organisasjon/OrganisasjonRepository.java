@@ -222,7 +222,13 @@ public class OrganisasjonRepository {
     }
 
     public List<Saksbehandler> saksbehandlereForAvdeling(Avdeling avdeling) {
-        return entityManager.createQuery("select saksbehandler from AvdelingSaksbehandlerRelasjon where avdeling = :avdeling", Saksbehandler.class)
+        return entityManager.createQuery("""
+                select s from saksbehandler s
+                where exists (
+                    select 1 from AvdelingSaksbehandlerRelasjon rel
+                    where rel.saksbehandler = s and rel.avdeling = :avdeling
+                )
+                """, Saksbehandler.class)
             .setParameter("avdeling", avdeling)
             .getResultList();
     }
@@ -249,7 +255,13 @@ public class OrganisasjonRepository {
     }
 
     public List<Saksbehandler> saksbehandlereForGruppe(SaksbehandlerGruppe gruppe) {
-        return entityManager.createQuery("select saksbehandler from GruppeTilknytningRelasjon where gruppe = :gruppe", Saksbehandler.class)
+        return entityManager.createQuery("""
+                select s from saksbehandler s
+                where exists (
+                    select 1 from GruppeTilknytningRelasjon rel
+                    where rel.saksbehandler = s and rel.gruppe = :gruppe
+                )
+            """, Saksbehandler.class)
             .setParameter("gruppe", gruppe)
             .getResultList();
     }
