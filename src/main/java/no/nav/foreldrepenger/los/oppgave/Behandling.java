@@ -75,7 +75,7 @@ public class Behandling extends BaseEntitet {
     @Column(name = "AKTIVE_AKSJONSPUNKT")
     private String aktiveAksjonspunkt;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "BEHANDLING_EGENSKAP",
         joinColumns = @JoinColumn(name = "BEHANDLING_ID")
@@ -379,8 +379,10 @@ public class Behandling extends BaseEntitet {
         }
 
         public Builder medKriterier(Set<AndreKriterierType> kriterier) {
-            behandlingKladd.behandlingEgenskaper.clear();
-            behandlingKladd.behandlingEgenskaper.addAll(kriterier);
+            if (behandlingKladd.behandlingEgenskaper.size() != kriterier.size() || !behandlingKladd.behandlingEgenskaper.containsAll(kriterier)) {  // avoids delete+reinsert if identical
+                behandlingKladd.behandlingEgenskaper.clear();
+                behandlingKladd.behandlingEgenskaper.addAll(kriterier);
+            }
             return this;
         }
 
