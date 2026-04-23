@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -55,6 +58,7 @@ public class OppgaveFiltrering extends BaseEntitet {
     )
     @Column(name = "BEHANDLING_TYPE")
     @Enumerated(EnumType.STRING)
+    @Fetch(FetchMode.SUBSELECT)
     private Set<BehandlingType> filtreringBehandlingTyper = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -64,6 +68,7 @@ public class OppgaveFiltrering extends BaseEntitet {
     )
     @Column(name = "FAGSAK_YTELSE_TYPE")
     @Enumerated(EnumType.STRING)
+    @Fetch(FetchMode.SUBSELECT)
     private Set<FagsakYtelseType> filtreringYtelseTyper = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -71,6 +76,7 @@ public class OppgaveFiltrering extends BaseEntitet {
         name = "FILTRERING_ANDRE_KRITERIER",
         joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
     )
+    @Fetch(FetchMode.SUBSELECT)
     private Set<FiltreringAndreKriterierType> andreKriterierTyper = new HashSet<>();
 
     @NotNull

@@ -199,8 +199,11 @@ public class OppgaveRepository {
         if (oppgaveFiltreringer == null || oppgaveFiltreringer.isEmpty()) {
             return Map.of();
         }
-        return entityManager.createQuery("from FiltreringSaksbehandlerRelasjon where oppgaveFiltrering in :filtreringer",
-                FiltreringSaksbehandlerRelasjon.class)
+        return entityManager.createQuery("""
+                from FiltreringSaksbehandlerRelasjon rel
+                JOIN FETCH rel.saksbehandler
+                where rel.oppgaveFiltrering in :filtreringer
+                """, FiltreringSaksbehandlerRelasjon.class)
             .setParameter("filtreringer", oppgaveFiltreringer)
             .getResultList()
             .stream()
