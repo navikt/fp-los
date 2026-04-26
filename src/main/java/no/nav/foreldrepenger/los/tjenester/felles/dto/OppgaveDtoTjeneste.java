@@ -170,9 +170,10 @@ public class OppgaveDtoTjeneste {
     private List<OppgaveDto> lagDto(List<Oppgave> oppgaver) {
         try {
             var oppgaverPerson = personTjeneste.hentPersoner(oppgaver);
+            var reservasjonStatus = reservasjonStatusDtoTjeneste.lagStatusFor(oppgaver);
             return oppgaver.stream()
                 .filter(oppgave -> oppgaverPerson.containsKey(oppgave.getId()))
-                .map(o -> new OppgaveDto(o, oppgaverPerson.get(o.getId()), reservasjonStatusDtoTjeneste.lagStatusFor(o)))
+                .map(o -> new OppgaveDto(o, oppgaverPerson.get(o.getId()), reservasjonStatus.get(o.getId())))
                 .toList();
         } catch (Exception e) {
             var oppgaveIds = oppgaver.stream().map(Oppgave::getId).toList();

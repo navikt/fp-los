@@ -1,6 +1,10 @@
 package no.nav.foreldrepenger.los.tjenester.felles.dto;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,6 +33,20 @@ public class ReservasjonStatusDtoTjeneste {
 
     ReservasjonStatusDto lagStatusFor(Oppgave oppgave) {
         var reservasjon = oppgaveRepository.hentReservasjon(oppgave.getId()).filter(Reservasjon::erAktiv).orElse(null);
+        return lagStatusFor(reservasjon);
+    }
+
+    Map<Long, ReservasjonStatusDto> lagStatusFor(List<Oppgave> oppgaver) {
+        var ids = oppgaver.stream().map(Oppgave::getId).collect(Collectors.toSet());
+        var reservasjoner = oppgaveRepository.hentReservasjoner(ids).stream()
+            .filter(Reservasjon::erAktiv)
+            .collect(Collectors.toMap(r -> r.getOppgave().getId(), Function.identity()));
+        // Slett ikke alle oppgaver har en aktiv reservasjon
+        return ids.stream()
+            .collect(Collectors.toMap(Function.identity(), o -> lagStatusFor(reservasjoner.get(o))));
+    }
+
+    ReservasjonStatusDto lagStatusFor(Reservasjon reservasjon) {
         if (reservasjon != null) {
             if (SYSTEMBRUKER.equalsIgnoreCase(reservasjon.getFlyttetAv())) {
                 return systembrukerSpesialTilfelle(reservasjon);
