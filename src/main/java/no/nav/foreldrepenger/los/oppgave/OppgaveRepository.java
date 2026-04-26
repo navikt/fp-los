@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,12 @@ public class OppgaveRepository {
 
     public Optional<Reservasjon> hentReservasjon(Long oppgaveId) {
         return Optional.ofNullable(entityManager.find(Reservasjon.class, oppgaveId));
+    }
+
+    public List<Reservasjon> hentReservasjoner(Set<Long> oppgaver) {
+        return entityManager.createQuery("from Reservasjon r where r.oppgave.id in :oppgaver", Reservasjon.class)
+            .setParameter("oppgaver", oppgaver)
+            .getResultList();
     }
 
     public List<OppgaveFiltrering> hentAlleOppgaveFiltreReadOnly() {
@@ -108,7 +115,7 @@ public class OppgaveRepository {
         if (oppgaveIder == null || oppgaveIder.isEmpty()) {
             return List.of();
         }
-        return entityManager.createQuery("FROM Oppgave o where o.id IN (:oppgaveIder)", Oppgave.class)
+        return entityManager.createQuery("FROM Oppgave o JOIN FETCH o.behandling where o.id IN (:oppgaveIder)", Oppgave.class)
             .setParameter("oppgaveIder", oppgaveIder)
             .setHint(HibernateHints.HINT_READ_ONLY, "true")
             .getResultList();
