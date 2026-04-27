@@ -21,7 +21,7 @@ import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
 @ApplicationScoped
 public class OppgaveKøRepository {
 
-    private static final String SELECT_FROM_OPPGAVE = "from Oppgave o join Behandling b on o.behandling = b ";
+    private static final String SELECT_FROM_OPPGAVE = "from Oppgave o join fetch Behandling b on o.behandling = b ";
     private static final String SELECT_COUNT_FROM_OPPGAVE = "SELECT count(1) from Oppgave o JOIN Behandling b on o.behandling = b";
 
     private static final String BEHANDLINGSFRIST_FELT_SQL = "b.behandlingsfrist";

@@ -47,7 +47,7 @@ public class OppgaveRepository {
 
     public List<Oppgave> hentAktiveOppgaverForSaksnummer(Collection<Saksnummer> saksnummerListe) {
         return entityManager.createQuery(
-            "from Oppgave o where o.behandling.saksnummer in :saksnummerListe and o.aktiv order by o.behandling.saksnummer desc",
+            "from Oppgave o join fetch o.behandling b where b.saksnummer in :saksnummerListe and o.aktiv order by b.saksnummer desc",
             Oppgave.class).setParameter("saksnummerListe", saksnummerListe).getResultList();
     }
 

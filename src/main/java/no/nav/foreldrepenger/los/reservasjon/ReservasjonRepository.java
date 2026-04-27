@@ -72,6 +72,7 @@ public class ReservasjonRepository {
     public List<Oppgave> hentSaksbehandlersReserverteAktiveOppgaver(String uid) {
         return entityManager.createQuery("""
             select o from Oppgave o
+            join fetch o.behandling b
             where o.aktiv = true
             and exists (
                 select 1 from Reservasjon r
