@@ -22,6 +22,12 @@ spec:
     periodSeconds: 10
     failureThreshold: 20
     timeout: 3
+  startup:
+    path: /fplos/internal/health/isReady
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 20
+    timeout: 3
   preStopHook:
     http:
       path: /fplos/internal/health/preStop
@@ -33,8 +39,8 @@ spec:
     max: {{maxReplica}}
     scalingStrategy:
       cpu:
-        thresholdPercentage: 80
-      scaleUpStabilizationWindowSeconds: 60
+        thresholdPercentage: 50
+      scaleUpStabilizationWindowSeconds: 0
   resources:
     limits:
       memory: "{{limits.mem}}"
