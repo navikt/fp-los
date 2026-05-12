@@ -40,7 +40,6 @@ public class ApiConfig extends Application {
     public static final String API_URI = "/api";
 
     public ApiConfig() {
-        GeneralRestExceptionMapper.setLegacyFrontendInternFeil(true);
         if (!ER_PROD) {
             registerOpenApi();
         }
