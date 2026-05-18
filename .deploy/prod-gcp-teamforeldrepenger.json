@@ -1,7 +1,38 @@
 {
   "environment": "prod",
   "ingress": "https://fplos.intern.nav.no",
-  "extraInboundRules": [],
+  "inboundRules": [
+    {
+      "application": "fp-frontend",
+      "namespace": "teamforeldrepenger",
+      "cluster": "prod-gcp"
+    },
+    {
+      "application": "fp-avdelingsleder",
+      "namespace": "teamforeldrepenger",
+      "cluster": "prod-gcp"
+    },
+    {
+      "application": "fpsak",
+      "namespace": "teamforeldrepenger",
+      "cluster": "prod-fss"
+    },
+    {
+      "application": "fptilbake",
+      "namespace": "teamforeldrepenger",
+      "cluster": "prod-fss"
+    },
+    {
+      "application": "fp-swagger",
+      "namespace": "teamforeldrepenger",
+      "cluster": "prod-gcp",
+      "permissions": {
+        "scopes": [
+          "swagger"
+        ]
+      }
+    }
+  ],
   "kafkaPool": "nav-prod",
   "minReplica": "2",
   "maxReplica": "3",

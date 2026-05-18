@@ -7,7 +7,7 @@ metadata:
     team: teamforeldrepenger
 spec:
   ingresses:
-    - {{ingress}} # for migrering mellom fss og gcp
+    - {{ingress}} # for endepunkt /migrer
   image: {{image}}
   port: 8080
   liveness:
@@ -86,16 +86,18 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: fp-frontend
-        - application: fp-avdelingsleder
-        - application: fp-swagger
+      {{#each inboundRules}}
+        - application: {{application}}
+          namespace: {{namespace}}
+          cluster: {{cluster}}
+          {{#if scopes}}
           permissions:
             scopes:
-              - swagger
-        {{#each extraInboundRules as |rule|}}
-        - application: {{rule.application}}
-          namespace: {{rule.namespace}}
-        {{/each}}
+            {{#each scopes}}
+              - "{{this}}"
+            {{/each}}
+          {{/if}}
+      {{/each}}
     outbound:
       rules:
         - application: logging
