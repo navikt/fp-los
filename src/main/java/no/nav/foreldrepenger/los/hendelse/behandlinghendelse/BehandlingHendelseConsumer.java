@@ -1,8 +1,5 @@
 package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
-import no.nav.foreldrepenger.konfig.Cluster;
-import no.nav.foreldrepenger.konfig.Environment;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +7,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.vedtak.felles.integrasjon.kafka.KafkaConsumerManager;
 import no.nav.vedtak.server.Controllable;
-import no.nav.vedtak.server.LiveAndReadinessAware;
+import no.nav.vedtak.server.LivenessAware;
 
 @ApplicationScoped
-public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Controllable {
+public class BehandlingHendelseConsumer implements LivenessAware, Controllable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BehandlingHendelseConsumer.class);
 
@@ -42,11 +39,6 @@ public class BehandlingHendelseConsumer implements LiveAndReadinessAware, Contro
     @Override
     public boolean isAlive() {
         return kcm.allRunning();
-    }
-
-    @Override
-    public boolean isReady() {
-        return isAlive();
     }
 
 }
