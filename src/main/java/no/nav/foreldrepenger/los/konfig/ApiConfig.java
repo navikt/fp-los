@@ -29,6 +29,7 @@ import no.nav.foreldrepenger.los.tjenester.reservasjon.ReservasjonRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.OppgaveRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste.SaksbehandlerSakslisteRestTjeneste;
 import no.nav.vedtak.openapi.OpenApiUtils;
+import no.nav.vedtak.server.rest.AuthenticationFilter;
 import no.nav.vedtak.server.rest.FpRestJackson2Feature;
 
 @ApplicationPath(ApiConfig.API_URI)
@@ -57,6 +58,8 @@ public class ApiConfig extends Application {
 
         // Klasser som ikke typegenereres
         classes.add(PopulerOppgaverRestTjeneste.class);
+
+        classes.add(AuthenticationFilter.class);
 
         classes.add(FpRestJackson2Feature.class);
 

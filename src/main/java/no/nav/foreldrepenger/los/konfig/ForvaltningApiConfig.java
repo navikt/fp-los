@@ -16,6 +16,7 @@ import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.los.tjenester.admin.AdminRestTjeneste;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 import no.nav.vedtak.openapi.OpenApiUtils;
+import no.nav.vedtak.server.rest.AuthenticationFilter;
 import no.nav.vedtak.server.rest.FpRestJackson2Feature;
 
 @ApplicationPath(ForvaltningApiConfig.API_URL)
@@ -34,6 +35,7 @@ public class ForvaltningApiConfig extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>(getAllClasses());
+        classes.add(AuthenticationFilter.class);
         classes.add(FpRestJackson2Feature.class);
         classes.add(no.nav.vedtak.server.rest.ForvaltningAuthorizationFilter.class);
         classes.add(OpenApiResource.class);
