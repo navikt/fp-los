@@ -13,6 +13,12 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import io.micrometer.core.instrument.Metrics;
 
+import no.nav.vedtak.felles.jpa.NamingStandard;
+import no.nav.vedtak.felles.jpa.flyway.FlywayUtil;
+import no.nav.vedtak.felles.jpa.jdbc.DataSourceHolder;
+import no.nav.vedtak.felles.jpa.jdbc.DatasourceUtil;
+import no.nav.vedtak.log.metrics.MetricsUtil;
+
 import org.eclipse.jetty.ee11.cdi.CdiDecoratingListener;
 import org.eclipse.jetty.ee11.cdi.CdiServletContainerInitializer;
 import org.eclipse.jetty.ee11.servlet.DefaultServlet;
@@ -65,30 +71,10 @@ public class JettyServer {
 
     protected void bootStrap() throws Exception {
         konfigurerLogging();
-        var dataSource = createDataSource();
-        konfigurerDataSource(dataSource);
-        migrerDatabase(dataSource);
+        var ds = DatasourceUtil.postgresDataSource(ENV.getRequiredProperty("DB_JDBC_URL"), null, null, 30);
+        DataSourceHolder.initialize(ds);
+        FlywayUtil.migrate(ds, NamingStandard.DEFAULT_DS_MIGRATION_CLASSPATH);
         start();
-    }
-
-    private static DataSource createDataSource() {
-        var config = new HikariConfig();
-        config.setJdbcUrl(ENV.getRequiredProperty("DB_JDBC_URL"));
-        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(2));
-        config.setMinimumIdle(3);
-        config.setMaximumPoolSize(30);
-        config.setInitializationFailTimeout(30000);
-        config.setConnectionTestQuery("select 1");
-        config.setDriverClassName("org.postgresql.Driver");
-        config.setMetricRegistry(Metrics.globalRegistry);
-        config.setAutoCommit(false);
-
-        var dsProperties = new Properties();
-        dsProperties.setProperty("reWriteBatchedInserts", "true");
-        dsProperties.setProperty("logServerErrorDetail", "false"); // skrur av batch exceptions som lekker statements i åpen logg
-        config.setDataSourceProperties(dsProperties);
-
-        return new HikariDataSource(config);
     }
 
     /**
@@ -98,24 +84,7 @@ public class JettyServer {
     private static void konfigurerLogging() {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
-    }
-
-    private static void konfigurerDataSource(DataSource dataSource) throws NamingException {
-        new EnvEntry("jdbc/defaultDS", dataSource);
-    }
-
-    private static void migrerDatabase(DataSource dataSource) {
-        try {
-            Flyway.configure()
-                .dataSource(dataSource)
-                .locations("classpath:/db/migration/defaultDS")
-                .baselineOnMigrate(true)
-                .load()
-                .migrate();
-        } catch (FlywayException e) {
-            LOG.error("Feil under migrering av databasen.");
-            throw e;
-        }
+        MetricsUtil.scrape(); // TODO: Erstatt med kommende init-metode pga bruk i DS og EM
     }
 
     private void start() throws Exception {
