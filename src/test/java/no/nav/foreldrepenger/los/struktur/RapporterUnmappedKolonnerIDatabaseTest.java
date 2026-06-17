@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.vedtak.felles.jpa.NamingStandard;
+import no.nav.vedtak.felles.jpa.jdbc.DataSourceHolder;
 
 /**
  * Denne testen rapporterer kun tabeller og kolonner som ikke er mappet i hibernate.
@@ -50,12 +52,10 @@ class RapporterUnmappedKolonnerIDatabaseTest {
     static void setup() {
 
         Map<String, Object> configuration = new HashMap<>();
-
         configuration.put("hibernate.integrator_provider",
-                (IntegratorProvider) () -> Collections.singletonList(
-                        MetadataExtractorIntegrator.INSTANCE));
-
-        entityManagerFactory = Persistence.createEntityManagerFactory("pu-default", configuration);
+            (IntegratorProvider) () -> Collections.singletonList(MetadataExtractorIntegrator.INSTANCE));
+        configuration.put("jakarta.persistence.nonJtaDataSource", DataSourceHolder.getDataSource());
+        entityManagerFactory = Persistence.createEntityManagerFactory(NamingStandard.DEFAULT_PERSISTENCE_UNIT, configuration);
     }
 
     @AfterAll
