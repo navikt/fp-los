@@ -18,7 +18,7 @@
         <sonar.projectKey>navikt_fp-los</sonar.projectKey>
 
         <fp-kontrakter.version>9.4.37</fp-kontrakter.version>
-        <felles.version>7.8.4</felles.version>
+        <felles.version>7.8.5</felles.version>
         <prosesstask.version>5.2.7</prosesstask.version>
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
     </properties>
