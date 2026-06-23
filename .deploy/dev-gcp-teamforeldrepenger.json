@@ -1,9 +1,38 @@
 {
   "environment": "dev",
-  "extraInboundRules": [
+  "inboundRules": [
+    {
+      "application": "fp-frontend",
+      "namespace": "teamforeldrepenger",
+      "cluster": "dev-gcp"
+    },
+    {
+      "application": "fp-avdelingsleder",
+      "namespace": "teamforeldrepenger",
+      "cluster": "dev-gcp"
+    },
+    {
+      "application": "fpsak",
+      "namespace": "teamforeldrepenger",
+      "cluster": "dev-fss"
+    },
+    {
+      "application": "fptilbake",
+      "namespace": "teamforeldrepenger",
+      "cluster": "dev-fss"
+    },
+    {
+      "application": "fp-swagger",
+      "namespace": "teamforeldrepenger",
+      "cluster": "dev-gcp",
+      "scopes": [
+        "swagger"
+      ]
+    },
     {
       "application": "azure-token-generator",
-      "namespace": "nais"
+      "namespace": "nais",
+      "cluster": "dev-gcp"
     }
   ],
   "ingress": "https://fplos.intern.dev.nav.no",
