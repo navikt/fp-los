@@ -18,7 +18,7 @@
         <sonar.projectKey>navikt_fp-los</sonar.projectKey>
 
         <fp-kontrakter.version>9.4.37</fp-kontrakter.version>
-        <felles.version>7.8.6</felles.version>
+        <felles.version>7.9.0</felles.version>
         <prosesstask.version>5.2.7</prosesstask.version>
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
     </properties>
@@ -134,6 +134,10 @@
             <groupId>no.nav.foreldrepenger.felles</groupId>
             <artifactId>felles-db</artifactId>
         </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.felles</groupId>
+            <artifactId>felles-mapper</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
@@ -142,22 +146,6 @@
         </dependency>
 
         <!-- tredjepart -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
