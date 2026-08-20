@@ -30,7 +30,7 @@ import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.OppgaveRestTjen
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste.SaksbehandlerSakslisteRestTjeneste;
 import no.nav.vedtak.openapi.OpenApiUtils;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
-import no.nav.vedtak.server.rest.FpRestJacksonFeature;
+import no.nav.vedtak.server.rest.FpRestJackson2Feature;
 
 @ApplicationPath(ApiConfig.API_URI)
 public class ApiConfig extends Application {
@@ -61,7 +61,7 @@ public class ApiConfig extends Application {
 
         classes.add(AuthenticationFilter.class);
 
-        classes.add(FpRestJacksonFeature.class);
+        classes.add(FpRestJackson2Feature.class);
 
         if (!ER_PROD) {
             classes.add(OpenApiResource.class);
