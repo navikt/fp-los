@@ -12,7 +12,7 @@ import no.nav.openapi.spec.utils.openapi.JsonSubTypesModelConverter;
 import no.nav.openapi.spec.utils.openapi.NoJsonSubTypesAnnotationIntrospector;
 import no.nav.openapi.spec.utils.openapi.PrefixStrippingFQNTypeNameResolver;
 import no.nav.openapi.spec.utils.openapi.RefToClassLookup;
-import no.nav.vedtak.mapper.json.DefaultJson2Mapper;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 public class TypegenereringOpenApiUtils {
 
@@ -33,7 +33,7 @@ public class TypegenereringOpenApiUtils {
     }
 
     private static JsonMapper lagObjectMapperUtenJsonSubTypeAnnotasjoner() {
-        return DefaultJson2Mapper.getJsonMapper().rebuild()
+        return DefaultJsonMapper.getJsonMapper().rebuild()
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
             .enable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
             .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
