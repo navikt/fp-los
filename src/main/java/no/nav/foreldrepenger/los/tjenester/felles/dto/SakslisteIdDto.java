@@ -1,14 +1,14 @@
 package no.nav.foreldrepenger.los.tjenester.felles.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
-import no.nav.vedtak.sikkerhet.abac.AbacDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.Objects;
+import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
+import no.nav.vedtak.sikkerhet.abac.AbacDto;
 
 public class SakslisteIdDto implements AbacDto {
 
@@ -30,13 +30,14 @@ public class SakslisteIdDto implements AbacDto {
         this.sakslisteId = Long.valueOf(sakslisteId);
     }
 
+    @JsonIgnore
     public Long getVerdi() {
         return sakslisteId;
     }
 
     @Override
     public String toString() {
-        return "SaksnummerDto{" + "sakslisteId='" + sakslisteId + '\'' + '}';
+        return "SakslisteIdDto{" + "sakslisteId='" + sakslisteId + '\'' + '}';
     }
 
     @Override
@@ -46,10 +47,7 @@ public class SakslisteIdDto implements AbacDto {
 
     @Override
     public final boolean equals(Object o) {
-        if (!(o instanceof SakslisteIdDto that)) {
-            return false;
-        }
-        return sakslisteId.equals(that.sakslisteId);
+        return o instanceof SakslisteIdDto that && sakslisteId.equals(that.sakslisteId);
     }
 
     @Override

@@ -110,7 +110,7 @@ public class ReservasjonRestTjeneste {
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public ReservasjonStatusDto endreOppgaveReservasjon(@NotNull @Parameter(description = "forleng til dato") @Valid ReservasjonEndringRequestDto reservasjonsEndring) {
         ReservasjonTidspunktUtil.validerReservasjonsdato(reservasjonsEndring.reserverTil());
-        var reservasjon = reservasjonTjeneste.endreReservasjonsdato(reservasjonsEndring.oppgaveId().getVerdi(), reservasjonsEndring.reserverTil());
+        var reservasjon = reservasjonTjeneste.endreReservasjonsdato(reservasjonsEndring.oppgaveId(), reservasjonsEndring.reserverTil());
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }
 
@@ -140,8 +140,8 @@ public class ReservasjonRestTjeneste {
     @Operation(description = "Flytt reservasjon av oppgave", tags = "Saksbehandler")
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.FAGSAK, sporingslogg = false)
     public ReservasjonStatusDto flyttOppgaveReservasjon(@NotNull @Parameter(description = "id, begrunnelse og brukerident") @Valid OppgaveFlyttingDto oppgaveFlyttingDto) {
-        var reservasjon = reservasjonTjeneste.flyttReservasjon(oppgaveFlyttingDto.getOppgaveId().getVerdi(),
-            oppgaveFlyttingDto.getBrukerIdent().getVerdi(), oppgaveFlyttingDto.getBegrunnelse());
+        var reservasjon = reservasjonTjeneste.flyttReservasjon(oppgaveFlyttingDto.getOppgaveId(),
+            oppgaveFlyttingDto.getBrukerIdent(), oppgaveFlyttingDto.getBegrunnelse());
         return oppgaveDtoTjeneste.lagOppgaveStatusUtenPersonoppslag(reservasjon.getOppgave());
     }
 

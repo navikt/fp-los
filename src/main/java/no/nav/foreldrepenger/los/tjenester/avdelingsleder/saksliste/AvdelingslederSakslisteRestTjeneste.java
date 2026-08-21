@@ -48,17 +48,14 @@ public class AvdelingslederSakslisteRestTjeneste {
     private AvdelingslederTjeneste avdelingslederTjeneste;
     private KøStatistikkTjeneste køStatistikkTjeneste;
     private StatistikkRepository statistikkRepository;
-    private SaksbehandlerDtoTjeneste saksbehandlerDtoTjeneste;
 
     @Inject
     public AvdelingslederSakslisteRestTjeneste(AvdelingslederTjeneste avdelingslederTjeneste,
                                                KøStatistikkTjeneste køStatistikkTjeneste,
-                                               StatistikkRepository statistikkRepository,
-                                               SaksbehandlerDtoTjeneste saksbehandlerDtoTjeneste) {
+                                               StatistikkRepository statistikkRepository) {
         this.avdelingslederTjeneste = avdelingslederTjeneste;
         this.køStatistikkTjeneste = køStatistikkTjeneste;
         this.statistikkRepository = statistikkRepository;
-        this.saksbehandlerDtoTjeneste = saksbehandlerDtoTjeneste;
     }
 
     AvdelingslederSakslisteRestTjeneste() {
@@ -101,7 +98,7 @@ public class AvdelingslederSakslisteRestTjeneste {
     @Operation(description = "Fjern saksliste", tags = AVDELINGSLEDER_SAKSLISTER)
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.OPPGAVESTYRING_AVDELINGENHET, sporingslogg = false)
     public void slettSaksliste(@NotNull @Parameter(description = "id til sakslisten som skal slettes") @Valid SakslisteOgAvdelingDto sakslisteOgAvdelingDto) {
-        avdelingslederTjeneste.hentOppgaveFiltering(sakslisteOgAvdelingDto.sakslisteId().getVerdi()).ifPresent(avdelingslederTjeneste::slettOppgaveFiltrering);
+        avdelingslederTjeneste.hentOppgaveFiltering(sakslisteOgAvdelingDto.sakslisteId()).ifPresent(avdelingslederTjeneste::slettOppgaveFiltrering);
     }
 
     @POST
@@ -109,8 +106,8 @@ public class AvdelingslederSakslisteRestTjeneste {
     @Operation(description = "Legger til eller fjerner koblingen mellom saksliste og saksbehandler", tags = AVDELINGSLEDER_SAKSLISTER)
     @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.OPPGAVESTYRING_AVDELINGENHET, sporingslogg = false)
     public void leggSaksbehandlerTilSaksliste(@NotNull @Parameter(description = "Knytning mellom saksbehandler og saksliste") @Valid SakslisteSaksbehandlerDto sakslisteSaksbehandler) {
-        var sakslisteId = sakslisteSaksbehandler.sakslisteId().getVerdi();
-        var saksbehandlerIdent = sakslisteSaksbehandler.brukerIdent().getVerdi();
+        var sakslisteId = sakslisteSaksbehandler.sakslisteId();
+        var saksbehandlerIdent = sakslisteSaksbehandler.brukerIdent();
         if (sakslisteSaksbehandler.checked()) {
             avdelingslederTjeneste.leggSaksbehandlerTilListe(sakslisteId, saksbehandlerIdent);
         } else {
