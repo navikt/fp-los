@@ -1,36 +1,37 @@
 package no.nav.foreldrepenger.los.tjenester.avdelingsleder.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.FplosAbacAttributtType;
-import no.nav.foreldrepenger.los.tjenester.felles.dto.SaksbehandlerBrukerIdentDto;
 import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.AbacDto;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import no.nav.vedtak.util.InputValideringRegex;
 
 public class SaksbehandlerOgAvdelingDto implements AbacDto {
 
     @NotNull
-    @Valid
-    private SaksbehandlerBrukerIdentDto brukerIdent;
+    @Size(max = 100)
+    @Pattern(regexp = InputValideringRegex.FRITEKST)
+    private String brukerIdent;
 
     @NotNull
-    @Valid
-    private AvdelingEnhetDto avdelingEnhet;
+    @Pattern(regexp = InputValideringRegex.FRITEKST)
+    private String avdelingEnhet;
 
     public SaksbehandlerOgAvdelingDto() {
     }
 
-    public SaksbehandlerOgAvdelingDto(SaksbehandlerBrukerIdentDto brukerIdent, AvdelingEnhetDto avdelingEnhet) {
+    public SaksbehandlerOgAvdelingDto(String brukerIdent, String avdelingEnhet) {
         this.brukerIdent = brukerIdent;
         this.avdelingEnhet = avdelingEnhet;
     }
 
-    public SaksbehandlerBrukerIdentDto getBrukerIdent() {
+    public String getBrukerIdent() {
         return brukerIdent;
     }
 
-    public AvdelingEnhetDto getAvdelingEnhet() {
+    public String getAvdelingEnhet() {
         return avdelingEnhet;
     }
 
@@ -41,7 +42,7 @@ public class SaksbehandlerOgAvdelingDto implements AbacDto {
 
     @Override
     public AbacDataAttributter abacAttributter() {
-        return AbacDataAttributter.opprett().leggTil(FplosAbacAttributtType.OPPGAVESTYRING_ENHET, avdelingEnhet.getAvdelingEnhet());
+        return AbacDataAttributter.opprett().leggTil(FplosAbacAttributtType.OPPGAVESTYRING_ENHET, avdelingEnhet);
 
     }
 }

@@ -1,11 +1,10 @@
 package no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.dto;
 
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
-import no.nav.foreldrepenger.los.tjenester.felles.dto.SaksbehandlerBrukerIdentDto;
+import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.FplosAbacAttributtType;
 import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.AbacDto;
 import no.nav.vedtak.util.InputValideringRegex;
@@ -13,12 +12,13 @@ import no.nav.vedtak.util.InputValideringRegex;
 public class OppgaveFlyttingDto implements AbacDto {
 
     @NotNull
-    @Valid
-    private OppgaveIdDto oppgaveId;
+    @Digits(integer = 18, fraction = 0)
+    private Long oppgaveId;
 
     @NotNull
-    @Valid
-    private SaksbehandlerBrukerIdentDto brukerIdent;
+    @Size(max = 100)
+    @Pattern(regexp = InputValideringRegex.FRITEKST)
+    private String brukerIdent;
 
     @NotNull
     @Size(max = 500)
@@ -28,17 +28,17 @@ public class OppgaveFlyttingDto implements AbacDto {
     public OppgaveFlyttingDto() {
     }
 
-    public OppgaveFlyttingDto(OppgaveIdDto oppgaveId, SaksbehandlerBrukerIdentDto brukerIdent, String begrunnelse) {
+    public OppgaveFlyttingDto(Long oppgaveId, String brukerIdent, String begrunnelse) {
         this.oppgaveId = oppgaveId;
         this.brukerIdent = brukerIdent;
         this.begrunnelse = begrunnelse;
     }
 
-    public OppgaveIdDto getOppgaveId() {
+    public Long getOppgaveId() {
         return oppgaveId;
     }
 
-    public SaksbehandlerBrukerIdentDto getBrukerIdent() {
+    public String getBrukerIdent() {
         return brukerIdent;
     }
 
@@ -53,6 +53,6 @@ public class OppgaveFlyttingDto implements AbacDto {
 
     @Override
     public AbacDataAttributter abacAttributter() {
-        return oppgaveId.abacAttributter();
+        return AbacDataAttributter.opprett().leggTil(FplosAbacAttributtType.OPPGAVE_ID, oppgaveId);
     }
 }

@@ -67,13 +67,13 @@ class AvdelingslederSaksbehandlerRestTjenesteTest {
         var nyGruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
         var hentetGruppe = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
         assertThat(nyGruppe).isNotNull().isInstanceOf(SaksbehandlerGruppeDto.class);
-        assertThat(hentetGruppe.saksbehandlerGrupper().get(0)).isEqualTo(nyGruppe);
+        assertThat(hentetGruppe.saksbehandlerGrupper().getFirst()).isEqualTo(nyGruppe);
     }
 
     @Test
     void kan_slette_gruppe() {
         var gruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        restTjeneste.slettSaksbehandlerGruppe(new SaksbehandlerGruppeSletteRequestDto(gruppe.gruppeId(), avdelingDto));
+        restTjeneste.slettSaksbehandlerGruppe(new SaksbehandlerGruppeSletteRequestDto(gruppe.gruppeId(), avdelingDto.getAvdelingEnhet()));
         em.flush();
         var etterSletting = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
         assertThat(etterSletting.saksbehandlerGrupper()).isEmpty();
@@ -82,14 +82,14 @@ class AvdelingslederSaksbehandlerRestTjenesteTest {
     @Test
     void kan_legge_saksbehandlere_til_gruppe() {
         var gruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto, avdelingDto));
+        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet()));
         em.flush();
-        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, (int) gruppe.gruppeId()));
+        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) gruppe.gruppeId()));
         em.flush();
         var hentetGrupper = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
 
         assertThat(hentetGrupper.saksbehandlerGrupper()).hasSize(1);
-        var saksbehandlere = hentetGrupper.saksbehandlerGrupper().get(0).saksbehandlere();
+        var saksbehandlere = hentetGrupper.saksbehandlerGrupper().getFirst().saksbehandlere();
         assertThat(saksbehandlere).hasSize(1);
         assertThat(saksbehandlere.getFirst().brukerIdent()).isEqualTo("Z999999");
     }
@@ -97,32 +97,32 @@ class AvdelingslederSaksbehandlerRestTjenesteTest {
     @Test
     void kan_fjerne_saksbehandlere_fra_gruppe() {
         var gruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto, avdelingDto));
+        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet()));
         em.flush();
-        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, gruppe.gruppeId()));
+        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) gruppe.gruppeId()));
         em.flush();
         var hentetGrupper = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
-        assertThat(hentetGrupper.saksbehandlerGrupper().get(0).saksbehandlere()).hasSize(1);
+        assertThat(hentetGrupper.saksbehandlerGrupper().getFirst().saksbehandlere()).hasSize(1);
 
-        restTjeneste.fjernSaksbehandlerFraGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, gruppe.gruppeId()));
+        restTjeneste.fjernSaksbehandlerFraGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) gruppe.gruppeId()));
         em.flush();
         var etterSletting = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
-        assertThat(etterSletting.saksbehandlerGrupper().get(0).saksbehandlere()).isEmpty();
+        assertThat(etterSletting.saksbehandlerGrupper().getFirst().saksbehandlere()).isEmpty();
     }
 
     @Test
     void kan_gi_grupper_nytt_navn() {
         var gruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
         assertThat(gruppe.gruppeNavn()).isNotEqualTo("Nytt navn");
-        restTjeneste.endreSaksbehandlerGruppe(new SaksbehandlerGruppeNavneEndringRequestDto(gruppe.gruppeId(), "Nytt navn", avdelingDto));
+        restTjeneste.endreSaksbehandlerGruppe(new SaksbehandlerGruppeNavneEndringRequestDto(gruppe.gruppeId(), "Nytt navn", avdelingDto.getAvdelingEnhet()));
         var hentetGrupper = restTjeneste.hentSaksbehandlerGrupper(avdelingDto);
-        var oppdatertGruppe = hentetGrupper.saksbehandlerGrupper().get(0);
+        var oppdatertGruppe = hentetGrupper.saksbehandlerGrupper().getFirst();
         assertThat(oppdatertGruppe.gruppeNavn()).isEqualTo("Nytt navn");
     }
 
     @Test
     void skal_gi_feilmelding_når_gruppe_ikke_finnes() {
-        var dto = new SaksbehandlerGruppeSletteRequestDto(1, avdelingDto);
+        var dto = new SaksbehandlerGruppeSletteRequestDto(1, avdelingDto.getAvdelingEnhet());
         assertThatThrownBy(() -> restTjeneste.slettSaksbehandlerGruppe(dto)).isInstanceOf(TomtResultatException.class)
             .extracting(Throwable::getMessage)
             .matches(s -> s.contains("Fant ikke gruppe " + dto.gruppeId() + " for avdeling " + avdelingDto.getAvdelingEnhet()));
@@ -131,19 +131,19 @@ class AvdelingslederSaksbehandlerRestTjenesteTest {
     @Test
     void skal_håndtere_at_saksbehandler_ikke_er_tilknyttet_gruppe() {
         var gruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        var dto = new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, gruppe.gruppeId());
+        var dto = new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) gruppe.gruppeId());
         assertThatNoException().isThrownBy(() -> restTjeneste.fjernSaksbehandlerFraGruppe(dto));
     }
 
     @Test
     void skal_kunne_fjerne_saksbehandler_fra_individuelle_grupper() {
         var førsteGruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto, avdelingDto));
+        restTjeneste.leggTilNySaksbehandler(new SaksbehandlerOgAvdelingDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet()));
         em.flush();
-        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, førsteGruppe.gruppeId()));
+        restTjeneste.leggSaksbehandlerTilGruppe(new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) førsteGruppe.gruppeId()));
         em.flush();
         var andreGruppe = restTjeneste.opprettSaksbehandlerGruppe(avdelingDto);
-        var saksbehandlerOgGruppeDto = new SaksbehandlerOgGruppeDto(brukerIdentDto, avdelingDto, andreGruppe.gruppeId());
+        var saksbehandlerOgGruppeDto = new SaksbehandlerOgGruppeDto(brukerIdentDto.getVerdi(), avdelingDto.getAvdelingEnhet(), (int) andreGruppe.gruppeId());
         restTjeneste.leggSaksbehandlerTilGruppe(saksbehandlerOgGruppeDto);
         em.flush();
         restTjeneste.fjernSaksbehandlerFraGruppe(saksbehandlerOgGruppeDto);
