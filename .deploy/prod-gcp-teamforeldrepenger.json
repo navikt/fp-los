@@ -3,8 +3,8 @@
   "ingress": "https://fplos.intern.nav.no",
   "extraInboundRules": [],
   "kafkaPool": "nav-prod",
-  "minReplica": "2",
-  "maxReplica": "3",
+  "minReplica": "3",
+  "maxReplica": "5",
   "limits": {
     "mem": "1000Mi"
   },
