@@ -7,7 +7,6 @@ import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
-import no.nav.foreldrepenger.los.reservasjon.ReservasjonKonstanter;
 import no.nav.foreldrepenger.los.reservasjon.ReservasjonTjeneste;
 
 class ReservasjonUtleder {
@@ -30,8 +29,7 @@ class ReservasjonUtleder {
                 return Optional.empty();
             }
             if (erReturFraBeslutter(nyOppgave, eksisterendeOppgave)) {
-                return Optional.of(ReservasjonTjeneste.opprettReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent(),
-                    ReservasjonKonstanter.RETUR_FRA_BESLUTTER));
+                return Optional.of(ReservasjonTjeneste.returFraBeslutterReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
             }
             if (eksisterendeReservasjonOpt.filter(Reservasjon::erAktiv).isPresent()) {
                 if (eksisterendeOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD) && !nyOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD)) {
@@ -46,7 +44,7 @@ class ReservasjonUtleder {
             return Optional.empty();
         }
         if (oppgaveGrunnlag.ansvarligSaksbehandlerIdent() != null && reservasjonskandidat) {
-            return Optional.of(ReservasjonTjeneste.opprettReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent(), null));
+            return Optional.of(ReservasjonTjeneste.standardReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
         }
         return Optional.empty();
     }

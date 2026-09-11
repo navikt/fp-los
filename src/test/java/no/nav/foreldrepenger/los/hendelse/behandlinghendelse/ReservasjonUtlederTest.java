@@ -32,6 +32,8 @@ class ReservasjonUtlederTest {
 
     @Test
     void skalOpprettReservasjonNårIngenEksisterendeOppgaveOgManuellRevurderingMedSaksbehandler() {
+        var minsteverdiForventetReservertTil = LocalDateTime.now().plusDays(1);
+
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlagMedManuellRevurdering(SAKSBEHANDLER);
         var resKandidat = ReservasjonUtleder.erReservasjonskandidat(oppgaveGrunnlag, Optional.empty());
@@ -41,6 +43,7 @@ class ReservasjonUtlederTest {
         assertThat(result).isPresent();
         assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
         assertThat(result.get().getBegrunnelse()).isNull();
+        assertThat(result.get().getReservertTil()).isAfterOrEqualTo(minsteverdiForventetReservertTil);
     }
 
     @Test
@@ -91,6 +94,8 @@ class ReservasjonUtlederTest {
 
     @Test
     void skalOpprettReservasjonMedBegrunnelseNårOppgaveReturnertFraBeslutter() {
+        var minsteverdiForventetReservertTil = LocalDateTime.now().plusDays(7);
+
         var eksisterendeOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
         var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.RETURNERT_FRA_BESLUTTER);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
@@ -100,6 +105,7 @@ class ReservasjonUtlederTest {
         assertThat(result).isPresent();
         assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
         assertThat(result.get().getBegrunnelse()).isEqualTo(ReservasjonKonstanter.RETUR_FRA_BESLUTTER);
+        assertThat(result.get().getReservertTil()).isAfterOrEqualTo(minsteverdiForventetReservertTil);
     }
 
     @Test
