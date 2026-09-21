@@ -42,8 +42,9 @@ class ReservasjonTidspunktUtilTest {
         var tidspunkt = ReservasjonTidspunktUtil.tomNesteUkedag();
         var after = LocalDateTime.now();
 
-        assertThat(tidspunkt).isAfterOrEqualTo(before.plusDays(1).with(JUSTER_TIL_NESTE_UKEDAG));
-        assertThat(tidspunkt).isBeforeOrEqualTo(after.plusDays(1).with(JUSTER_TIL_NESTE_UKEDAG));
+        assertThat(tidspunkt)
+            .isAfterOrEqualTo(before.plusDays(1).with(JUSTER_TIL_NESTE_UKEDAG))
+            .isBeforeOrEqualTo(after.plusDays(1).with(JUSTER_TIL_NESTE_UKEDAG));
     }
 
     @Test
@@ -52,8 +53,9 @@ class ReservasjonTidspunktUtilTest {
         var tidspunkt = ReservasjonTidspunktUtil.tomSjuDagerFremJustertTilNesteUkedag();
         var after = LocalDateTime.now();
 
-        assertThat(tidspunkt).isAfterOrEqualTo(before.plusDays(7).with(JUSTER_TIL_NESTE_UKEDAG));
-        assertThat(tidspunkt).isBeforeOrEqualTo(after.plusDays(7).with(JUSTER_TIL_NESTE_UKEDAG));
+        assertThat(tidspunkt)
+            .isAfterOrEqualTo(before.plusDays(7).with(JUSTER_TIL_NESTE_UKEDAG))
+            .isBeforeOrEqualTo(after.plusDays(7).with(JUSTER_TIL_NESTE_UKEDAG));
     }
 
     @Test
