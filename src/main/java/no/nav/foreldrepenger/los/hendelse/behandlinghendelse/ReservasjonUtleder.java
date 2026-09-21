@@ -40,11 +40,10 @@ class ReservasjonUtleder {
                 if (eksisterendeOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD) && !nyOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD)) {
                     return Optional.empty();
                 }
-                if (nyOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER)) {
-                    return eksisterendeOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER) ? Optional.of(
-                        nyReservasjon(nyOppgave, eksisterendeReservasjonOpt.orElse(null))) : Optional.empty();
+                if (nyOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER) && !eksisterendeOppgave.harKriterie(AndreKriterierType.TIL_BESLUTTER)) {
+                    return Optional.empty();
                 }
-                return Optional.of(nyReservasjon(nyOppgave, eksisterendeReservasjonOpt.orElseThrow()));
+                return Optional.of(videreførReservasjonTilNyOppgave(eksisterendeReservasjonOpt.orElseThrow(), nyOppgave));
             }
             return Optional.empty();
         }
@@ -83,7 +82,7 @@ class ReservasjonUtleder {
         return !eksisterendeOppgave.getBehandlendeEnhet().equals(oppgaveGrunnlag.behandlendeEnhetId());
     }
 
-    private static Reservasjon nyReservasjon(Oppgave nyOppgave, Reservasjon eksisterendeReservasjon) {
+    private static Reservasjon videreførReservasjonTilNyOppgave(Reservasjon eksisterendeReservasjon, Oppgave nyOppgave) {
         var reservasjon = new Reservasjon(nyOppgave, eksisterendeReservasjon.getReservertAv());
         reservasjon.setReservertTil(eksisterendeReservasjon.getReservertTil());
         reservasjon.setFlyttetAv(eksisterendeReservasjon.getFlyttetAv());
