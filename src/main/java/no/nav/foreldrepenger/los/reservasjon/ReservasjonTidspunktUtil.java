@@ -26,10 +26,6 @@ public final class ReservasjonTidspunktUtil {
         return LocalDateTime.now().plusDays(7).with(JUSTER_TIL_NESTE_UKEDAG);
     }
 
-    public static LocalDateTime forlengTilNesteUkedag(LocalDateTime opprinnelig) {
-        return opprinnelig.plusDays(1).with(JUSTER_TIL_NESTE_UKEDAG);
-    }
-
     public static LocalDateTime justerTilNesteUkedag(LocalDateTime opprinnelig) {
         return opprinnelig.with(JUSTER_TIL_NESTE_UKEDAG);
     }

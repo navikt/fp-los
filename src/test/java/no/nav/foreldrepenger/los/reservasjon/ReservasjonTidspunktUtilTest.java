@@ -57,20 +57,6 @@ class ReservasjonTidspunktUtilTest {
     }
 
     @Test
-    void forlengTilNesteUkedagSkalLeggeTilEnDagOgHoppeOverHelg() {
-        var fredag = LocalDateTime.of(2026, 3, 13, 10, 0);
-        var forlenget = ReservasjonTidspunktUtil.forlengTilNesteUkedag(fredag);
-        assertThat(forlenget).isEqualTo(LocalDateTime.of(2026, 3, 16, 23, 59, 59));
-    }
-
-    @Test
-    void forlengTilNesteUkedagSkalLeggeTilEnDagUtenÅHoppeOverNårDetErUkedag() {
-        var mandag = LocalDateTime.of(2026, 3, 16, 10, 0);
-        var forlenget = ReservasjonTidspunktUtil.forlengTilNesteUkedag(mandag);
-        assertThat(forlenget).isEqualTo(LocalDateTime.of(2026, 3, 17, 23, 59, 59));
-    }
-
-    @Test
     void justerTilNesteUkedagSkalHoppeOverHelgUtenÅLeggeTilDag() {
         var lørdag = LocalDateTime.of(2026, 3, 14, 8, 0);
         var justert = ReservasjonTidspunktUtil.justerTilNesteUkedag(lørdag);

@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.los.reservasjon;
 
-import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.forlengTilNesteUkedag;
 import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.justerTilNesteUkedag;
 import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.tomNesteUkedag;
 
@@ -102,7 +101,7 @@ public class ReservasjonTjeneste {
 
     public Reservasjon flyttReservasjon(Long oppgaveId, String brukernavn, String begrunnelse) {
         var reservasjon = hentReservasjonEllerFeil(oppgaveId);
-        var forlengetTil = forlengTilNesteUkedag(reservasjon.getReservertTil());
+        var forlengetTil = justerTilNesteUkedag(reservasjon.getReservertTil().plusDays(1));
         reservasjon.setReservertTil(forlengetTil);
         reservasjon.setReservertAv(brukernavn);
         reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
