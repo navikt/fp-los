@@ -1,13 +1,18 @@
 package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
+import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
 import no.nav.foreldrepenger.los.oppgave.Behandling;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
-import no.nav.foreldrepenger.los.reservasjon.ReservasjonTjeneste;
+import no.nav.foreldrepenger.los.reservasjon.ReservasjonKonstanter;
+import no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil;
+
+import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.tomNesteUkedag;
 
 class ReservasjonUtleder {
 
@@ -29,7 +34,7 @@ class ReservasjonUtleder {
                 return Optional.empty();
             }
             if (erReturFraBeslutter(nyOppgave, eksisterendeOppgave)) {
-                return Optional.of(ReservasjonTjeneste.returFraBeslutterReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
+                return Optional.of(returFraBeslutterReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
             }
             if (eksisterendeReservasjonOpt.filter(Reservasjon::erAktiv).isPresent()) {
                 if (eksisterendeOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD) && !nyOppgave.harKriterie(AndreKriterierType.PAPIRSØKNAD)) {
@@ -44,7 +49,7 @@ class ReservasjonUtleder {
             return Optional.empty();
         }
         if (oppgaveGrunnlag.ansvarligSaksbehandlerIdent() != null && reservasjonskandidat) {
-            return Optional.of(ReservasjonTjeneste.standardReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
+            return Optional.of(standardReservasjon(nyOppgave, oppgaveGrunnlag.ansvarligSaksbehandlerIdent()));
         }
         return Optional.empty();
     }
@@ -84,6 +89,23 @@ class ReservasjonUtleder {
         reservasjon.setFlyttetAv(eksisterendeReservasjon.getFlyttetAv());
         reservasjon.setBegrunnelse(eksisterendeReservasjon.getBegrunnelse());
         reservasjon.setFlyttetTidspunkt(eksisterendeReservasjon.getFlyttetTidspunkt());
+        return reservasjon;
+    }
+
+    private static Reservasjon standardReservasjon(Oppgave oppgave, String saksbehandler) {
+        return reservasjon(oppgave, saksbehandler, tomNesteUkedag(), null);
+    }
+
+    private static Reservasjon returFraBeslutterReservasjon(Oppgave oppgave, String saksbehandler) {
+        return reservasjon(oppgave, saksbehandler, ReservasjonTidspunktUtil.tomSjuDagerFremJustertTilNesteUkedag(), ReservasjonKonstanter.RETUR_FRA_BESLUTTER);
+    }
+
+    private static Reservasjon reservasjon(Oppgave oppgave, String saksbehandler, LocalDateTime reservertTil, String begrunnelse) {
+        var reservasjon = new Reservasjon(oppgave, saksbehandler);
+        reservasjon.setReservertTil(reservertTil);
+        reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
+        reservasjon.setFlyttetTidspunkt(LocalDateTime.now());
+        reservasjon.setBegrunnelse(begrunnelse);
         return reservasjon;
     }
 }

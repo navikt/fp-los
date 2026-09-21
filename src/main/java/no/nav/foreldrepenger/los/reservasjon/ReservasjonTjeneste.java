@@ -155,23 +155,6 @@ public class ReservasjonTjeneste {
         };
     }
 
-    public static Reservasjon standardReservasjon(Oppgave oppgave, String saksbehandler) {
-        return reservasjon(oppgave, saksbehandler, tomNesteUkedag(), null);
-    }
-
-    public static Reservasjon returFraBeslutterReservasjon(Oppgave oppgave, String saksbehandler) {
-        return reservasjon(oppgave, saksbehandler, ReservasjonTidspunktUtil.tomSjuDagerFremJustertTilNesteUkedag(), ReservasjonKonstanter.RETUR_FRA_BESLUTTER);
-    }
-
-    private static Reservasjon reservasjon(Oppgave oppgave, String saksbehandler, LocalDateTime reservertTil, String begrunnelse) {
-        var reservasjon = new Reservasjon(oppgave, saksbehandler);
-        reservasjon.setReservertTil(reservertTil);
-        reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
-        reservasjon.setFlyttetTidspunkt(LocalDateTime.now());
-        reservasjon.setBegrunnelse(begrunnelse);
-        return reservasjon;
-    }
-
     private Reservasjon hentReservasjonEllerFeil(Long oppgaveId) {
         return oppgaveRepository.hentReservasjon(oppgaveId)
             .orElseThrow(() -> new IllegalStateException("Fant ikke reservasjon tilknyttet oppgaveId " + oppgaveId));
