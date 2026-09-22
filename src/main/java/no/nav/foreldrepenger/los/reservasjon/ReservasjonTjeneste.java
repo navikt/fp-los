@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.los.reservasjon;
 
-import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.JUSTER_TIL_GYLDIG_TIDSPUNKT;
-import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.standardReservasjon;
+import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.justerTilNesteUkedag;
+import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.tomNesteUkedag;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,8 +37,7 @@ public class ReservasjonTjeneste {
     private ReservasjonRepository reservasjonRepository;
 
     @Inject
-    public ReservasjonTjeneste(OppgaveRepository oppgaveRepository,
-                               ReservasjonRepository reservasjonRepository) {
+    public ReservasjonTjeneste(OppgaveRepository oppgaveRepository, ReservasjonRepository reservasjonRepository) {
         this.oppgaveRepository = oppgaveRepository;
         this.reservasjonRepository = reservasjonRepository;
     }
@@ -66,7 +65,7 @@ public class ReservasjonTjeneste {
             LOG.info("Fant aktiv reservasjon for oppgave {} reservasjon {}", oppgave.getId(), reservasjon.getReservertAv());
         } else {
             LOG.info("Fant ikke aktiv reservasjon for oppgave {}", oppgave.getId());
-            reservasjon.setReservertTil(standardReservasjon());
+            reservasjon.setReservertTil(tomNesteUkedag());
             reservasjon.setReservertAv(BrukerIdent.brukerIdent());
             try {
                 oppgaveRepository.lagre(reservasjon);
@@ -102,7 +101,7 @@ public class ReservasjonTjeneste {
 
     public Reservasjon flyttReservasjon(Long oppgaveId, String brukernavn, String begrunnelse) {
         var reservasjon = hentReservasjonEllerFeil(oppgaveId);
-        var forlengetTil = reservasjon.getReservertTil().plusDays(1).with(JUSTER_TIL_GYLDIG_TIDSPUNKT);
+        var forlengetTil = justerTilNesteUkedag(reservasjon.getReservertTil().plusDays(1));
         reservasjon.setReservertTil(forlengetTil);
         reservasjon.setReservertAv(brukernavn);
         reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
@@ -115,8 +114,7 @@ public class ReservasjonTjeneste {
 
     public Reservasjon endreReservasjonsdato(Long oppgaveId, LocalDate reservertTil) {
         var reservasjon = hentReservasjonEllerFeil(oppgaveId);
-        var justertReservasjonsTidspunkt = reservertTil.atStartOfDay().with(JUSTER_TIL_GYLDIG_TIDSPUNKT);
-        reservasjon.setReservertTil(justertReservasjonsTidspunkt);
+        reservasjon.setReservertTil(justerTilNesteUkedag(reservertTil.atStartOfDay()));
         reservasjonRepository.lagre(reservasjon);
         return reservasjon;
     }
@@ -125,8 +123,11 @@ public class ReservasjonTjeneste {
         var sisteReserverteMetadata = reservasjonRepository.hentSisteReserverteMetadata(BrukerIdent.brukerIdent(), kunAktive);
         var oppgaveIder = sisteReserverteMetadata.stream().map(SisteReserverteMetadata::oppgaveId).toList();
         var oppgaveListe = oppgaveRepository.hentOppgaverReadOnly(oppgaveIder);
-        var behandlingTilstandMap = oppgaveListe.stream().map(Oppgave::getBehandling).collect(Collectors.toSet())
-            .stream().collect(Collectors.toMap(Behandling::getId, Behandling::getBehandlingTilstand));
+        var behandlingTilstandMap = oppgaveListe.stream()
+            .map(Oppgave::getBehandling)
+            .collect(Collectors.toSet())
+            .stream()
+            .collect(Collectors.toMap(Behandling::getId, Behandling::getBehandlingTilstand));
         var oppgaveMap = oppgaveListe.stream().collect(Collectors.toMap(Oppgave::getId, Function.identity()));
         return sisteReserverteMetadata.stream().map(mr -> {
             var oppgave = oppgaveMap.get(mr.oppgaveId());
@@ -140,30 +141,22 @@ public class ReservasjonTjeneste {
         var behandlingTilstand = behandlingTilstandSet.getOrDefault(oppgave.getBehandling().getId(), BehandlingTilstand.INGEN);
         return switch (behandlingTilstand) {
             case AKSJONSPUNKT -> {
-                var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper().stream()
+                var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper()
+                    .stream()
                     .anyMatch(egenskap -> AndreKriterierType.RETURNERT_FRA_BESLUTTER.equals(egenskap.andreKriterierType()));
                 yield erReturnertFraBeslutter ? OppgaveBehandlingStatus.RETURNERT_FRA_BESLUTTER : OppgaveBehandlingStatus.UNDER_ARBEID;
             }
             case OPPRETTET, INGEN, PAPIRSØKNAD -> OppgaveBehandlingStatus.UNDER_ARBEID;
-            case VENT_TIDLIG, VENT_KOMPLETT,VENT_REGISTERDATA, VENT_KLAGEINSTANS, VENT_KØ, VENT_MANUELL, VENT_SØKNAD -> OppgaveBehandlingStatus.PÅ_VENT;
+            case VENT_TIDLIG, VENT_KOMPLETT, VENT_REGISTERDATA, VENT_KLAGEINSTANS, VENT_KØ, VENT_MANUELL, VENT_SØKNAD ->
+                OppgaveBehandlingStatus.PÅ_VENT;
             case BESLUTTER -> OppgaveBehandlingStatus.TIL_BESLUTTER;
             case AVSLUTTET -> OppgaveBehandlingStatus.FERDIG;
         };
     }
 
-    public static Reservasjon opprettReservasjon(Oppgave oppgave, String saksbehandler, String begrunnelse) {
-        var reservertTil = standardReservasjon();
-        var reservasjon = new Reservasjon(oppgave, saksbehandler);
-        reservasjon.setBegrunnelse(begrunnelse);
-        reservasjon.setReservertTil(reservertTil);
-        reservasjon.setFlyttetAv(BrukerIdent.brukerIdentEllerDefault());
-        reservasjon.setFlyttetTidspunkt(LocalDateTime.now());
-        return reservasjon;
-    }
-
     private Reservasjon hentReservasjonEllerFeil(Long oppgaveId) {
         return oppgaveRepository.hentReservasjon(oppgaveId)
-                .orElseThrow(() -> new IllegalStateException("Fant ikke reservasjon tilknyttet oppgaveId " + oppgaveId));
+            .orElseThrow(() -> new IllegalStateException("Fant ikke reservasjon tilknyttet oppgaveId " + oppgaveId));
     }
 
 }

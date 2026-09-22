@@ -20,7 +20,9 @@ import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
+import no.nav.foreldrepenger.los.reservasjon.Reservasjon;
 import no.nav.foreldrepenger.los.reservasjon.ReservasjonKonstanter;
+import no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil;
 
 class ReservasjonUtlederTest {
 
@@ -32,6 +34,8 @@ class ReservasjonUtlederTest {
 
     @Test
     void skalOpprettReservasjonNårIngenEksisterendeOppgaveOgManuellRevurderingMedSaksbehandler() {
+        var minsteverdiForventetReservertTil = LocalDateTime.now().plusDays(1);
+
         var nyOppgave = lagOppgaveMedEnhet();
         var oppgaveGrunnlag = lagOppgaveGrunnlagMedManuellRevurdering(SAKSBEHANDLER);
         var resKandidat = ReservasjonUtleder.erReservasjonskandidat(oppgaveGrunnlag, Optional.empty());
@@ -41,6 +45,7 @@ class ReservasjonUtlederTest {
         assertThat(result).isPresent();
         assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
         assertThat(result.get().getBegrunnelse()).isNull();
+        assertThat(result.get().getReservertTil()).isAfterOrEqualTo(minsteverdiForventetReservertTil);
     }
 
     @Test
@@ -91,6 +96,8 @@ class ReservasjonUtlederTest {
 
     @Test
     void skalOpprettReservasjonMedBegrunnelseNårOppgaveReturnertFraBeslutter() {
+        var minsteverdiForventetReservertTil = LocalDateTime.now().plusDays(7);
+
         var eksisterendeOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
         var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.RETURNERT_FRA_BESLUTTER);
         var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
@@ -100,6 +107,7 @@ class ReservasjonUtlederTest {
         assertThat(result).isPresent();
         assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
         assertThat(result.get().getBegrunnelse()).isEqualTo(ReservasjonKonstanter.RETUR_FRA_BESLUTTER);
+        assertThat(result.get().getReservertTil()).isAfterOrEqualTo(minsteverdiForventetReservertTil);
     }
 
     @Test
@@ -145,6 +153,36 @@ class ReservasjonUtlederTest {
         var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.empty(), false, oppgaveGrunnlag);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void skalIkkeOppretteReservasjonForBeslutteroppgaveNårEksisterendeReservasjonGjelderSaksbehandleroppgave() {
+        var eksisterendeOppgave = lagOppgaveMedEnhet();
+        var eksisterendeReservasjon = new Reservasjon(eksisterendeOppgave, SAKSBEHANDLER);
+        eksisterendeReservasjon.setReservertTil(ReservasjonTidspunktUtil.tomNesteUkedag());
+
+        var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
+        var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
+
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.of(eksisterendeReservasjon), false, oppgaveGrunnlag);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void skalVidereføreBeslutterreservasjon() {
+        var eksisterendeOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
+        var eksisterendeReservasjon = new Reservasjon(eksisterendeOppgave, SAKSBEHANDLER);
+        eksisterendeReservasjon.setReservertTil(ReservasjonTidspunktUtil.tomNesteUkedag());
+
+        var nyOppgave = lagOppgaveMedKriterie(AndreKriterierType.TIL_BESLUTTER);
+        var oppgaveGrunnlag = lagOppgaveGrunnlag(SAKSBEHANDLER);
+
+        var result = ReservasjonUtleder.utledReservasjon(nyOppgave, Optional.of(eksisterendeOppgave), Optional.of(eksisterendeReservasjon), false,
+            oppgaveGrunnlag);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getReservertAv()).isEqualTo(SAKSBEHANDLER);
     }
 
     @Test
