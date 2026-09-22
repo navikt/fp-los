@@ -170,14 +170,17 @@ public class OppgaveKøRepository {
 
         var sb = new StringBuilder();
         if (!inkluderAkt.isEmpty()) {
-            parameters.put("inkluderAktKoder", inkluderAkt);
-            parameters.put("inkluderAktAntall", inkluderAkt.size());
-            sb.append(" AND :inkluderAktAntall = (")
-                .append("   SELECT COUNT(oe) ")
-                .append("   FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
-                .append("   WHERE o2 = o ")
-                .append("     AND oe.andreKriterierType IN (:inkluderAktKoder)")
-                .append(" ) ");
+            for (var i = 0; i < inkluderAkt.size(); i++) {
+                var inkluderKodeParam = "inkluderAktKoder" + i;
+                parameters.put(inkluderKodeParam, inkluderAkt.get(i));
+                sb.append(" AND EXISTS (")
+                    .append("   SELECT 1 ")
+                    .append("   FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
+                    .append("   WHERE o2 = o ")
+                    .append("     AND oe.andreKriterierType = :")
+                    .append(inkluderKodeParam)
+                    .append(" ) ");
+            }
         }
         if (!ekskluderAkt.isEmpty()) {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
