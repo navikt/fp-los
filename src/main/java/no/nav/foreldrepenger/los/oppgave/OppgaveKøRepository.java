@@ -171,22 +171,21 @@ public class OppgaveKøRepository {
         var sb = new StringBuilder();
         if (!inkluderAkt.isEmpty()) {
             for (var i = 0; i < inkluderAkt.size(); i++) {
-                var inkluderKodeParam = "inkluderAktKoder" + i;
-                parameters.put(inkluderKodeParam, inkluderAkt.get(i));
+                var nummerertParameter = "inkluderAktKoder" + i;
+                parameters.put(nummerertParameter, inkluderAkt.get(i));
                 sb.append(" AND EXISTS (")
                     .append("   SELECT 1 ")
-                    .append("   FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
-                    .append("   WHERE o2 = o ")
-                    .append("     AND oe.andreKriterierType = :")
-                    .append(inkluderKodeParam)
+                    .append("   FROM o.oppgaveEgenskaper oe ")
+                    .append("   WHERE oe.andreKriterierType = :")
+                    .append(nummerertParameter)
                     .append(" ) ");
             }
         }
         if (!ekskluderAkt.isEmpty()) {
             parameters.put("ekskluderAktKoder", ekskluderAkt);
             sb.append("AND NOT EXISTS ( ")
-                .append("SELECT 1 FROM Oppgave o2 JOIN o2.oppgaveEgenskaper oe ")
-                .append("WHERE o2 = o AND oe.andreKriterierType IN (:ekskluderAktKoder)")
+                .append("SELECT 1 FROM o.oppgaveEgenskaper oe ")
+                .append("WHERE oe.andreKriterierType IN (:ekskluderAktKoder)")
                 .append(") ");
         }
 
@@ -227,10 +226,9 @@ public class OppgaveKøRepository {
         parameters.put("uid", BrukerIdent.brukerIdent().toUpperCase());
         return """
             AND NOT EXISTS (
-                select 1 from Oppgave o2 join o2.oppgaveEgenskaper oetilbesl
-                where o2 = o
-                    AND oetilbesl.andreKriterierType = :tilbeslutter
-                    AND oetilbesl.sisteSaksbehandlerForTotrinn = :uid
+                select 1 from o.oppgaveEgenskaper oetilbesl
+                where oetilbesl.andreKriterierType = :tilbeslutter
+                    and oetilbesl.sisteSaksbehandlerForTotrinn = :uid
             )""";
     }
 
