@@ -46,6 +46,12 @@ public class OppgaveKøRepository {
         KøSortering.FEILUTBETALINGSTART, true
     );
 
+    private static final List<BehandlingTilstand> BEHANDLINGTILSTAND_MED_OPPGAVE = List.of(
+        BehandlingTilstand.AKSJONSPUNKT,
+        BehandlingTilstand.BESLUTTER,
+        BehandlingTilstand.PAPIRSØKNAD
+    );
+
     private EntityManager entityManager;
 
     OppgaveKøRepository() { }
@@ -93,12 +99,12 @@ public class OppgaveKøRepository {
         var qlStringBuilder = new StringBuilder();
         qlStringBuilder.append(selection);
         qlStringBuilder.append(" WHERE o.behandlendeEnhet = :enhetsnummer ");
+        qlStringBuilder.append(aktivFilter(oppgavespørring, parameters));
         qlStringBuilder.append(filtrerBehandlingType(oppgavespørring, parameters));
         qlStringBuilder.append(filtrerYtelseType(oppgavespørring, parameters));
         qlStringBuilder.append(andreKriterierSubquery(oppgavespørring, parameters));
         qlStringBuilder.append(reserverteSubquery(oppgavespørring, parameters));
         qlStringBuilder.append(filtrerBortEgneBeslutterOppgaver(oppgavespørring, parameters));
-        qlStringBuilder.append(aktivFilter(oppgavespørring));
         qlStringBuilder.append(beløpFilter(oppgavespørring, parameters));
         qlStringBuilder.append(datoFilter(oppgavespørring, parameters, SORTERING_ER_DATE_FELT, BEHANDLINGOPPRETTET_FELT_SQL));
         qlStringBuilder.append(opprettetEtterFilter(oppgavespørring, parameters));
@@ -127,10 +133,6 @@ public class OppgaveKøRepository {
             parameters.put("tidspunkt", tidspunkt);
             return "AND o.opprettetTidspunkt > :tidspunkt ";
         }).orElse("");
-    }
-
-    private static String aktivFilter(Oppgavespørring oppgavespørring) {
-        return oppgavespørring.skalBareTelleAktive() ? " AND o.aktiv = true " : "";
     }
 
     static String beløpFilter(Oppgavespørring oppgavespørring, Map<String, Object> parameters) {
@@ -295,6 +297,14 @@ public class OppgaveKøRepository {
             }
         }
         return sbuilder.toString();
+    }
+
+    private static String aktivFilter(Oppgavespørring oppgavespørring, Map<String, Object> parameters) {
+        if (!oppgavespørring.skalBareTelleAktive()) {
+            return "";
+        }
+        parameters.put("behandlingTilstander", BEHANDLINGTILSTAND_MED_OPPGAVE);
+        return " AND o.aktiv is true AND b.behandlingTilstand IN (:behandlingTilstander) ";
     }
 
 }
