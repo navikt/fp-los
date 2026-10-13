@@ -4,8 +4,10 @@ import static java.util.function.Predicate.not;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import no.nav.foreldrepenger.los.oppgavekø.FiltreringAndreKriterierType;
 import no.nav.foreldrepenger.los.oppgavekø.KøSortering;
@@ -156,6 +158,23 @@ public class Oppgavespørring {
 
     public boolean skalBareTelleAktive() {
         return getOpprettetEtter().isEmpty() && getAvsluttetEtter().isEmpty();
+    }
+
+    public Set<BehandlingTilstand> aktuelleBehandlingTilstander() {
+        if (inkluderAndreKriterierTyper.contains(AndreKriterierType.TIL_BESLUTTER)) {
+            return Set.of(BehandlingTilstand.BESLUTTER);
+        }
+        if (inkluderAndreKriterierTyper.contains(AndreKriterierType.PAPIRSØKNAD)) {
+            return Set.of(BehandlingTilstand.PAPIRSØKNAD);
+        }
+        var behandlingTilstander = EnumSet.of(BehandlingTilstand.AKSJONSPUNKT, BehandlingTilstand.BESLUTTER, BehandlingTilstand.PAPIRSØKNAD);
+        if (ekskluderAndreKriterierTyper.contains(AndreKriterierType.TIL_BESLUTTER)) {
+            behandlingTilstander.remove(BehandlingTilstand.BESLUTTER);
+        }
+        if (ekskluderAndreKriterierTyper.contains(AndreKriterierType.PAPIRSØKNAD)) {
+            behandlingTilstander.remove(BehandlingTilstand.PAPIRSØKNAD);
+        }
+        return behandlingTilstander;
     }
 
     @Override

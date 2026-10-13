@@ -46,12 +46,6 @@ public class OppgaveKøRepository {
         KøSortering.FEILUTBETALINGSTART, true
     );
 
-    private static final List<BehandlingTilstand> BEHANDLINGTILSTAND_MED_OPPGAVE = List.of(
-        BehandlingTilstand.AKSJONSPUNKT,
-        BehandlingTilstand.BESLUTTER,
-        BehandlingTilstand.PAPIRSØKNAD
-    );
-
     private EntityManager entityManager;
 
     OppgaveKøRepository() { }
@@ -151,7 +145,6 @@ public class OppgaveKøRepository {
             parameters.put("filterTil", til);
         }
         return numeriskFiltrering;
-
     }
 
     private static String orderBy(Oppgavespørring queryDto) {
@@ -255,7 +248,6 @@ public class OppgaveKøRepository {
 
         var sbuilder = new StringBuilder();
 
-
         if (oppgavespørring.getPeriodefilter() == Periodefilter.RELATIV_PERIODE_DAGER) {
             // Filtrerer på antall dager relativt til i dag.
             // Perioden man ser på kan være i fortid eller fremtid, avhengig av positiv/negativ verdi på filtrerFra/Til
@@ -303,7 +295,7 @@ public class OppgaveKøRepository {
         if (!oppgavespørring.skalBareTelleAktive()) {
             return "";
         }
-        parameters.put("behandlingTilstander", BEHANDLINGTILSTAND_MED_OPPGAVE);
+        parameters.put("behandlingTilstander", oppgavespørring.aktuelleBehandlingTilstander());
         return " AND o.aktiv is true AND b.behandlingTilstand IN (:behandlingTilstander) ";
     }
 

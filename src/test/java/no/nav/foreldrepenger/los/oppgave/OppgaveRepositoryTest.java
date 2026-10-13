@@ -421,7 +421,9 @@ class OppgaveRepositoryTest {
     @Test
     void avdelingslederTellerMedEgneReservasjoner() {
         var saksnummer = new Saksnummer(String.valueOf(Math.abs(new Random().nextLong() % 999999999)));
-        oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer).medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
+        oppgaveRepository.lagreBehandling(basicBehandlingBuilder().medSaksnummer(saksnummer)
+            .medBehandlingTilstand(BehandlingTilstand.BESLUTTER)
+            .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
         var oppgave = Oppgave.builder()
             .dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId1.toUUID()))
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER), BrukerIdent.brukerIdent())
@@ -468,10 +470,13 @@ class OppgaveRepositoryTest {
         var t3 = now.minusHours(1);
 
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId1.toUUID()).medBehandlingsfrist(t1.toLocalDate())
+            .medBehandlingTilstand(BehandlingTilstand.BESLUTTER)
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId2.toUUID()).medBehandlingsfrist(t2.toLocalDate())
+            .medBehandlingTilstand(BehandlingTilstand.BESLUTTER)
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
         oppgaveRepository.lagreBehandling(basicBehandlingBuilder(behandlingId3.toUUID()).medBehandlingsfrist(t3.toLocalDate())
+            .medBehandlingTilstand(BehandlingTilstand.BESLUTTER)
             .medKriterier(Set.of(AndreKriterierType.TIL_BESLUTTER)));
 
 
