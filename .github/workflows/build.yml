@@ -18,7 +18,7 @@ on:
 jobs:
   build-app:
     name: Build
-    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/master'
+    if: github.event_name != 'workflow_dispatch' || github.ref_name == 'master'
     permissions:
       contents: read
       packages: read
