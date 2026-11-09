@@ -7,13 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
-
-import no.nav.vedtak.server.rest.GeneralRestExceptionMapper;
-
 import org.glassfish.jersey.server.ServerProperties;
 
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.rest.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 import no.nav.foreldrepenger.konfig.Environment;
@@ -26,9 +22,12 @@ import no.nav.foreldrepenger.los.tjenester.avdelingsleder.saksliste.Avdelingsled
 import no.nav.foreldrepenger.los.tjenester.kodeverk.KodeverkRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.populer.PopulerOppgaverRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.reservasjon.ReservasjonRestTjeneste;
+import no.nav.foreldrepenger.los.tjenester.saksbehandler.nøkkeltall.SaksbehandlerNøkkeltallRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.oppgave.OppgaveRestTjeneste;
 import no.nav.foreldrepenger.los.tjenester.saksbehandler.saksliste.SaksbehandlerSakslisteRestTjeneste;
 import no.nav.vedtak.openapi.OpenApiUtils;
+import no.nav.vedtak.openapi.PrefixStrippingFQNTypeNameResolver;
+import no.nav.vedtak.openapi.TypegenereringOpenApiReader;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
 import no.nav.vedtak.server.rest.FpRestJacksonFeature;
 
@@ -48,7 +47,8 @@ public class ApiConfig extends Application {
 
     private void registerOpenApi() {
         var contextPath = ENV.getProperty("context.path", "/fplos");
-        TypegenereringOpenApiUtils.settOppForTypegenereringFrontend();
+        var typeNameResolver = new PrefixStrippingFQNTypeNameResolver("no.nav.foreldrepenger.los.", "no.nav.");
+        TypegenereringOpenApiReader.settOppForTypegenereringFrontend(typeNameResolver);
         OpenApiUtils.setupOpenApi("FPLOS - specifikasjon for typegenerering frontend", contextPath, getAllClasses(), this);
     }
 
