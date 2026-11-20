@@ -19,8 +19,8 @@ public class AvdelingSaksbehandlerRelasjon implements Serializable {
 
     @Embeddable
     public record AvdelingSaksbehandlerNøkkel(
-        @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
-        @Column(name = "AVDELING_ID", nullable = false, updatable = false) String avdelingEnhet)
+        @NotNull @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
+        @NotNull @Column(name = "AVDELING_ID", nullable = false, updatable = false) String avdelingEnhet)
         implements Serializable {
 
         public AvdelingSaksbehandlerNøkkel(Saksbehandler saksbehandler, Avdeling avdeling) {

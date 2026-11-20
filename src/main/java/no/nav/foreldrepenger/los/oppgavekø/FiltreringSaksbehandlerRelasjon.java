@@ -20,8 +20,8 @@ public class FiltreringSaksbehandlerRelasjon implements Serializable {
 
     @Embeddable
     public record FiltreringSaksbehandlerNøkkel(
-        @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
-        @Column(name = "OPPGAVE_FILTRERING_ID", nullable = false, updatable = false) Long oppgaveFiltreringId)
+        @NotNull @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
+        @NotNull @Column(name = "OPPGAVE_FILTRERING_ID", nullable = false, updatable = false) Long oppgaveFiltreringId)
         implements Serializable {
 
         public FiltreringSaksbehandlerNøkkel(Saksbehandler saksbehandler, OppgaveFiltrering oppgaveFiltrering) {

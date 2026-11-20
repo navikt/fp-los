@@ -19,8 +19,8 @@ public class GruppeTilknytningRelasjon implements Serializable {
 
     @Embeddable
     public record GruppeTilknytningNøkkel(
-        @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
-        @Column(name = "GRUPPE_ID", nullable = false, updatable = false) Long gruppeId)
+        @NotNull @Column(name = "SAKSBEHANDLER_ID", nullable = false, updatable = false) String saksbehandlerIdent,
+        @NotNull @Column(name = "GRUPPE_ID", nullable = false, updatable = false) Long gruppeId)
         implements Serializable {
 
         public GruppeTilknytningNøkkel(Saksbehandler saksbehandler, SaksbehandlerGruppe gruppe) {
