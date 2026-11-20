@@ -48,7 +48,7 @@ public class Oppgave extends BaseEntitet {
 
     @BatchSize(size = 100)
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "OPPGAVE_EGENSKAP", joinColumns = @JoinColumn(name = "OPPGAVE_ID"))
+    @CollectionTable(name = "OPPGAVE_EGENSKAP", joinColumns = @JoinColumn(name = "OPPGAVE_ID", nullable = false))
     private Set<OppgaveEgenskap> oppgaveEgenskaper = new HashSet<>();
 
     @NotNull

@@ -78,16 +78,17 @@ public class Behandling extends BaseEntitet {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "BEHANDLING_EGENSKAP",
-        joinColumns = @JoinColumn(name = "BEHANDLING_ID")
+        joinColumns = @JoinColumn(name = "BEHANDLING_ID", nullable = false)
     )
-    @Column(name = "ANDRE_KRITERIER_TYPE")
+    @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
     private Set<AndreKriterierType> behandlingEgenskaper = new HashSet<>();
 
     @Column(name = "VENTEFRIST")
     private LocalDateTime ventefrist;
 
-    @Column(name = "OPPRETTET")
+    @NotNull
+    @Column(name = "OPPRETTET", nullable = false)
     private LocalDateTime opprettet;
 
     @Column(name = "AVSLUTTET")

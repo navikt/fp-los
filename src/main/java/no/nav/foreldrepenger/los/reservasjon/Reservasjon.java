@@ -28,7 +28,7 @@ public class Reservasjon extends BaseEntitet {
     @MapsId
     @NotNull
     @OneToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "oppgave_id")
+    @JoinColumn(name = "oppgave_id", nullable = false)
     private Oppgave oppgave;
 
     @Column(name = "RESERVERT_TIL")

@@ -54,9 +54,9 @@ public class OppgaveFiltrering extends BaseEntitet {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "FILTRERING_BEHANDLING_TYPE",
-        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID", nullable = false)
     )
-    @Column(name = "BEHANDLING_TYPE")
+    @Column(name = "BEHANDLING_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
     @Fetch(FetchMode.SUBSELECT)
     private Set<BehandlingType> filtreringBehandlingTyper = new HashSet<>();
@@ -64,9 +64,9 @@ public class OppgaveFiltrering extends BaseEntitet {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "FILTRERING_YTELSE_TYPE",
-        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID", nullable = false)
     )
-    @Column(name = "FAGSAK_YTELSE_TYPE")
+    @Column(name = "FAGSAK_YTELSE_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
     @Fetch(FetchMode.SUBSELECT)
     private Set<FagsakYtelseType> filtreringYtelseTyper = new HashSet<>();
@@ -74,7 +74,7 @@ public class OppgaveFiltrering extends BaseEntitet {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "FILTRERING_ANDRE_KRITERIER",
-        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID")
+        joinColumns = @JoinColumn(name = "OPPGAVE_FILTRERING_ID", nullable = false)
     )
     @Fetch(FetchMode.SUBSELECT)
     private Set<FiltreringAndreKriterierType> andreKriterierTyper = new HashSet<>();

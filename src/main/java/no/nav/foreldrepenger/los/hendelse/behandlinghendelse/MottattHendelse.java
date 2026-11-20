@@ -20,7 +20,7 @@ public class MottattHendelse implements Serializable {
     @Id
     @NotNull
     @JdbcTypeCode(Types.VARCHAR)
-    @Column(name = "hendelse_uid")
+    @Column(name = "hendelse_uid", nullable = false)
     private String hendelseUid;
 
     @NotNull

@@ -6,11 +6,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.los.organisasjon.Saksbehandler;
 
 @Embeddable
 public record OppgaveEgenskap(
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "ANDRE_KRITERIER_TYPE", nullable = false)
     AndreKriterierType andreKriterierType,
