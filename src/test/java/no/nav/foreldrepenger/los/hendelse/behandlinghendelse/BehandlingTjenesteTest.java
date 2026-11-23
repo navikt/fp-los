@@ -118,6 +118,7 @@ class BehandlingTjenesteTest {
         Assertions.assertThat(behandling).isPresent();
         Assertions.assertThat(behandling.get().getBehandlingTilstand()).isEqualTo(BehandlingTilstand.BESLUTTER);
     }
+
     @Test
     void aktiv5084GirFeilutbetalingKriterie() {
         var aktiv5084 = new LosAksjonspunktDto("5084", Aksjonspunkttype.AKSJONSPUNKT, Aksjonspunktstatus.OPPRETTET, null);
