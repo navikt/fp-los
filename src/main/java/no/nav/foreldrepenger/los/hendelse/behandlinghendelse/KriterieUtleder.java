@@ -82,6 +82,9 @@ class KriterieUtleder {
         if (behandlingsegenskaper.contains(Behandlingsegenskap.SYKDOMSVURDERING)) {
             kriterier.add(AndreKriterierType.VURDER_SYKDOM);
         }
+        if (behandlingsegenskaper.contains(Behandlingsegenskap.FEILUTBETALING)) {
+            kriterier.add(AndreKriterierType.FEILUTBETALING);
+        }
         if (behandlingsegenskaper.contains(Behandlingsegenskap.TILBAKEKREVING_OVER_FIRE_RETTSGEBYR)) {
             kriterier.add(AndreKriterierType.OVER_FIRE_RETTSGEBYR);
         }

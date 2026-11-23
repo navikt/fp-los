@@ -37,6 +37,7 @@ public enum AndreKriterierType implements Kodeverdi {
     REVURDERING_INNTEKTSMELDING("REVURDERING_INNTEKTSMELDING", "Revurdering inntektsmelding", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(REVURDERING)),
     TERMINBEKREFTELSE("TERMINBEKREFTELSE", "Terminbekreftelse", false, of(ENGANGSTØNAD, FORELDREPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
     NYTT_VEDTAK("NYTT_VEDTAK", "Ny stønadsperiode", false, of(FORELDREPENGER, SVANGERSKAPSPENGER), of(FØRSTEGANGSSØKNAD, REVURDERING)),
+    FEILUTBETALING("FEILUTBETALING", "Feilutbetaling", false, alleYtelseTyper(), of(FØRSTEGANGSSØKNAD, REVURDERING)),
 
     BARE_FAR_RETT("BARE_FAR_RETT", "Bare far har rett", false, of(FORELDREPENGER)),
     NÆRING("NÆRING", "Selvstendig næringsdrivende", false, of(FORELDREPENGER, SVANGERSKAPSPENGER)),

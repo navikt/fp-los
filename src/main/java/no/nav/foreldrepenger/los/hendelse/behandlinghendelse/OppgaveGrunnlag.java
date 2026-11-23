@@ -50,7 +50,8 @@ record OppgaveGrunnlag(UUID behandlingUuid,
         DIREKTE_UTBETALING,
         REFUSJONSKRAV,
         TILBAKEKREVING_SENDT_VARSEL,
-        TILBAKEKREVING_OVER_FIRE_RETTSGEBYR
+        TILBAKEKREVING_OVER_FIRE_RETTSGEBYR,
+        FEILUTBETALING
     }
 
     enum BehandlingStatus {

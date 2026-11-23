@@ -1,11 +1,14 @@
 package no.nav.foreldrepenger.los.hendelse.behandlinghendelse;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.oppgave.BehandlingType;
 import no.nav.foreldrepenger.los.oppgave.FagsakYtelseType;
+import no.nav.vedtak.hendelser.behandling.Aksjonspunktstatus;
 import no.nav.vedtak.hendelser.behandling.Aksjonspunkttype;
 import no.nav.vedtak.hendelser.behandling.Behandlingsårsak;
 import no.nav.vedtak.hendelser.behandling.Kildesystem;
@@ -19,6 +22,7 @@ class OppgaveGrunnlagUtleder {
     private static final String AUTOMATISK_MARKERING_SOM_UTLAND = "5068";
     private static final String ARBEID_INNTEKT = "5085";
     private static final String VURDER_FORMKRAV_KODE = "5082";
+    private static final String VURDER_FEILUTBETALING_KODE = "5084";
     private static final List<String> RELEVANT_NÆRING = List.of("5039", "5049", "5058", "5046", "5051", "5089", "5082", "5035");
 
     private OppgaveGrunnlagUtleder() {
@@ -36,11 +40,24 @@ class OppgaveGrunnlagUtleder {
         var aksjonspunkter = mapFpsakAksjonspunkt(dto);
         var behandlingsårsaker = mapBehandlingsårsaker(dto);
         var saksegenskaper = mapFagsakEgenskaper(fagsakEgenskaperDto.saksegenskaper());
-        var behandlingsegenskaper = dto.behandlingsegenskaper().stream().map(OppgaveGrunnlag.Behandlingsegenskap::valueOf).toList();
+        var behandlingsegenskaper = mapFpsakBehandlingsegenskaper(dto);
         return new OppgaveGrunnlag(dto.behandlingUuid(), new Saksnummer(dto.saksnummer()), map(dto.ytelse()), new AktørId(dto.aktørId().getAktørId()),
             mapBehandlingType(dto), dto.opprettetTidspunkt(), dto.behandlendeEnhetId(), dto.behandlingsfrist(), dto.ansvarligSaksbehandlerIdent(),
             aksjonspunkter, behandlingsårsaker, dto.faresignaler(), dto.refusjonskrav(), saksegenskaper,
             dto.foreldrepengerDto() == null ? null : dto.foreldrepengerDto().førsteUttakDato(), behandlingsegenskaper, mapStatus(dto), null, null);
+    }
+
+    private static List<OppgaveGrunnlag.Behandlingsegenskap> mapFpsakBehandlingsegenskaper(LosBehandlingDto dto) {
+        var behandlingsegenskaper = dto.behandlingsegenskaper().stream()
+            .map(OppgaveGrunnlag.Behandlingsegenskap::valueOf)
+            .collect(Collectors.toCollection(ArrayList::new));
+        // Midlertidig: utledes fra aktivt aksjonspunkt inntil fpsak sender egenskapen selv
+        var harAktivVurderFeilutbetaling = dto.aksjonspunkt().stream()
+            .anyMatch(ap -> VURDER_FEILUTBETALING_KODE.equals(ap.definisjon()) && ap.status() == Aksjonspunktstatus.OPPRETTET);
+        if (harAktivVurderFeilutbetaling && !behandlingsegenskaper.contains(OppgaveGrunnlag.Behandlingsegenskap.FEILUTBETALING)) {
+            behandlingsegenskaper.add(OppgaveGrunnlag.Behandlingsegenskap.FEILUTBETALING);
+        }
+        return behandlingsegenskaper;
     }
 
     private static BehandlingType mapBehandlingType(LosBehandlingDto dto) {
