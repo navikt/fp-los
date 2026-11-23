@@ -118,6 +118,23 @@ class BehandlingTjenesteTest {
         Assertions.assertThat(behandling).isPresent();
         Assertions.assertThat(behandling.get().getBehandlingTilstand()).isEqualTo(BehandlingTilstand.BESLUTTER);
     }
+    @Test
+    void aktiv5084GirFeilutbetalingKriterie() {
+        var aktiv5084 = new LosAksjonspunktDto("5084", Aksjonspunkttype.AKSJONSPUNKT, Aksjonspunktstatus.OPPRETTET, null);
+        var oppgaveGrunnlag = OppgaveGrunnlagUtleder.lagGrunnlag(lagLosBehandlingDto(Kildesystem.FPSAK, List.of(), aktiv5084),
+            new LosFagsakEgenskaperDto(List.of()));
+
+        Assertions.assertThat(KriterieUtleder.utledKriterier(oppgaveGrunnlag, Set.of())).contains(AndreKriterierType.FEILUTBETALING);
+    }
+
+    @Test
+    void utført5084GirIkkeFeilutbetalingKriterie() {
+        var utført5084 = new LosAksjonspunktDto("5084", Aksjonspunkttype.AKSJONSPUNKT, Aksjonspunktstatus.UTFØRT, null);
+        var oppgaveGrunnlag = OppgaveGrunnlagUtleder.lagGrunnlag(lagLosBehandlingDto(Kildesystem.FPSAK, List.of(), utført5084),
+            new LosFagsakEgenskaperDto(List.of()));
+
+        Assertions.assertThat(KriterieUtleder.utledKriterier(oppgaveGrunnlag, Set.of())).doesNotContain(AndreKriterierType.FEILUTBETALING);
+    }
 
 
     static LosBehandlingDto lagLosBehandlingDto(Kildesystem kildesystem, List<String> sakegenskaper, LosAksjonspunktDto... dto) {
