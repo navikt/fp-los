@@ -172,9 +172,7 @@ public class AdminRestTjeneste {
     }
 
     private void startScheduledTask(TaskType taskType, LocalDateTime start) {
-        var eksisterende = prosessTaskTjeneste.finnAlle(ProsessTaskStatus.KLAR).stream()
-            .map(ProsessTaskData::taskType)
-            .anyMatch(taskType::equals);
+        var eksisterende = !prosessTaskTjeneste.finnAktive(taskType, ProsessTaskStatus.KLAR).isEmpty();
         if (!eksisterende) {
             var taskData = ProsessTaskData.forTaskType(taskType);
             taskData.setNesteKjøringEtter(start);
