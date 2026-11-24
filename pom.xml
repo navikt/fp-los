@@ -19,7 +19,7 @@
 
         <fp-kontrakter.version>9.4.41</fp-kontrakter.version>
         <felles.version>7.10.1</felles.version>
-        <prosesstask.version>5.4.0</prosesstask.version>
+        <prosesstask.version>5.4.1</prosesstask.version>
     </properties>
 
     <dependencyManagement>
