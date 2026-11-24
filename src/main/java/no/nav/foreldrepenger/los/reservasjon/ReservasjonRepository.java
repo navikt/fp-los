@@ -26,41 +26,48 @@ public class ReservasjonRepository {
 
     public List<SisteReserverteMetadata> hentSisteReserverteMetadata(String uid, boolean kunAktive) {
         /*
-        * Første derived table henter de siste behandlingene reservert på bruker, og lager en aktuell_tid for sortering.
-        *   (Prinsippet for aktuell_tid er omtrent når saksbehandler sist tok i behandlingen, og dette er sorteringen som benyttes i visning.)
-        *   Svakhet:
-        *       1-1 relasjon mellom oppgave og reservasjon. Dersom saksbehandler ikke har skapt aktivitet (i.e løst AP) som gir ferske oppgaver
-        *       vil ev. nye reservasjoner overskrive.
-        * Siste join henter siste oppgave tilkyttet behandlingen, uavhengig av "eier" av denne.
+        * sb_res: behandlinger saksbehandler har reservert, med aktuell_tid = siste gang saksbehandler tok i behandlingen (brukes i sortering).
+        *   Svakhet: 1-1 relasjon mellom oppgave og reservasjon. Dersom saksbehandler ikke har skapt aktivitet (i.e løst AP) som gir ferske
+        *   oppgaver vil ev. nye reservasjoner overskrive.
+        * siste_oppgave (lateral): siste oppgave på behandlingen, uavhengig av "eier". Avgjør om behandlingen regnes som åpen (aktiv oppgave).
+        * per_sak: kun siste rørte behandling per saksnummer, etter filtrering på aktiv.
         */
         var kunAktiveValue = kunAktive ? List.of(Boolean.TRUE) : List.of(Boolean.TRUE, Boolean.FALSE);
         var query = entityManager.createNativeQuery("""
-            select
-                o.id as oppgave_id,
-                sb_res.aktuell_tid
-            from oppgave o
-            join (
-                select behandling_id, coalesce(r.endret_tid, r.opprettet_tid) as aktuell_tid,
-                row_number() over (partition by o.behandling_id order by o.opprettet_tid desc) as rn
-                from Oppgave o
-                inner join Reservasjon r on r.oppgave_id = o.id
-                where r.opprettet_tid > :fom
-                and r.reservert_av = :uid
-            ) sb_res on sb_res.behandling_id = o.behandling_id and sb_res.rn = 1
-            where o.opprettet_tid = (
-                select max(o2.opprettet_tid)
-                from oppgave o2
-                where o2.behandling_id = o.behandling_id
+            with sb_res as (
+                select o.behandling_id, max(coalesce(r.endret_tid, r.opprettet_tid)) as aktuell_tid
+                from reservasjon r
+                inner join oppgave o on o.id = r.oppgave_id
+                where r.reservert_av = :uid
+                and r.opprettet_tid > :fom
+                group by o.behandling_id
+            ),
+            per_sak as (
+                select siste_oppgave.id as oppgave_id, sb_res.aktuell_tid,
+                row_number() over (partition by b.saksnummer order by sb_res.aktuell_tid desc) as rn
+                from sb_res
+                inner join behandling b on b.id = sb_res.behandling_id
+                cross join lateral (
+                    select o.id, o.aktiv
+                    from oppgave o
+                    where o.behandling_id = sb_res.behandling_id
+                    order by o.opprettet_tid desc, o.id desc
+                    limit 1
+                ) siste_oppgave
+                where siste_oppgave.aktiv in ( :kunAktiveValue )
             )
-            and o.aktiv in ( :kunAktiveValue )
-            order by sb_res.aktuell_tid desc
+            select oppgave_id, aktuell_tid
+            from per_sak
+            where rn = 1
+            order by aktuell_tid desc
             """)
             .setParameter("uid", uid)
             .setParameter("fom", LocalDate.now().minusWeeks(3).atStartOfDay())
-            .setParameter("kunAktiveValue", kunAktiveValue);
+            .setParameter("kunAktiveValue", kunAktiveValue)
+            .setMaxResults(15);
 
         @SuppressWarnings("unchecked")
-        Stream<Object[]> result = query.getResultStream().limit(15);
+        Stream<Object[]> result = query.getResultStream();
 
         return result.map(row -> {
             var oppgaveId = ((Number) row[0]).longValue();

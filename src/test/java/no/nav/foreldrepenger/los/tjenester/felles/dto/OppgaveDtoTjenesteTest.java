@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.los.JpaExtension;
+import no.nav.foreldrepenger.los.domene.typer.Saksnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.AktørId;
 import no.nav.foreldrepenger.los.domene.typer.aktør.Fødselsnummer;
 import no.nav.foreldrepenger.los.domene.typer.aktør.Person;
@@ -108,5 +109,38 @@ class OppgaveDtoTjenesteTest {
             .first().matches(dto -> dto.getOppgaveBehandlingStatus() == OppgaveBehandlingStatus.FERDIG);
     }
 
+    @Test
+    void skalKunViseSistRørteBehandlingPerSak() {
+        var førsteISak = reserverNyOppgave(UUID.randomUUID(), "1111111");
+        var annenSak = reserverNyOppgave(UUID.randomUUID(), "2222222");
+        var sisteISak = reserverNyOppgave(UUID.randomUUID(), "1111111");
+
+        var sisteReserverte = reservasjonTjeneste.hentSaksbehandlersSisteReserverteMedStatus(false).stream()
+            .map(w -> w.oppgave().getId())
+            .toList();
+
+        assertThat(sisteReserverte).containsExactly(sisteISak.getId(), annenSak.getId()).doesNotContain(førsteISak.getId());
+
+        sisteISak.avsluttOppgave();
+        oppgaveRepository.lagre(sisteISak);
+
+        var kunAktive = reservasjonTjeneste.hentSaksbehandlersSisteReserverteMedStatus(true).stream()
+            .map(w -> w.oppgave().getId())
+            .toList();
+
+        assertThat(kunAktive).containsExactly(annenSak.getId(), førsteISak.getId());
+    }
+
+    private Oppgave reserverNyOppgave(UUID behandlingId, String saksnummer) {
+        var bb = Behandling.builder(Optional.empty())
+            .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
+            .medId(behandlingId)
+            .medSaksnummer(new Saksnummer(saksnummer));
+        oppgaveRepository.lagreBehandling(bb);
+        var oppgave = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId)).build();
+        oppgaveRepository.lagre(oppgave);
+        reservasjonTjeneste.reserverOppgave(oppgave);
+        return oppgave;
+    }
 
 }
