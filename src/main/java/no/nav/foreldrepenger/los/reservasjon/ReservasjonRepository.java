@@ -24,7 +24,7 @@ public class ReservasjonRepository {
         this.entityManager = entityManager;
     }
 
-    public List<SisteReserverteMetadata> hentSisteReserverteMetadata(String uid, boolean kunAktive) {
+    public List<Long> hentNyesteOppgaveIderForSisteReserverteBehandlinger(String uid, boolean kunAktive) {
         /*
         * sb_res: behandlinger saksbehandler har reservert, med aktuell_tid = siste gang saksbehandler tok i behandlingen (brukes i sortering).
         *   Svakhet: 1-1 relasjon mellom oppgave og reservasjon. Dersom saksbehandler ikke har skapt aktivitet (i.e løst AP) som gir ferske
@@ -56,7 +56,7 @@ public class ReservasjonRepository {
                 ) siste_oppgave
                 where siste_oppgave.aktiv in ( :kunAktiveValue )
             )
-            select oppgave_id, aktuell_tid
+            select oppgave_id
             from per_sak
             where rn = 1
             order by aktuell_tid desc
@@ -67,13 +67,8 @@ public class ReservasjonRepository {
             .setMaxResults(15);
 
         @SuppressWarnings("unchecked")
-        Stream<Object[]> result = query.getResultStream();
-
-        return result.map(row -> {
-            var oppgaveId = ((Number) row[0]).longValue();
-            var aktuellTid = ((LocalDateTime) row[1]);
-            return new SisteReserverteMetadata(oppgaveId, aktuellTid);
-        }).toList();
+        Stream<Number> result = query.getResultStream();
+        return result.map(Number::longValue).toList();
     }
 
     public List<Oppgave> hentSaksbehandlersReserverteAktiveOppgaver(String uid) {
@@ -119,9 +114,5 @@ public class ReservasjonRepository {
     public <U extends BaseEntitet> void lagre(U entity) {
         entityManager.persist(entity);
         entityManager.flush();
-    }
-
-    public <U extends BaseEntitet> void refresh(U entity) {
-        entityManager.refresh(entity);
     }
 }

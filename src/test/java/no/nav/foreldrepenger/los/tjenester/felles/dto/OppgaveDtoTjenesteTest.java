@@ -131,6 +131,42 @@ class OppgaveDtoTjenesteTest {
         assertThat(kunAktive).containsExactly(annenSak.getId(), førsteISak.getId());
     }
 
+    @Test
+    void skalBrukeNyesteOppgaveIBehandlingenSelvOmDenIkkeErReservertAvSaksbehandler() {
+        var behandlingId = UUID.randomUUID();
+        var reservert = reserverNyOppgave(behandlingId, "3333333");
+        reservert.avsluttOppgave();
+        oppgaveRepository.lagre(reservert);
+        var nyeste = Oppgave.builder().dummyOppgave(AVDELING_DRAMMEN_ENHET, oppgaveRepository.hentBehandling(behandlingId)).build();
+        oppgaveRepository.lagre(nyeste);
+
+        assertThat(hentSisteReserverteOppgaveIder(false)).containsExactly(nyeste.getId());
+        assertThat(hentSisteReserverteOppgaveIder(true)).containsExactly(nyeste.getId());
+
+        nyeste.avsluttOppgave();
+        oppgaveRepository.lagre(nyeste);
+
+        assertThat(hentSisteReserverteOppgaveIder(true)).isEmpty();
+        assertThat(hentSisteReserverteOppgaveIder(false)).containsExactly(nyeste.getId());
+    }
+
+    @Test
+    void skalBegrenseAntallSakerEtterDedupliseringPerSak() {
+        var eldsteSak = reserverNyOppgave(UUID.randomUUID(), "4000000");
+        for (var i = 1; i <= 15; i++) {
+            reserverNyOppgave(UUID.randomUUID(), String.valueOf(4000000 + i));
+        }
+        var sisteISak15 = reserverNyOppgave(UUID.randomUUID(), "4000015");
+
+        var sisteReserverte = hentSisteReserverteOppgaveIder(false);
+
+        assertThat(sisteReserverte).hasSize(15).startsWith(sisteISak15.getId()).doesNotContain(eldsteSak.getId());
+    }
+
+    private List<Long> hentSisteReserverteOppgaveIder(boolean kunAktive) {
+        return reservasjonTjeneste.hentSaksbehandlersSisteReserverteMedStatus(kunAktive).stream().map(w -> w.oppgave().getId()).toList();
+    }
+
     private Oppgave reserverNyOppgave(UUID behandlingId, String saksnummer) {
         var bb = Behandling.builder(Optional.empty())
             .dummyBehandling(AVDELING_DRAMMEN_ENHET, BehandlingTilstand.AKSJONSPUNKT)
