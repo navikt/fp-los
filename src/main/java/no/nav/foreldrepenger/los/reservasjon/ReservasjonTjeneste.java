@@ -6,9 +6,7 @@ import static no.nav.foreldrepenger.los.reservasjon.ReservasjonTidspunktUtil.tom
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,8 +19,6 @@ import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 import no.nav.foreldrepenger.los.felles.util.BrukerIdent;
 import no.nav.foreldrepenger.los.oppgave.AndreKriterierType;
-import no.nav.foreldrepenger.los.oppgave.Behandling;
-import no.nav.foreldrepenger.los.oppgave.BehandlingTilstand;
 import no.nav.foreldrepenger.los.oppgave.Oppgave;
 import no.nav.foreldrepenger.los.oppgave.OppgaveRepository;
 import no.nav.foreldrepenger.los.tjenester.felles.dto.OppgaveBehandlingStatus;
@@ -120,26 +116,19 @@ public class ReservasjonTjeneste {
     }
 
     public List<OppgaveBehandlingStatusWrapper> hentSaksbehandlersSisteReserverteMedStatus(boolean kunAktive) {
-        var sisteReserverteMetadata = reservasjonRepository.hentSisteReserverteMetadata(BrukerIdent.brukerIdent(), kunAktive);
-        var oppgaveIder = sisteReserverteMetadata.stream().map(SisteReserverteMetadata::oppgaveId).toList();
-        var oppgaveListe = oppgaveRepository.hentOppgaverReadOnly(oppgaveIder);
-        var behandlingTilstandMap = oppgaveListe.stream()
-            .map(Oppgave::getBehandling)
-            .collect(Collectors.toSet())
-            .stream()
-            .collect(Collectors.toMap(Behandling::getId, Behandling::getBehandlingTilstand));
-        var oppgaveMap = oppgaveListe.stream().collect(Collectors.toMap(Oppgave::getId, Function.identity()));
-        return sisteReserverteMetadata.stream().map(mr -> {
-            var oppgave = oppgaveMap.get(mr.oppgaveId());
-            var status = mapStatus(oppgave, behandlingTilstandMap);
+        var sorterteOppgaveIder = reservasjonRepository.hentNyesteOppgaveIderForSisteReserverteBehandlinger(BrukerIdent.brukerIdent(), kunAktive);
+        var usorterteOppgaver = oppgaveRepository.hentOppgaverReadOnly(sorterteOppgaveIder);
+        var oppgaveMap = usorterteOppgaver.stream().collect(Collectors.toMap(Oppgave::getId, Function.identity()));
+        return sorterteOppgaveIder.stream().map(oppgaveId -> {
+            var oppgave = oppgaveMap.get(oppgaveId);
+            var status = mapStatus(oppgave);
             return new OppgaveBehandlingStatusWrapper(oppgave, status);
         }).toList();
 
     }
 
-    private static OppgaveBehandlingStatus mapStatus(Oppgave oppgave, Map<UUID, BehandlingTilstand> behandlingTilstandSet) {
-        var behandlingTilstand = behandlingTilstandSet.getOrDefault(oppgave.getBehandling().getId(), BehandlingTilstand.INGEN);
-        return switch (behandlingTilstand) {
+    private static OppgaveBehandlingStatus mapStatus(Oppgave oppgave) {
+        return switch (oppgave.getBehandling().getBehandlingTilstand()) {
             case AKSJONSPUNKT -> {
                 var erReturnertFraBeslutter = oppgave.getOppgaveEgenskaper()
                     .stream()

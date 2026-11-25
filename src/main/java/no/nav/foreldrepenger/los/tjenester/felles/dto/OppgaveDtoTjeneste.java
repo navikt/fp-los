@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,16 +113,11 @@ public class OppgaveDtoTjeneste {
 
     public List<OppgaveDtoMedStatus> getSaksbehandlersSisteReserverteOppgaver(boolean kunAktive) {
         var oppgaverMedStatus = reservasjonTjeneste.hentSaksbehandlersSisteReserverteMedStatus(kunAktive);
+        var statusPerOppgaveId = oppgaverMedStatus.stream()
+            .collect(Collectors.toMap(w -> w.oppgave().getId(), OppgaveBehandlingStatusWrapper::status));
         var oppgaver = oppgaverMedStatus.stream().map(OppgaveBehandlingStatusWrapper::oppgave).toList();
         return lagDtoMedTilgangskontroll(oppgaver).stream()
-            .map(dto -> {
-                var status = oppgaverMedStatus.stream()
-                    .filter(oppgaveStatus -> oppgaveStatus.oppgave().getId().equals(dto.getId()))
-                    .findFirst()
-                    .map(OppgaveBehandlingStatusWrapper::status)
-                    .orElseThrow();
-                return new OppgaveDtoMedStatus(dto, status);
-            })
+            .map(dto -> new OppgaveDtoMedStatus(dto, statusPerOppgaveId.get(dto.getId())))
             .toList();
     }
 
